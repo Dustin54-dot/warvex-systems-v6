@@ -5,17 +5,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#09090c">
-<title>WARVEX SYSTEMS V8.2</title>
+<title>WARVEX SYSTEMS V8.3</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#09090c;color:#fff;font-family:Arial,sans-serif}
 header{background:#101015;padding:17px;border-bottom:1px solid #e32643;position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center}
-.logo{font-size:20px;font-weight:bold;letter-spacing:2px}
+.logo{font-size:19px;font-weight:bold;letter-spacing:2px}
 .red{color:#ed263d}
 .status{font-size:11px;color:#55df91}
-nav{display:flex;gap:7px;overflow-x:auto;padding:10px;background:#15151b;position:sticky;top:57px;z-index:4}
+nav{display:flex;gap:7px;overflow-x:auto;padding:10px;background:#15151b;position:sticky;top:55px;z-index:4}
 button{background:#e32643;color:white;border:0;border-radius:8px;padding:12px 15px;font-weight:bold;cursor:pointer}
-button:disabled{opacity:.5;cursor:wait}
+button:disabled{opacity:.5}
 button:active{opacity:.7}
 nav button{background:#29232b;white-space:nowrap}
 nav button.active{background:#e32643}
@@ -38,10 +38,10 @@ textarea{min-height:110px;resize:vertical}
 .small{font-size:12px;color:#999}
 .stat{font-size:25px;color:#ed354d;font-weight:bold}
 #toast{display:none;position:fixed;bottom:18px;left:5%;width:90%;padding:14px;background:#27232b;border:1px solid #ed263d;border-radius:10px;text-align:center;z-index:20}
-pre{white-space:pre-wrap;overflow-wrap:anywhere}
-iframe{width:100%;height:250px;background:white;border:0;border-radius:8px}
+#chat{max-height:350px;overflow-y:auto}
 .progress{height:8px;background:#292932;border-radius:10px;overflow:hidden;margin:12px 0}
 #progressBar{height:100%;width:0;background:#ed263d;transition:width .3s}
+iframe{width:100%;height:250px;background:white;border:0;border-radius:8px}
 </style>
 </head>
 <body>
@@ -52,14 +52,14 @@ iframe{width:100%;height:250px;background:white;border:0;border-radius:8px}
 </header>
 
 <nav>
- <button class="active" data-view="core" onclick="openModule('core',this)">CORE</button>
- <button data-view="voice" onclick="openModule('voice',this)">VOICE</button>
- <button data-view="agent" onclick="openModule('agent',this)">AGENT</button>
- <button data-view="life" onclick="openModule('life',this)">LIFE</button>
- <button data-view="home" onclick="openModule('home',this)">HOME</button>
- <button data-view="memory" onclick="openModule('memory',this)">MEMORY</button>
- <button data-view="programmer" onclick="openModule('programmer',this)">CODE</button>
- <button data-view="settings" onclick="openModule('settings',this)">SYSTEM</button>
+ <button class="active" onclick="openModule('core',this)">CORE</button>
+ <button onclick="openModule('voice',this)">VOICE</button>
+ <button onclick="openModule('agent',this)">AGENT</button>
+ <button onclick="openModule('life',this)">LIFE</button>
+ <button onclick="openModule('home',this)">HOME</button>
+ <button onclick="openModule('memory',this)">MEMORY</button>
+ <button onclick="openModule('programmer',this)">CODE</button>
+ <button onclick="openModule('settings',this)">SYSTEM</button>
 </nav>
 
 <main>
@@ -100,7 +100,7 @@ iframe{width:100%;height:250px;background:white;border:0;border-radius:8px}
   <button class="secondary" id="wakeButton" onclick="toggleWake()">HEY WARVEX AKTIVIEREN</button>
   <p id="voiceStatus">Sprachsteuerung: Aus</p>
   <button class="secondary" onclick="speakText('Hallo. WARVEX ist bereit.')">SPRACHAUSGABE TESTEN</button>
-  <p class="small">Die Sprachausgabe verwendet die deutsche Stimme deines Geräts. Eine echte Alexa-Stimme ist damit nicht garantiert.</p>
+  <p class="small">Die Stimme kommt vom Gerät. Dauerhaftes Zuhören bei ausgeschaltetem Bildschirm wird von dieser Webseite nicht unterstützt.</p>
  </div>
 </section>
 
@@ -172,10 +172,10 @@ iframe{width:100%;height:250px;background:white;border:0;border-radius:8px}
 <section id="settings" class="view">
  <div class="card">
   <h2>SYSTEM INFORMATION</h2>
-  <div class="item"><span>Version</span><b>V8.2</b></div>
+  <div class="item"><span>Version</span><b>V8.3</b></div>
   <div class="item"><span>KI</span><b id="modelInfo">NICHT GELADEN</b></div>
   <div class="item"><span>Speicher</span><b>LOCAL STORAGE</b></div>
-  <div class="item"><span>JavaScript</span><b id="jsStatus">WIRD GEPRÜFT</b></div>
+  <div class="item"><span>JavaScript</span><b id="jsStatus">AKTIV</b></div>
   <button onclick="checkSystem()">SYSTEMTEST</button>
   <button class="secondary" onclick="clearAllData()">LOKALE DATEN LÖSCHEN</button>
   <p class="small">Das Löschen entfernt Chat, Aufgaben und Notizen auf diesem Gerät.</p>
@@ -188,7 +188,6 @@ iframe{width:100%;height:250px;background:white;border:0;border-radius:8px}
 <script>
 "use strict";
 
-/* WARVEX BASIS */
 const $ = id => document.getElementById(id);
 
 function notify(message){
@@ -205,8 +204,7 @@ function openModule(name,button){
  if(!target){notify("Bereich nicht gefunden.");return;}
  target.classList.add("active");
  document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
- const navButton=button||document.querySelector('nav button[data-view="'+name+'"]');
- if(navButton)navButton.classList.add("active");
+ if(button)button.classList.add("active");
  window.scrollTo({top:0,behavior:"smooth"});
 }
 
@@ -225,24 +223,30 @@ function getData(key,fallback){
   return value===null?fallback:JSON.parse(value);
  }catch(e){return fallback;}
 }
+
 function saveData(key,value){
- try{localStorage.setItem(key,JSON.stringify(value));return true;}
- catch(e){notify("Speichern nicht möglich.");return false;}
+ try{
+  localStorage.setItem(key,JSON.stringify(value));
+  return true;
+ }catch(e){
+  notify("Speichern nicht möglich.");
+  return false;
+ }
 }
 
-/* ECHTE LOKALE KI - WEBLLM */
+/* LOKALE KI */
 const MODEL_ID="SmolLM2-1.7B-Instruct-q4f16_1-MLC";
 let engine=null;
 let loadingAI=false;
 let aiReady=false;
 
 async function loadAI(){
- if(aiReady){notify("WARVEX-KI ist bereits geladen.");return;}
+ if(aiReady){notify("KI ist bereits geladen.");return;}
  if(loadingAI)return;
 
  if(!navigator.gpu){
-  $("aiStatus").textContent="WebGPU wird von diesem Browser nicht unterstützt.";
-  $("progressText").textContent="Bitte prüfe Chrome und die WebGPU-Unterstützung.";
+  $("aiStatus").textContent="WebGPU wird nicht unterstützt.";
+  $("progressText").textContent="Bitte prüfe die WebGPU-Unterstützung deines Browsers.";
   notify("WebGPU nicht verfügbar.");
   return;
  }
@@ -250,23 +254,16 @@ async function loadAI(){
  loadingAI=true;
  $("loadButton").disabled=true;
  $("loadButton").textContent="KI WIRD GELADEN...";
- $("aiStatus").textContent="WARVEX verbindet sich mit WebLLM...";
- $("progressText").textContent="Bibliothek wird geladen...";
+ $("aiStatus").textContent="WebLLM wird gestartet...";
  $("topStatus").textContent="● KI STARTET";
 
  try{
   const webllm=await import("https://esm.run/@mlc-ai/web-llm");
-
-  $("progressText").textContent="SmolLM2 wird vorbereitet...";
-
   engine=await webllm.CreateMLCEngine(MODEL_ID,{
    initProgressCallback:(progress)=>{
-    const text=progress.text||"Modell wird geladen...";
-    const match=text.match(/(\d+(?:\.\d+)?)%/);
-    if(match){
-     $("progressBar").style.width=Math.min(100,Number(match[1]))+"%";
-    }
-    $("progressText").textContent=text;
+    $("progressText").textContent=progress.text||"Modell wird geladen...";
+    const match=(progress.text||"").match(/(\d+(?:\.\d+)?)%/);
+    if(match)$("progressBar").style.width=Math.min(100,Number(match[1]))+"%";
    }
   });
 
@@ -277,9 +274,8 @@ async function loadAI(){
   $("loadButton").textContent="KI BEREIT";
   $("modelInfo").textContent="SMOLLM2 BEREIT";
   $("topStatus").textContent="● KI ONLINE";
-  $("systemStatus").textContent="WARVEX V8.2 mit lokaler KI gestartet.";
-
-  notify("WARVEX-KI erfolgreich verbunden!");
+  $("systemStatus").textContent="WARVEX V8.3 gestartet.";
+  notify("KI erfolgreich geladen!");
   addMessage("WARVEX-KI ist jetzt verbunden. Was möchtest du wissen?","ai");
 
  }catch(error){
@@ -290,7 +286,7 @@ async function loadAI(){
   $("progressText").textContent="Fehler: "+(error.message||String(error));
   $("loadButton").textContent="ERNEUT VERSUCHEN";
   $("modelInfo").textContent="LADEFEHLER";
-  $("topStatus").textContent="● OFFLINE";
+  $("topStatus").textContent="● ONLINE";
   notify("KI-Ladefehler. Details stehen im Status.");
  }finally{
   loadingAI=false;
@@ -301,42 +297,32 @@ async function loadAI(){
 const SYSTEM_PROMPT=`
 Du bist WARVEX, ein hilfreicher deutschsprachiger KI-Assistent.
 Dein Name ist WARVEX SYSTEMS.
-Antworte verständlich, freundlich und möglichst direkt.
+Antworte verständlich, freundlich und direkt.
 Du kannst erklären, Ideen entwickeln, Texte schreiben und Programmiercode erstellen.
 Erfinde keine Funktionen, die du nicht wirklich ausführen kannst.
-Du kannst die lokale Uhrzeit und das Datum aus dem folgenden Kontext verwenden.
-Wenn du etwas nicht weißt, sage es ehrlich.
 Antworte normalerweise auf Deutsch.
 `;
 
-function getAIHistory(){
- return messages
-  .filter(m=>m.type==="user"||m.type==="ai")
-  .slice(-12)
-  .map(m=>({
-   role:m.type==="user"?"user":"assistant",
-   content:m.text
-  }));
-}
-
-async function askAI(text,extraSystem=""){
- if(!aiReady||!engine){
-  throw new Error("Die KI ist noch nicht geladen. Tippe zuerst auf KI LADEN.");
- }
+async function askAI(prompt,extraSystem=""){
+ if(!aiReady||!engine)throw new Error("Bitte zuerst KI LADEN.");
 
  const now=new Date();
- const context=SYSTEM_PROMPT+
- "\nAktuelle lokale Zeit: "+now.toLocaleString("de-DE")+
- "\n"+extraSystem;
+ const messages=[
+  {role:"system",content:SYSTEM_PROMPT+
+   "\nAktuelle lokale Zeit: "+now.toLocaleString("de-DE")+
+   "\n"+extraSystem}
+ ];
 
- const history=getAIHistory();
- history.push({role:"user",content:text});
+ const history=chatMessages.slice(-12);
+ history.forEach(m=>{
+  if(m.type==="user")messages.push({role:"user",content:m.text});
+  if(m.type==="ai")messages.push({role:"assistant",content:m.text});
+ });
+
+ messages.push({role:"user",content:prompt});
 
  const result=await engine.chat.completions.create({
-  messages:[
-   {role:"system",content:context},
-   ...history
-  ],
+  messages,
   temperature:0.7,
   max_tokens:900
  });
@@ -347,7 +333,7 @@ async function askAI(text,extraSystem=""){
 }
 
 /* CHAT */
-let messages=getData("warvex_chat",[]);
+let chatMessages=getData("warvex_chat",[]);
 
 function addMessage(text,type,save=true){
  const div=document.createElement("div");
@@ -357,14 +343,14 @@ function addMessage(text,type,save=true){
  $("chat").scrollTop=$("chat").scrollHeight;
 
  if(save){
-  messages.push({text,type});
-  if(messages.length>100)messages=messages.slice(-100);
-  saveData("warvex_chat",messages);
+  chatMessages.push({text,type});
+  if(chatMessages.length>100)chatMessages=chatMessages.slice(-100);
+  saveData("warvex_chat",chatMessages);
  }
 }
 
 function restoreChat(){
- messages.forEach(m=>{
+ chatMessages.forEach(m=>{
   const d=document.createElement("div");
   d.className="message "+m.type;
   d.textContent=m.text;
@@ -377,11 +363,7 @@ async function sendMessage(){
  const input=$("userInput");
  const text=input.value.trim();
  if(!text)return;
-
- if(!aiReady){
-  notify("Bitte zuerst KI LADEN.");
-  return;
- }
+ if(!aiReady){notify("Bitte zuerst KI LADEN.");return;}
 
  addMessage(text,"user");
  input.value="";
@@ -401,25 +383,17 @@ async function sendMessage(){
 
 function clearChat(){
  if(!confirm("Chatverlauf wirklich löschen?"))return;
- messages=[];
- saveData("warvex_chat",messages);
+ chatMessages=[];
+ saveData("warvex_chat",chatMessages);
  $("chat").innerHTML="";
  addMessage("WARVEX CHAT BEREIT.","ai");
  notify("Chat gelöscht.");
 }
 
-/* SPRACHE UND SPRACHAUSGABE */
+/* SPRACHE */
 let recognition=null;
 let wakeEnabled=false;
-let voiceMode=false;
 let voiceBusy=false;
-
-function getGermanVoice(){
- if(!("speechSynthesis" in window))return null;
- const voices=window.speechSynthesis.getVoices();
- return voices.find(v=>v.lang==="de-DE")||
-        voices.find(v=>v.lang&&v.lang.startsWith("de"))||null;
-}
 
 function speakText(text){
  if(!("speechSynthesis" in window)){
@@ -430,24 +404,24 @@ function speakText(text){
  const msg=new SpeechSynthesisUtterance(text);
  msg.lang="de-DE";
  msg.rate=0.96;
- msg.pitch=1.0;
- const voice=getGermanVoice();
- if(voice)msg.voice=voice;
+ msg.pitch=1;
+ const voices=window.speechSynthesis.getVoices();
+ const german=voices.find(v=>v.lang==="de-DE")||
+  voices.find(v=>v.lang&&v.lang.startsWith("de"));
+ if(german)msg.voice=german;
  window.speechSynthesis.speak(msg);
 }
 
 async function processVoiceText(text){
- if(!text.trim())return;
-
+ if(!text.trim()||voiceBusy)return;
  if(!aiReady){
   speakText("Bitte lade zuerst meine künstliche Intelligenz.");
-  notify("KI zuerst laden.");
   return;
  }
 
+ voiceBusy=true;
  openModule("core");
  addMessage(text,"user");
- voiceBusy=true;
 
  try{
   const answer=await askAI(text);
@@ -455,7 +429,7 @@ async function processVoiceText(text){
   speakText(answer);
  }catch(error){
   addMessage("Sprachfehler: "+error.message,"ai");
-  speakText("Es gab einen Fehler. Bitte versuche es erneut.");
+  speakText("Es gab einen Fehler.");
  }finally{
   voiceBusy=false;
  }
@@ -463,43 +437,30 @@ async function processVoiceText(text){
 
 function startVoiceChat(){
  const API=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!API){
-  notify("Dieser Browser unterstützt keine Spracherkennung.");
-  $("voiceStatus").textContent="Spracherkennung nicht unterstützt.";
-  return;
- }
-
- if(!aiReady){
-  notify("Bitte zuerst KI LADEN.");
-  return;
- }
+ if(!API){notify("Spracherkennung nicht unterstützt.");return;}
+ if(!aiReady){notify("Bitte zuerst KI LADEN.");return;}
 
  try{
   if(recognition){try{recognition.stop();}catch(e){}}
   wakeEnabled=false;
-  voiceMode=true;
   recognition=new API();
   recognition.lang="de-DE";
   recognition.continuous=false;
   recognition.interimResults=false;
-
   $("voiceStatus").textContent="Ich höre zu. Sprich jetzt...";
-  recognition.onresult=async event=>{
+  recognition.onresult=event=>{
    const text=event.results[0][0].transcript.trim();
    $("voiceStatus").textContent="Verstanden: "+text;
-   await processVoiceText(text);
+   processVoiceText(text);
   };
   recognition.onerror=event=>{
    $("voiceStatus").textContent="Sprachfehler: "+event.error;
-   voiceMode=false;
   };
   recognition.onend=()=>{
-   voiceMode=false;
    if(!wakeEnabled)$("voiceStatus").textContent="Sprachchat beendet.";
   };
   recognition.start();
  }catch(error){
-  voiceMode=false;
   $("voiceStatus").textContent="Startfehler: "+error.message;
  }
 }
@@ -507,7 +468,6 @@ function startVoiceChat(){
 function toggleWake(){
  if(wakeEnabled){
   wakeEnabled=false;
-  voiceMode=false;
   if(recognition){try{recognition.stop();}catch(e){}}
   $("wakeButton").textContent="HEY WARVEX AKTIVIEREN";
   $("voiceStatus").textContent="Sprachsteuerung: Aus";
@@ -519,16 +479,8 @@ function toggleWake(){
 
 function startWake(){
  const API=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!API){
-  $("voiceStatus").textContent="Spracherkennung nicht unterstützt.";
-  notify("Browser unterstützt keine Spracherkennung.");
-  return;
- }
- if(!aiReady){
-  notify("Bitte zuerst KI LADEN.");
-  return;
- }
- if(voiceMode)return;
+ if(!API){notify("Spracherkennung nicht unterstützt.");return;}
+ if(!aiReady){notify("Bitte zuerst KI LADEN.");return;}
 
  wakeEnabled=true;
  $("wakeButton").textContent="HEY WARVEX DEAKTIVIEREN";
@@ -543,26 +495,14 @@ function startWake(){
    $("voiceStatus").textContent="Mikrofon aktiv – sage Hey WARVEX.";
   };
 
-  recognition.onresult=async event=>{
+  recognition.onresult=event=>{
    for(let i=event.resultIndex;i<event.results.length;i++){
     if(!event.results[i].isFinal||voiceBusy)continue;
-
     const words=event.results[i][0].transcript.trim();
-    const lower=words.toLowerCase();
-    const hasWake=lower.includes("hey warvex")||lower.includes("hey war vex");
-
-    if(hasWake){
-     const command=words
-      .replace(/hey\s*war\s*vex/i,"")
-      .replace(/hey\s*warvex/i,"")
-      .trim();
-
-     if(command){
-      await processVoiceText(command);
-     }else{
-      speakText("Ja, ich höre. Was möchtest du wissen?");
-      $("voiceStatus").textContent="WARVEX hört zu.";
-     }
+    if(/hey\s*war\s*vex|hey\s*warvex/i.test(words)){
+     const command=words.replace(/hey\s*war\s*vex|hey\s*warvex/i,"").trim();
+     if(command)processVoiceText(command);
+     else speakText("Ja, ich höre. Was möchtest du wissen?");
     }
    }
   };
@@ -579,12 +519,10 @@ function startWake(){
    if(wakeEnabled){
     $("voiceStatus").textContent="Verbinde Spracherkennung erneut...";
     setTimeout(()=>{
-     if(wakeEnabled){
+     if(wakeEnabled&&recognition){
       try{recognition.start();}catch(e){}
      }
     },1200);
-   }else{
-    $("voiceStatus").textContent="Sprachsteuerung: Aus";
    }
   };
 
@@ -602,9 +540,11 @@ let tasks=getData("warvex_tasks",[]);
 function renderTasks(){
  const list=$("taskList");
  list.innerHTML="";
+
  tasks.forEach((task,index)=>{
   const item=document.createElement("div");
   item.className="item";
+
   const label=document.createElement("span");
   label.textContent=(task.done?"✓ ":"○ ")+task.text;
   if(task.done)label.style.textDecoration="line-through";
@@ -639,10 +579,75 @@ function addTask(){
  renderTasks();
  notify("Aufgabe erstellt.");
 }
+
 function toggleTask(i){
+ if(!tasks[i])return;
  tasks[i].done=!tasks[i].done;
  saveData("warvex_tasks",tasks);
  renderTasks();
 }
+
 function deleteTask(i){
- tasks
+ tasks.splice(i,1);
+ saveData("warvex_tasks",tasks);
+ renderTasks();
+ notify("Aufgabe gelöscht.");
+}
+
+/* SMART HOME DEMO */
+let devices=getData("warvex_devices",{light:false,heat:false});
+
+function toggleDevice(name){
+ devices[name]=!devices[name];
+ saveData("warvex_devices",devices);
+ renderDevices();
+ notify("Status geändert.");
+}
+
+function renderDevices(){
+ $("lightStatus").textContent=devices.light?"AN":"AUS";
+ $("heatStatus").textContent=devices.heat?"AN":"AUS";
+}
+renderDevices();
+
+/* NOTIZEN */
+let notes=getData("warvex_notes",[]);
+
+function renderNotes(){
+ const list=$("memoryList");
+ list.innerHTML="";
+ notes.forEach((note,index)=>{
+  const item=document.createElement("div");
+  item.className="item";
+  const text=document.createElement("span");
+  text.textContent=note;
+  const del=document.createElement("button");
+  del.className="secondary";
+  del.textContent="LÖSCHEN";
+  del.onclick=()=>deleteNote(index);
+  item.append(text,del);
+  list.appendChild(item);
+ });
+}
+
+function saveMemory(){
+ const input=$("memoryInput");
+ const text=input.value.trim();
+ if(!text){notify("Bitte eine Notiz eingeben.");return;}
+ notes.push(text);
+ saveData("warvex_notes",notes);
+ input.value="";
+ renderNotes();
+ notify("Notiz gespeichert.");
+}
+
+function deleteNote(index){
+ notes.splice(index,1);
+ saveData("warvex_notes",notes);
+ renderNotes();
+}
+renderNotes();
+
+/* PROGRAMMER */
+async function generateCode(){
+ const requ
