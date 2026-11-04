@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#09090c">
-<title>WARVEX SYSTEMS V8.4</title>
+<title>WARVEX SYSTEMS V8.5</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#09090c;color:#eee;font-family:Arial,sans-serif}
@@ -85,7 +85,7 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#09090e;padding:12px;
  <button class="full" onclick="startVoiceChat()">SPRACHCHAT STARTEN</button>
  <button class="full secondary" onclick="toggleWake()" id="wakeButton">HEY WARVEX AKTIVIEREN</button>
  <p id="voiceStatus" class="small">Sprachsteuerung: Aus</p>
- <p class="small">Hinweis: Mikrofon und Spracherkennung benötigen Browser-Berechtigungen. Der Bildschirm muss für die Wake-Word-Funktion eingeschaltet und die Seite geöffnet bleiben.</p>
+ <p class="small">Mikrofon und Spracherkennung benötigen Browser-Berechtigungen. Der Bildschirm muss für die Wake-Word-Funktion eingeschaltet und die Seite geöffnet bleiben.</p>
  <button class="full secondary" onclick="speakText('Hallo! Ich bin WARVEX.')">STIMME TESTEN</button>
 </section>
 
@@ -128,7 +128,7 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#09090e;padding:12px;
 
 <section class="panel" id="system">
  <h2>SYSTEM INFORMATION</h2>
- <div class="item"><span>Version</span><b>V8.4</b></div>
+ <div class="item"><span>Version</span><b>V8.5</b></div>
  <div class="item"><span>KI</span><b id="systemAI">Nicht geladen</b></div>
  <div class="item"><span>Speicher</span><b>Browser lokal</b></div>
  <div class="item"><span>Uhr</span><b id="systemClock">Aktiv</b></div>
@@ -217,7 +217,7 @@ async function loadAI(){
   const webllm=await import("https://esm.run/@mlc-ai/web-llm");
 
   engine=await webllm.CreateMLCEngine(
-   "SmolLM2-1.7B-Instruct-q4f16_1-MLC",
+   "Qwen2.5-0.5B-Instruct-q4f16_1-MLC",
    {
     initProgressCallback:(progress)=>{
      const text=progress.text||"KI lädt...";
@@ -247,7 +247,7 @@ async function askAI(prompt){
 
  const history=chatMessages
   .filter(m=>m.type==="user"||m.type==="ai")
-  .slice(-12)
+  .slice(-6)
   .map(m=>({
    role:m.type==="user"?"user":"assistant",
    content:m.text
@@ -261,7 +261,7 @@ async function askAI(prompt){
  const result=await engine.chat.completions.create({
   messages,
   temperature:0.7,
-  max_tokens:450
+  max_tokens:220
  });
 
  return result.choices[0].message.content||"Ich habe gerade keine Antwort.";
