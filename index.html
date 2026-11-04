@@ -24,7 +24,6 @@ main{padding:14px;max-width:850px;margin:auto}
 .panel.active{display:block}
 .card{background:#17171f;border:1px solid #30303b;border-radius:13px;padding:15px;margin-bottom:13px}
 h2{font-size:19px;margin:0 0 13px}
-h3{font-size:15px;margin:0 0 10px}
 p{color:#bbb;line-height:1.5}
 .clock{text-align:center;font-size:42px;font-weight:bold;padding:18px 0}
 .date{text-align:center;color:#aaa}
@@ -79,21 +78,21 @@ footer{text-align:center;color:#777;font-size:11px;padding:25px}
  <div class="card">
   <h2>Systemstatus</h2>
   <p id="deviceStatus">Browser wird geprüft...</p>
-  <p class="small">Die Smart-Home-Schalter sind derzeit nur eine Demo und steuern keine echten Geräte.</p>
+  <p class="small">Smart-Home-Schalter sind derzeit eine Demo und steuern keine echten Geräte.</p>
  </div>
 </section>
 
 <section class="panel" id="ai">
  <div class="card">
   <h2>Lokale KI</h2>
-  <p>Das Modell wird erst geladen, wenn du es startest. Dafür werden WebGPU und ausreichend freier Arbeitsspeicher benötigt.</p>
+  <p>Das Modell benötigt WebGPU und ausreichend freien Arbeitsspeicher. Der erste Download kann groß sein.</p>
   <button id="loadAI">LOKALE KI LADEN</button>
   <div id="progress">KI noch nicht geladen.</div>
  </div>
  <div class="card">
   <h2>Chat</h2>
   <div id="chatMessages">
-   <div class="message ai">Hallo! Ich bin WARVEX. Du kannst mir schreiben. Für Antworten mit dem KI-Modell lade zuerst die lokale KI.</div>
+   <div class="message ai">Hallo! Ich bin WARVEX. Lade zuerst die lokale KI für intelligente Antworten.</div>
   </div>
   <textarea id="userInput" placeholder="Schreibe WARVEX eine Nachricht..."></textarea>
   <div class="actions">
@@ -106,7 +105,7 @@ footer{text-align:center;color:#777;font-size:11px;padding:25px}
 <section class="panel" id="voice">
  <div class="card">
   <h2>Sprachchat</h2>
-  <p>Die Spracherkennung hängt von Chrome und dessen Sprachdienst ab. Die Sprachausgabe verwendet eine auf deinem Android-Gerät verfügbare deutsche Stimme.</p>
+  <p>Die Spracherkennung hängt von Chrome und dessen Sprachdienst ab. Die Sprachausgabe nutzt eine deutsche Stimme deines Android-Geräts.</p>
   <p id="voiceStatus">Sprachchat bereit.</p>
   <p class="small" id="voiceDetail">Lade zuerst die lokale KI und erlaube den Mikrofonzugriff.</p>
   <div class="actions">
@@ -115,7 +114,7 @@ footer{text-align:center;color:#777;font-size:11px;padding:25px}
   </div>
   <div style="height:10px"></div>
   <button class="secondary" id="testVoice">STIMME TESTEN</button>
-  <p class="small">„Hey WARVEX“ ist kein dauerhaftes Hintergrund-Wake-Word. Die Webseite muss geöffnet bleiben.</p>
+  <p class="small">Die Webseite muss geöffnet bleiben. Das ist kein Hintergrund-Wake-Word.</p>
  </div>
 </section>
 
@@ -167,9 +166,9 @@ footer{text-align:center;color:#777;font-size:11px;padding:25px}
 <script type="module">
 "use strict";
 
-const $ = id => document.getElementById(id);
+const $=id=>document.getElementById(id);
 
-const storage = {
+const storage={
  get(key,fallback){
   try{
    const value=localStorage.getItem(key);
@@ -184,7 +183,9 @@ const storage = {
 
 function notify(message){
  $("systemStatus").textContent=message;
- setTimeout(()=>{$("systemStatus").textContent="SYSTEM BEREIT";},3500);
+ setTimeout(()=>{
+  $("systemStatus").textContent="SYSTEM BEREIT";
+ },3500);
 }
 
 /* NAVIGATION */
@@ -200,9 +201,7 @@ function showTab(name){
 
 document.addEventListener("click",event=>{
  const tab=event.target.closest("[data-tab]");
- if(tab){
-  showTab(tab.dataset.tab);
- }
+ if(tab)showTab(tab.dataset.tab);
 });
 
 /* UHR */
@@ -266,7 +265,6 @@ async function loadAI(){
   $("loadAI").disabled=false;
  }
 }
-
 $("loadAI").addEventListener("click",loadAI);
 
 /* CHAT */
@@ -306,7 +304,6 @@ async function askAI(prompt){
   temperature:0.7,
   max_tokens:400
  });
-
  return result.choices?.[0]?.message?.content||"Ich habe gerade keine Antwort.";
 }
 
@@ -328,7 +325,6 @@ async function sendMessage(){
  }
 
  $("sendMessage").disabled=true;
-
  try{
   const answer=await askAI(prompt);
   addMessage(answer,"ai");
@@ -342,14 +338,12 @@ async function sendMessage(){
 }
 
 $("sendMessage").addEventListener("click",sendMessage);
-
 $("userInput").addEventListener("keydown",e=>{
  if(e.key==="Enter"&&!e.shiftKey){
   e.preventDefault();
   sendMessage();
  }
 });
-
 $("clearChat").addEventListener("click",()=>{
  chat=[];
  storage.set("warvex_chat",chat);
@@ -361,18 +355,15 @@ let tasks=storage.get("warvex_tasks",[]);
 
 function renderTasks(){
  $("taskList").innerHTML="";
-
  tasks.forEach((task,index)=>{
   const item=document.createElement("div");
   item.className="item";
-
   const label=document.createElement("span");
   label.textContent=(task.done?"✓ ":"○ ")+task.text;
 
   const done=document.createElement("button");
   done.className="secondary";
   done.textContent=task.done?"ZURÜCK":"ERLEDIGT";
-
   done.addEventListener("click",()=>{
    tasks[index].done=!tasks[index].done;
    storage.set("warvex_tasks",tasks);
@@ -382,7 +373,6 @@ function renderTasks(){
   const del=document.createElement("button");
   del.className="secondary";
   del.textContent="X";
-
   del.addEventListener("click",()=>{
    tasks.splice(index,1);
    storage.set("warvex_tasks",tasks);
@@ -400,18 +390,12 @@ function renderTasks(){
 
 $("addTask").addEventListener("click",()=>{
  const value=$("taskInput").value.trim();
-
- if(!value){
-  notify("Bitte Aufgabe eingeben.");
-  return;
- }
-
+ if(!value){notify("Bitte Aufgabe eingeben.");return;}
  tasks.push({text:value,done:false});
  storage.set("warvex_tasks",tasks);
  $("taskInput").value="";
  renderTasks();
 });
-
 renderTasks();
 
 /* SMART HOME DEMO */
@@ -421,19 +405,16 @@ function renderDevices(){
  $("lightStatus").textContent=devices.light?"AN":"AUS";
  $("heatStatus").textContent=devices.heat?"AN":"AUS";
 }
-
 $("toggleLight").addEventListener("click",()=>{
  devices.light=!devices.light;
  storage.set("warvex_devices",devices);
  renderDevices();
 });
-
 $("toggleHeat").addEventListener("click",()=>{
  devices.heat=!devices.heat;
  storage.set("warvex_devices",devices);
  renderDevices();
 });
-
 renderDevices();
 
 /* NOTIZEN */
@@ -441,24 +422,19 @@ let notes=storage.get("warvex_notes",[]);
 
 function renderNotes(){
  $("memoryList").innerHTML="";
-
  notes.forEach((note,index)=>{
   const item=document.createElement("div");
   item.className="item";
-
   const label=document.createElement("span");
   label.textContent=note;
-
   const del=document.createElement("button");
   del.className="secondary";
   del.textContent="LÖSCHEN";
-
   del.addEventListener("click",()=>{
    notes.splice(index,1);
    storage.set("warvex_notes",notes);
    renderNotes();
   });
-
   item.append(label,del);
   $("memoryList").appendChild(item);
  });
@@ -466,33 +442,21 @@ function renderNotes(){
 
 $("saveMemory").addEventListener("click",()=>{
  const value=$("memoryInput").value.trim();
-
- if(!value){
-  notify("Bitte Notiz eingeben.");
-  return;
- }
-
+ if(!value){notify("Bitte Notiz eingeben.");return;}
  notes.push(value);
  storage.set("warvex_notes",notes);
  $("memoryInput").value="";
  renderNotes();
 });
-
 renderNotes();
 
 /* PROGRAMMIERHILFE */
 $("generateCode").addEventListener("click",()=>{
  const prompt=$("codePrompt").value.trim();
-
- if(!prompt){
-  notify("Bitte erst beschreiben, was du brauchst.");
-  return;
- }
-
+ if(!prompt){notify("Bitte erst beschreiben, was du brauchst.");return;}
  const safe=prompt.replace(/[&<>"]/g,c=>({
   "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"
  }[c]));
-
  $("codeOutput").textContent=
   "<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n"+
   "<meta charset=\"UTF-8\">\n<title>Meine Seite</title>\n"+
@@ -517,14 +481,12 @@ function recognitionAPI(){
 
 function stopRecognition(){
  clearTimeout(restartTimer);
-
  if(recognition){
   const old=recognition;
   recognition=null;
   old.onresult=null;
   old.onerror=null;
   old.onend=null;
-
   try{old.abort();}catch(e){}
  }
 }
@@ -534,11 +496,7 @@ function stopVoice(){
  voiceBusy=false;
  wakeArmed=false;
  stopRecognition();
-
- if("speechSynthesis" in window){
-  speechSynthesis.cancel();
- }
-
+ if("speechSynthesis" in window)speechSynthesis.cancel();
  $("voiceButton").textContent="SPRACHCHAT STARTEN";
  $("wakeButton").textContent="HEY WARVEX";
  voiceStatus("Sprachchat beendet.");
@@ -546,32 +504,20 @@ function stopVoice(){
 
 function speak(text){
  return new Promise(resolve=>{
-  if(!("speechSynthesis" in window)){
-   resolve();
-   return;
-  }
-
+  if(!("speechSynthesis" in window)){resolve();return;}
   speechSynthesis.cancel();
-
   const utterance=new SpeechSynthesisUtterance(text);
   utterance.lang="de-DE";
   utterance.rate=1;
-
   const voices=speechSynthesis.getVoices();
   const german=voices.find(v=>v.lang==="de-DE")||
    voices.find(v=>v.lang.startsWith("de"));
-
   if(german)utterance.voice=german;
 
   let finished=false;
-
   const done=()=>{
-   if(!finished){
-    finished=true;
-    resolve();
-   }
+   if(!finished){finished=true;resolve();}
   };
-
   utterance.onend=done;
   utterance.onerror=done;
   speechSynthesis.speak(utterance);
@@ -585,7 +531,6 @@ $("testVoice").addEventListener("click",()=>{
 
 function scheduleListening(){
  clearTimeout(restartTimer);
-
  if(voiceMode!=="off"&&!voiceBusy){
   restartTimer=setTimeout(startListening,1000);
  }
@@ -593,20 +538,16 @@ function scheduleListening(){
 
 function startListening(){
  if(voiceMode==="off"||voiceBusy||recognition)return;
-
  const API=recognitionAPI();
 
  if(!API){
-  voiceStatus(
-   "Spracherkennung nicht verfügbar.",
-   "Bitte Chrome verwenden und Mikrofonberechtigung prüfen."
-  );
+  voiceStatus("Spracherkennung nicht verfügbar.",
+   "Bitte Chrome verwenden und Mikrofonberechtigung prüfen.");
   stopVoice();
   return;
  }
 
  let rec;
-
  try{
   rec=new API();
   recognition=rec;
@@ -622,18 +563,13 @@ function startListening(){
  }
 
  const mode=voiceMode;
-
  rec.onstart=()=>{
-  voiceStatus(
-   mode==="wake"?"Warte auf Hey WARVEX.":"Ich höre zu...",
-   "Mikrofon aktiv. Sprich jetzt."
-  );
+  voiceStatus(mode==="wake"?"Warte auf Hey WARVEX.":"Ich höre zu...",
+   "Mikrofon aktiv. Sprich jetzt.");
  };
-
  rec.onaudiostart=()=>{
   voiceStatus("Mikrofon aktiv","Warte auf deine Sprache...");
  };
-
  rec.onspeechstart=()=>{
   voiceStatus("Sprache erkannt","Ich höre dir zu...");
  };
@@ -641,26 +577,19 @@ function startListening(){
  rec.onresult=event=>{
   let interim="";
   let finalText="";
-
   for(let i=event.resultIndex;i<event.results.length;i++){
    const result=event.results[i];
    const phrase=result[0]?.transcript?.trim()||"";
-
-   if(result.isFinal){
-    finalText+=(phrase+" ");
-   }else{
-    interim+=(phrase+" ");
-   }
+   if(result.isFinal)finalText+=(phrase+" ");
+   else interim+=(phrase+" ");
   }
 
   if(interim.trim()){
    voiceStatus("Ich höre: "+interim.trim(),"Erkennung läuft...");
   }
-
   if(!finalText.trim())return;
 
   const phrase=finalText.trim();
-
   voiceStatus("Erkannt: "+phrase,"Verarbeite deine Nachricht...");
 
   if(mode==="wake"){
@@ -669,17 +598,14 @@ function startListening(){
     processVoice(phrase);
     return;
    }
-
    if(/hey\s*war\s*vex|hey\s*warvex/i.test(phrase)){
     const command=phrase.replace(/hey\s*war\s*vex|hey\s*warvex/i,"").trim();
-
     if(command){
      processVoice(command);
     }else{
      wakeArmed=true;
      voiceBusy=true;
      stopRecognition();
-
      speak("Ja, ich höre. Was möchtest du wissen?").then(()=>{
       voiceBusy=false;
       if(voiceMode!=="off")scheduleListening();
@@ -688,10 +614,8 @@ function startListening(){
    }else{
     voiceStatus("Warte auf Hey WARVEX.","Erkannt: "+phrase);
    }
-
    return;
   }
-
   processVoice(phrase);
  };
 
@@ -704,15 +628,11 @@ function startListening(){
    "not-allowed":"Mikrofonzugriff verweigert. Prüfe die Chrome-Berechtigung.",
    "service-not-allowed":"Der Sprachdienst wurde vom Browser blockiert.",
    "network":"Sprachdienst nicht erreichbar. Prüfe die Internetverbindung.",
-   "no-speech":"Keine Sprache erkannt. Ich starte die Erkennung erneut.",
+   "no-speech":"Keine Sprache erkannt. Ich starte erneut.",
    "audio-capture":"Kein Mikrofon gefunden."
   };
-
-  voiceStatus(
-   "Sprachfehler: "+event.error,
-   errors[event.error]||"Bitte erneut versuchen."
-  );
-
+  voiceStatus("Sprachfehler: "+event.error,
+   errors[event.error]||"Bitte erneut versuchen.");
   if(["not-allowed","service-not-allowed","audio-capture"].includes(event.error)){
    stopVoice();
   }
@@ -720,10 +640,7 @@ function startListening(){
 
  rec.onend=()=>{
   if(recognition===rec)recognition=null;
-
-  if(voiceMode!=="off"&&!voiceBusy){
-   scheduleListening();
-  }
+  if(voiceMode!=="off"&&!voiceBusy)scheduleListening();
  };
 
  try{
@@ -737,43 +654,50 @@ function startListening(){
 
 async function processVoice(text){
  if(voiceBusy)return;
-
  if(!aiReady){
   voiceStatus("Bitte zuerst die KI laden.");
   await speak("Bitte lade zuerst die lokale KI.");
-
   if(voiceMode!=="off")scheduleListening();
   return;
  }
 
  voiceBusy=true;
  stopRecognition();
-
  addMessage(text,"user");
  chat.push({text,type:"user"});
  storage.set("warvex_chat",chat);
 
  try{
   const answer=await askAI(text);
-
   addMessage(answer,"ai");
   chat.push({text:answer,type:"ai"});
   storage.set("warvex_chat",chat);
-
   voiceStatus("WARVEX antwortet...","Bitte kurz warten.");
   await speak(answer);
   voiceStatus("Antwort fertig.","Ich höre wieder zu.");
-
  }catch(error){
   voiceStatus("KI-Fehler",error.message||String(error));
   await speak("Entschuldigung, bei meiner Antwort ist ein Fehler aufgetreten.");
  }finally{
   voiceBusy=false;
-
-  if(voiceMode!=="off"){
-   scheduleListening();
-  }
+  if(voiceMode!=="off")scheduleListening();
  }
 }
 
-function startV
+function startVoice(mode){
+ if(voiceMode===mode){
+  stopVoice();
+  return;
+ }
+ stopRecognition();
+ voiceMode=mode;
+ voiceBusy=false;
+ wakeArmed=false;
+
+ $("voiceButton").textContent=
+  mode==="chat"?"SPRACHCHAT BEENDEN":"SPRACHCHAT STARTEN";
+ $("wakeButton").textContent=
+  mode==="wake"?"HEY WARVEX BEENDEN":"HEY WARVEX";
+
+ voiceStatus(
+  
