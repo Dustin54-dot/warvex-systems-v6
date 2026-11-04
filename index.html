@@ -7,47 +7,38 @@
 <meta name="theme-color" content="#09090c">
 <title>WARVEX SYSTEMS V8</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#09090c;color:white;font-family:Arial,sans-serif;min-height:100vh}
-header{position:sticky;top:0;z-index:10;background:#09090c;border-bottom:1px solid #39252d;padding:15px;display:flex;justify-content:space-between;align-items:center}
-.logo{font-size:19px;font-weight:bold;letter-spacing:2px}
+*{box-sizing:border-box}
+body{margin:0;background:#09090c;color:#fff;font-family:Arial,sans-serif}
+header{background:#101015;padding:17px;border-bottom:1px solid #e32643;position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:20px;font-weight:bold;letter-spacing:2px}
 .red{color:#ed263d}
-.status{font-size:10px;color:#48dc91}
-nav{display:flex;gap:7px;overflow-x:auto;padding:10px;background:#111116;position:sticky;top:54px;z-index:9}
-nav button{flex-shrink:0;background:#211b22;color:white;border:1px solid #49303a;padding:10px 13px;border-radius:9px}
-nav button.active{background:#d91e36;border-color:#ed263d}
-main{max-width:720px;margin:auto;padding:20px 15px 45px}
-.welcome{margin:12px 0 22px}
-.welcome h1{font-size:25px;margin-bottom:8px}
-.small{color:#999;font-size:12px;line-height:1.6}
-.clock{color:#ed263d;font-size:13px;margin-top:12px}
-.panel{background:#15151b;border:1px solid #30252c;border-radius:15px;padding:17px;margin:12px 0}
-.panel h2{font-size:18px;margin-bottom:13px}
+.status{font-size:11px;color:#55df91}
+nav{display:flex;gap:7px;overflow-x:auto;padding:10px;background:#15151b;position:sticky;top:57px;z-index:4}
+button{background:#e32643;color:white;border:0;border-radius:8px;padding:12px 15px;font-weight:bold;cursor:pointer}
+button:active{opacity:.7}
+nav button{background:#29232b;white-space:nowrap}
+nav button.active{background:#e32643}
+.secondary{background:#29232b}
+main{padding:15px;max-width:850px;margin:auto}
 .view{display:none}
 .view.active{display:block}
-button{cursor:pointer;font-family:inherit}
-button:active{opacity:.7}
-input,textarea,select{width:100%;min-width:0;background:#222129;border:1px solid #39343d;border-radius:9px;padding:13px;color:white;font-size:14px;margin:7px 0}
-textarea{resize:vertical}
-.action{background:#d91e36;border:0;color:white;border-radius:9px;padding:12px 15px;font-weight:bold}
-.secondary{background:#29252d;border:1px solid #49404b;color:white;padding:11px 13px;border-radius:8px}
-.full{width:100%;margin-top:10px}
-.chat{min-height:130px;max-height:350px;overflow-y:auto;margin-bottom:12px}
-.message{background:#222129;padding:12px;border-radius:10px;margin:9px 0;font-size:14px;line-height:1.5;overflow-wrap:anywhere;white-space:pre-wrap}
-.message.ai{border-left:3px solid #ed263d}
-.message.user{border-left:3px solid #777}
-.input-area{display:flex;gap:8px;align-items:center}
-.input-area input{flex:1}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
-.item{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#222129;padding:12px;border-radius:9px;margin:9px 0;font-size:14px}
-.item span{overflow-wrap:anywhere}
-.device{background:#222129;padding:14px;border-radius:10px;border:1px solid #39343d}
-.device button{width:100%;margin-top:10px}
-.on{color:#48dc91}.off{color:#ed263d}
-.output{min-height:230px;font-family:monospace;font-size:12px;white-space:pre;overflow:auto}
-#preview{width:100%;height:260px;background:white;border:1px solid #444;border-radius:9px;margin-top:12px}
-#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#29252d;border:1px solid #ed263d;padding:12px 18px;border-radius:10px;display:none;z-index:20;font-size:13px;max-width:90%;text-align:center}
-footer{text-align:center;color:#777;font-size:11px;padding:20px}
+.card{background:#15151b;border:1px solid #35252d;border-radius:13px;padding:16px;margin-bottom:14px}
+h2{font-size:19px;margin-top:0}
+h3{font-size:15px}
+p{color:#c6c6ce;line-height:1.5}
+input,textarea,select{width:100%;background:#09090c;color:white;border:1px solid #49313b;border-radius:8px;padding:12px;margin:7px 0 12px;font-size:15px}
+textarea{min-height:110px;resize:vertical}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row button{flex:1}
+.item{background:#222129;padding:12px;border-radius:8px;margin:8px 0;display:flex;justify-content:space-between;align-items:center;gap:8px;overflow-wrap:anywhere}
+.message{padding:11px;margin:8px 0;border-radius:10px;max-width:90%;overflow-wrap:anywhere}
+.user{background:#692333;margin-left:auto}
+.ai{background:#292932}
+.small{font-size:12px;color:#999}
+.stat{font-size:25px;color:#ed354d;font-weight:bold}
+#toast{display:none;position:fixed;bottom:18px;left:5%;width:90%;padding:14px;background:#27232b;border:1px solid #ed263d;border-radius:10px;text-align:center;z-index:20}
+pre{white-space:pre-wrap;overflow-wrap:anywhere}
+iframe{width:100%;height:250px;background:white;border:0;border-radius:8px}
 </style>
 </head>
 <body>
@@ -69,138 +60,120 @@ footer{text-align:center;color:#777;font-size:11px;padding:20px}
 </nav>
 
 <main>
-<section class="welcome">
- <h1>WARVEX <span class="red">V8</span></h1>
- <p class="small">Your personal digital assistant.</p>
- <div class="clock">SYSTEM TIME: <span id="clock">LÄDT...</span></div>
-</section>
 
-<section class="view active" id="core">
- <div class="panel">
-  <h2>◈ WARVEX CORE</h2>
-  <p class="small">Willkommen zurück. Wähle oben einen Bereich oder starte einen Chat.</p>
-  <div class="grid">
-   <button class="secondary" onclick="openModule('voice')">🎙 VOICE ÖFFNEN</button>
-   <button class="secondary" onclick="openModule('programmer')">⌨ CODE ÖFFNEN</button>
-   <button class="secondary" onclick="openModule('agent')">⌘ AGENT ÖFFNEN</button>
-   <button class="secondary" onclick="openModule('memory')">◉ MEMORY ÖFFNEN</button>
-  </div>
+<section id="core" class="view active">
+ <div class="card">
+  <h2>WARVEX <span class="red">CORE</span></h2>
+  <p>Dein persönliches System.</p>
+  <div class="stat" id="clock">--:--:--</div>
+  <p id="date"></p>
+  <p id="systemStatus">System wird gestartet...</p>
  </div>
-
- <div class="panel">
-  <h2>◈ WARVEX CHAT</h2>
-  <div class="chat" id="chat">
-   <div class="message ai">WARVEX V8 INITIALIZED. Hallo! Was kann ich für dich tun?</div>
+ <div class="card">
+  <h2>WARVEX CHAT</h2>
+  <div id="chat"></div>
+  <input id="userInput" placeholder="Schreibe an WARVEX..." onkeydown="if(event.key==='Enter')sendMessage()">
+  <div class="row">
+   <button onclick="sendMessage()">SENDEN</button>
+   <button class="secondary" onclick="clearChat()">CHAT LÖSCHEN</button>
   </div>
-  <div class="input-area">
-   <input id="userInput" placeholder="Nachricht an WARVEX..." onkeydown="if(event.key==='Enter')sendMessage()">
-   <button class="action" onclick="sendMessage()">SEND</button>
-  </div>
-  <button class="secondary full" onclick="clearChat()">CHATVERLAUF LÖSCHEN</button>
  </div>
 </section>
 
-<section class="view" id="voice">
- <div class="panel">
-  <h2>◉ WARVEX VOICE</h2>
-  <p class="small">Aktiviere die Spracherkennung manuell. Wenn sie aktiv ist, wartet WARVEX auf „Hey WARVEX“.</p>
-  <p id="voiceStatus" class="small" style="margin:14px 0">Sprachstatus: Aus</p>
-  <button class="action full" id="wakeButton" onclick="toggleWake()">HEY WARVEX AKTIVIEREN</button>
-  <button class="secondary full" onclick="speakText('Hallo! WARVEX ist bereit.')">TEST-AUSGABE</button>
-  <p class="small" style="margin-top:12px">Die Website muss geöffnet bleiben. Bei gesperrtem Handy oder geschlossenem Chrome kann das Weckwort nicht dauerhaft erkannt werden.</p>
+<section id="voice" class="view">
+ <div class="card">
+  <h2>VOICE CONTROL</h2>
+  <p>Aktiviere die Spracherkennung manuell.</p>
+  <button id="wakeButton" onclick="toggleWake()">HEY WARVEX AKTIVIEREN</button>
+  <p id="voiceStatus">Sprachsteuerung: Aus</p>
+  <button class="secondary" onclick="speakText('Hallo. WARVEX ist bereit.')">SPRACHAUSGABE TESTEN</button>
  </div>
 </section>
 
-<section class="view" id="agent">
- <div class="panel">
-  <h2>⌘ WARVEX AGENT</h2>
-  <p class="small">Erstelle und verwalte deine Aufgaben.</p>
-  <div class="input-area">
-   <input id="taskInput" placeholder="Neue Aufgabe..." onkeydown="if(event.key==='Enter')addTask()">
-   <button class="action" onclick="addTask()">+</button>
-  </div>
+<section id="agent" class="view">
+ <div class="card">
+  <h2>AI AGENT</h2>
+  <p>Verwalte deine persönlichen Aufgaben.</p>
+  <input id="taskInput" placeholder="Neue Aufgabe...">
+  <button onclick="addTask()">AUFGABE ERSTELLEN</button>
   <div id="taskList"></div>
  </div>
 </section>
 
-<section class="view" id="life">
- <div class="panel">
-  <h2>◇ WARVEX LIFE</h2>
-  <p class="small">Deine persönliche Aufgabenübersicht.</p>
-  <div id="lifeStats" style="margin-top:15px">Noch keine Aufgaben.</div>
-  <button class="action full" onclick="openModule('agent')">AUFGABEN VERWALTEN</button>
+<section id="life" class="view">
+ <div class="card">
+  <h2>LIFE CONTROL</h2>
+  <p>Deine Aufgabenübersicht.</p>
+  <div class="stat" id="lifeStats">0 Aufgaben</div>
  </div>
 </section>
 
-<section class="view" id="home">
- <div class="panel">
-  <h2>⌂ WARVEX HOME</h2>
-  <p class="small">Lokale Smart-Home-Demo. Es sind noch keine echten Geräte verbunden.</p>
-  <div class="grid">
-   <div class="device">
-    <strong>💡 Licht</strong>
-    <p id="lightStatus" class="off">AUS</p>
-    <button class="secondary" onclick="toggleDevice('light')">SCHALTEN</button>
-   </div>
-   <div class="device">
-    <strong>🌡 Heizung</strong>
-    <p id="heatStatus" class="off">AUS</p>
-    <button class="secondary" onclick="toggleDevice('heat')">SCHALTEN</button>
-   </div>
+<section id="home" class="view">
+ <div class="card">
+  <h2>SMART HOME</h2>
+  <p>Lokale Demonstration – steuert keine echten Geräte.</p>
+  <div class="item">
+   <span>Licht</span>
+   <span id="lightStatus">AUS</span>
   </div>
+  <button onclick="toggleDevice('light')">LICHT UMSCHALTEN</button>
+  <div class="item">
+   <span>Heizung</span>
+   <span id="heatStatus">AUS</span>
+  </div>
+  <button onclick="toggleDevice('heat')">HEIZUNG UMSCHALTEN</button>
  </div>
 </section>
 
-<section class="view" id="memory">
- <div class="panel">
-  <h2>◉ WARVEX MEMORY</h2>
-  <p class="small">Notizen werden lokal auf diesem Gerät gespeichert.</p>
-  <textarea id="memoryInput" rows="3" placeholder="Was soll WARVEX speichern?"></textarea>
-  <button class="action full" onclick="saveMemory()">SPEICHERN</button>
+<section id="memory" class="view">
+ <div class="card">
+  <h2>MEMORY</h2>
+  <p>Deine Notizen werden lokal auf diesem Gerät gespeichert.</p>
+  <textarea id="memoryInput" placeholder="Was soll WARVEX merken?"></textarea>
+  <button onclick="saveMemory()">NOTIZ SPEICHERN</button>
   <div id="memoryList"></div>
  </div>
 </section>
 
-<section class="view" id="programmer">
- <div class="panel">
-  <h2>⌨ WARVEX CODE</h2>
-  <p class="small">Code-Vorlagen erstellen, bearbeiten, kopieren und testen.</p>
-  <label class="small">Programmiersprache</label>
+<section id="programmer" class="view">
+ <div class="card">
+  <h2>WARVEX PROGRAMMER</h2>
+  <p>Erstelle einfache Code-Vorlagen.</p>
+  <label>Programmiersprache</label>
   <select id="language">
    <option value="html">HTML</option>
    <option value="css">CSS</option>
    <option value="javascript">JavaScript</option>
    <option value="python">Python</option>
   </select>
-  <label class="small">Was soll erstellt werden?</label>
-  <textarea id="codeRequest" rows="3" placeholder="Beschreibe dein Projekt..."></textarea>
-  <button class="action full" onclick="generateCode()">CODE-VORLAGE ERSTELLEN</button>
-  <p class="small" style="margin-top:14px">CODE EDITOR</p>
-  <textarea id="codeOutput" class="output" rows="14" spellcheck="false" placeholder="Hier erscheint dein Code..."></textarea>
-  <div class="grid">
-   <button class="secondary" onclick="copyCode()">KOPIEREN</button>
-   <button class="secondary" onclick="downloadCode()">DATEI SPEICHERN</button>
-   <button class="secondary" onclick="previewCode()">HTML TESTEN</button>
-   <button class="secondary" onclick="clearCode()">LÖSCHEN</button>
+  <label>Was möchtest du programmieren?</label>
+  <textarea id="codeRequest" placeholder="Beschreibe dein Projekt..."></textarea>
+  <button onclick="generateCode()">CODE ERSTELLEN</button>
+  <textarea id="codeOutput" placeholder="Dein Code erscheint hier..."></textarea>
+  <div class="row">
+   <button onclick="copyCode()">KOPIEREN</button>
+   <button onclick="downloadCode()">DOWNLOAD</button>
   </div>
-  <iframe id="preview" title="HTML Vorschau" sandbox="allow-scripts"></iframe>
-  <p class="small">Die Code-Erstellung nutzt aktuell Vorlagen und ist noch keine echte KI-Programmierung. Python wird in dieser Vorschau nicht ausgeführt.</p>
+  <button class="secondary" onclick="previewCode()">HTML VORSCHAU</button>
+  <button class="secondary" onclick="clearCode()">EDITOR LEEREN</button>
+  <h3>Vorschau</h3>
+  <iframe id="preview" title="HTML Vorschau"></iframe>
  </div>
 </section>
 
-<section class="view" id="settings">
- <div class="panel">
-  <h2>◈ SYSTEM INFORMATION</h2>
-  <p class="small">Version: WARVEX SYSTEMS V8.1</p>
-  <p class="small">Platform: Web Application</p>
-  <p class="small">Storage: Local Device Storage</p>
-  <p class="small">KI-Anbindung: Noch nicht verbunden</p>
-  <p class="small">Spracherkennung: Browserabhängig</p>
-  <button class="secondary full" onclick="notify('WARVEX V8.1 läuft.')">SYSTEMTEST</button>
+<section id="settings" class="view">
+ <div class="card">
+  <h2>SYSTEM INFORMATION</h2>
+  <div class="item"><span>Version</span><b>V8.1</b></div>
+  <div class="item"><span>Status</span><b class="red">ONLINE</b></div>
+  <div class="item"><span>Speicher</span><b>LOCAL STORAGE</b></div>
+  <div class="item"><span>JavaScript</span><b id="jsStatus">WIRD GEPRÜFT</b></div>
+  <button onclick="checkSystem()">SYSTEMTEST</button>
+  <button class="secondary" onclick="clearAllData()">LOKALE DATEN LÖSCHEN</button>
+  <p class="small">Achtung: Das Löschen entfernt Chat, Aufgaben und Notizen auf diesem Gerät.</p>
  </div>
 </section>
 
-<footer>WARVEX SYSTEMS V8.1<br>BUILT TO MOVE BEYOND LIMITS</footer>
 </main>
 
 <div id="toast"></div>
@@ -208,6 +181,7 @@ footer{text-align:center;color:#777;font-size:11px;padding:20px}
 <script>
 "use strict";
 
+/* BASIS */
 const $ = id => document.getElementById(id);
 
 function notify(message){
@@ -215,13 +189,16 @@ function notify(message){
  t.textContent=message;
  t.style.display="block";
  clearTimeout(window.toastTimer);
- window.toastTimer=setTimeout(()=>t.style.display="none",2600);
+ window.toastTimer=setTimeout(()=>t.style.display="none",2500);
 }
 
 function openModule(name,button){
  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
  const target=$(name);
- if(!target){notify("Bereich nicht gefunden.");return;}
+ if(!target){
+  notify("Bereich nicht gefunden.");
+  return;
+ }
  target.classList.add("active");
  document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
  const navButton=button||document.querySelector('nav button[data-view="'+name+'"]');
@@ -231,14 +208,15 @@ function openModule(name,button){
 
 function updateClock(){
  $("clock").textContent=new Date().toLocaleTimeString("de-DE");
+ $("date").textContent=new Date().toLocaleDateString("de-DE",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
 }
 updateClock();
 setInterval(updateClock,1000);
 
 function getData(key,fallback){
  try{
-  const v=localStorage.getItem(key);
-  return v===null?fallback:JSON.parse(v);
+  const value=localStorage.getItem(key);
+  return value===null?fallback:JSON.parse(value);
  }catch(e){return fallback;}
 }
 
@@ -261,7 +239,6 @@ function addMessage(text,type,save=true){
  div.textContent=text;
  $("chat").appendChild(div);
  $("chat").scrollTop=$("chat").scrollHeight;
-
  if(save){
   messages.push({text,type});
   if(messages.length>100)messages=messages.slice(-100);
@@ -278,27 +255,25 @@ function restoreChat(){
  });
 }
 
-restoreChat();
-
 function sendMessage(){
  const input=$("userInput");
  const text=input.value.trim();
  if(!text)return;
  addMessage(text,"user");
  input.value="";
- setTimeout(()=>addMessage(getDemoReply(text),"ai"),250);
+ setTimeout(()=>addMessage(getDemoReply(text),"ai"),200);
 }
 
 function getDemoReply(text){
  const q=text.toLowerCase();
  if(q.includes("hey warvex"))return "Ich bin bereit! Was kann ich für dich tun?";
- if(q.includes("hallo")||q.includes("hi"))return "Hallo! WARVEX V8 ist bereit.";
+ if(q.includes("hallo")||q.includes("hi"))return "Hallo! WARVEX V8.1 ist bereit.";
  if(q.includes("uhrzeit")||q.includes("zeit"))return "Es ist "+new Date().toLocaleTimeString("de-DE")+".";
  if(q.includes("aufgabe"))return "Deine Aufgaben findest du im Bereich AGENT.";
  if(q.includes("programm")||q.includes("code"))return "Öffne den Bereich CODE.";
  if(q.includes("licht"))return "Du kannst das Demo-Licht im Bereich HOME schalten.";
  if(q.includes("notiz")||q.includes("merken"))return "Deine Notizen findest du im Bereich MEMORY.";
- return "Nachricht empfangen. Meine echte KI-Anbindung ist noch nicht eingerichtet. Ich arbeite momentan im lokalen Demo-Modus.";
+ return "Nachricht empfangen. Ich arbeite momentan im lokalen Demo-Modus. Eine echte KI-Anbindung ist noch nicht eingerichtet.";
 }
 
 function clearChat(){
@@ -306,11 +281,12 @@ function clearChat(){
  messages=[];
  saveData("warvex_chat",messages);
  $("chat").innerHTML="";
- addMessage("WARVEX V8 CHAT BEREIT.","ai");
- notify("Chatverlauf gelöscht.");
+ addMessage("WARVEX CHAT BEREIT.","ai");
+ notify("Chat gelöscht.");
 }
+restoreChat();
 
-/* VOICE */
+/* SPRACHE */
 let recognition=null;
 let wakeEnabled=false;
 let voiceStarting=false;
@@ -324,27 +300,23 @@ function toggleWake(){
   $("wakeButton").textContent="HEY WARVEX AKTIVIEREN";
   $("voiceStatus").textContent="Sprachsteuerung: Aus";
   notify("Sprachsteuerung ausgeschaltet.");
-  return;
+ }else{
+  startWake();
  }
- startWake();
 }
 
 function startWake(){
  const API=window.SpeechRecognition||window.webkitSpeechRecognition;
-
  if(!API){
-  $("voiceStatus").textContent="Dieser Browser unterstützt keine Spracherkennung.";
-  notify("Spracherkennung nicht verfügbar.");
+  $("voiceStatus").textContent="Spracherkennung nicht unterstützt.";
+  notify("Browser unterstützt keine Spracherkennung.");
   return;
  }
-
  if(voiceStarting)return;
-
  wakeEnabled=true;
  voiceStarting=true;
  $("wakeButton").textContent="HEY WARVEX DEAKTIVIEREN";
  $("voiceStatus").textContent="Starte Spracherkennung...";
-
  try{
   recognition=new API();
   recognition.lang="de-DE";
@@ -353,25 +325,21 @@ function startWake(){
 
   recognition.onstart=()=>{
    voiceStarting=false;
-   $("voiceStatus").textContent="🎙 Aktiv – sage: Hey WARVEX";
+   $("voiceStatus").textContent="Mikrofon aktiv – sage Hey WARVEX.";
   };
 
   recognition.onresult=e=>{
    for(let i=e.resultIndex;i<e.results.length;i++){
     if(!e.results[i].isFinal)continue;
-
     const words=e.results[i][0].transcript.toLowerCase().trim();
-
     if(words.includes("hey warvex")||words.includes("hey war vex")){
      const command=words.replace("hey warvex","").replace("hey war vex","").trim();
+     openModule("core");
      speakText("Ja, ich höre.");
-
      if(command){
-      openModule("core");
       $("userInput").value=command;
       sendMessage();
      }else{
-      openModule("core");
       addMessage("Hey WARVEX","user");
       addMessage("Ja, ich höre. Was möchtest du machen?","ai");
      }
@@ -382,7 +350,6 @@ function startWake(){
   recognition.onerror=e=>{
    voiceStarting=false;
    $("voiceStatus").textContent="Sprachfehler: "+e.error;
-
    if(e.error==="not-allowed"||e.error==="service-not-allowed"){
     wakeEnabled=false;
     $("wakeButton").textContent="HEY WARVEX AKTIVIEREN";
@@ -391,9 +358,8 @@ function startWake(){
 
   recognition.onend=()=>{
    voiceStarting=false;
-
    if(wakeEnabled){
-    $("voiceStatus").textContent="Verbinde Spracherkennung erneut...";
+    $("voiceStatus").textContent="Verbinde erneut...";
     setTimeout(()=>{
      if(wakeEnabled){
       try{recognition.start();}catch(e){}
@@ -403,15 +369,12 @@ function startWake(){
     $("voiceStatus").textContent="Sprachsteuerung: Aus";
    }
   };
-
   recognition.start();
-
  }catch(e){
   voiceStarting=false;
   wakeEnabled=false;
   $("wakeButton").textContent="HEY WARVEX AKTIVIEREN";
   $("voiceStatus").textContent="Startfehler: "+e.message;
-  notify("Sprachsteuerung konnte nicht starten.");
  }
 }
 
@@ -420,31 +383,141 @@ function speakText(text){
   notify("Sprachausgabe nicht verfügbar.");
   return;
  }
-
  window.speechSynthesis.cancel();
  const msg=new SpeechSynthesisUtterance(text);
  msg.lang="de-DE";
  window.speechSynthesis.speak(msg);
 }
 
-/* CODE */
+/* AUFGABEN */
+let tasks=getData("warvex_tasks",[]);
+
+function renderTasks(){
+ const list=$("taskList");
+ list.innerHTML="";
+ tasks.forEach((task,index)=>{
+  const item=document.createElement("div");
+  item.className="item";
+  const label=document.createElement("span");
+  label.textContent=(task.done?"✓ ":"○ ")+task.text;
+  if(task.done)label.style.textDecoration="line-through";
+  const actions=document.createElement("div");
+  const done=document.createElement("button");
+  done.className="secondary";
+  done.textContent=task.done?"↶":"✓";
+  done.onclick=()=>toggleTask(index);
+  const del=document.createElement("button");
+  del.className="secondary";
+  del.textContent="✕";
+  del.onclick=()=>deleteTask(index);
+  actions.append(done,del);
+  item.append(label,actions);
+  list.appendChild(item);
+ });
+ const finished=tasks.filter(t=>t.done).length;
+ $("lifeStats").textContent=tasks.length+" Aufgaben · "+finished+" erledigt";
+}
+
+function addTask(){
+ const input=$("taskInput");
+ const text=input.value.trim();
+ if(!text){
+  notify("Bitte Aufgabe eingeben.");
+  return;
+ }
+ tasks.push({text,done:false});
+ saveData("warvex_tasks",tasks);
+ input.value="";
+ renderTasks();
+ notify("Aufgabe erstellt.");
+}
+
+function toggleTask(i){
+ tasks[i].done=!tasks[i].done;
+ saveData("warvex_tasks",tasks);
+ renderTasks();
+}
+
+function deleteTask(i){
+ tasks.splice(i,1);
+ saveData("warvex_tasks",tasks);
+ renderTasks();
+ notify("Aufgabe gelöscht.");
+}
+renderTasks();
+
+/* SMART HOME DEMO */
+let devices=getData("warvex_devices",{light:false,heat:false});
+
+function renderDevices(){
+ $("lightStatus").textContent=devices.light?"AN":"AUS";
+ $("heatStatus").textContent=devices.heat?"AN":"AUS";
+}
+
+function toggleDevice(name){
+ if(name!=="light"&&name!=="heat")return;
+ devices[name]=!devices[name];
+ saveData("warvex_devices",devices);
+ renderDevices();
+ notify(name==="light"?"Licht-Demo umgeschaltet.":"Heizungs-Demo umgeschaltet.");
+}
+renderDevices();
+
+/* MEMORY */
+let memories=getData("warvex_memory",[]);
+
+function renderMemory(){
+ const list=$("memoryList");
+ list.innerHTML="";
+ memories.forEach((entry,index)=>{
+  const item=document.createElement("div");
+  item.className="item";
+  const label=document.createElement("span");
+  label.textContent=entry;
+  const del=document.createElement("button");
+  del.className="secondary";
+  del.textContent="✕";
+  del.onclick=()=>{
+   memories.splice(index,1);
+   saveData("warvex_memory",memories);
+   renderMemory();
+   notify("Notiz gelöscht.");
+  };
+  item.append(label,del);
+  list.appendChild(item);
+ });
+}
+
+function saveMemory(){
+ const input=$("memoryInput");
+ const value=input.value.trim();
+ if(!value){
+  notify("Bitte Notiz eingeben.");
+  return;
+ }
+ memories.push(value);
+ if(memories.length>100)memories=memories.slice(-100);
+ saveData("warvex_memory",memories);
+ input.value="";
+ renderMemory();
+ notify("Notiz gespeichert.");
+}
+renderMemory();
+
+/* CODE GENERATOR */
 function generateCode(){
  const language=$("language").value;
  const request=$("codeRequest").value.trim();
-
  if(!request){
-  notify("Bitte beschreibe zuerst dein Projekt.");
+  notify("Bitte beschreibe dein Projekt.");
   return;
  }
-
  let code="";
-
  if(language==="html"){
   code=`<!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mein Projekt</title>
 </head>
 <body>
@@ -468,7 +541,6 @@ button{
  border:0;
  border-radius:8px;
  padding:12px 20px;
- cursor:pointer;
 }`;
  }else if(language==="javascript"){
   code=`// JavaScript für: ${request}
@@ -488,18 +560,13 @@ if __name__ == "__main__":
     main()
 `;
  }
-
  $("codeOutput").value=code;
  notify("Code-Vorlage erstellt.");
 }
 
 function escapeHTML(text){
  return text.replace(/[&<>"']/g,c=>({
-  "&":"&amp;",
-  "<":"&lt;",
-  ">":"&gt;",
-  '"':"&quot;",
-  "'":"&#39;"
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
  }[c]));
 }
 
@@ -509,7 +576,6 @@ async function copyCode(){
   notify("Kein Code vorhanden.");
   return;
  }
-
  try{
   await navigator.clipboard.writeText(code);
   notify("Code kopiert!");
@@ -525,41 +591,30 @@ function downloadCode(){
   notify("Kein Code vorhanden.");
   return;
  }
-
- const extensions={
-  html:"html",
-  css:"css",
-  javascript:"js",
-  python:"py"
- };
-
+ const extensions={html:"html",css:"css",javascript:"js",python:"py"};
  const ext=extensions[$("language").value];
  const blob=new Blob([code],{type:"text/plain;charset=utf-8"});
  const url=URL.createObjectURL(blob);
  const a=document.createElement("a");
-
  a.href=url;
  a.download="warvex-projekt."+ext;
  document.body.appendChild(a);
  a.click();
  a.remove();
-
  setTimeout(()=>URL.revokeObjectURL(url),1000);
- notify("Datei wird vorbereitet.");
+ notify("Download vorbereitet.");
 }
 
 function previewCode(){
  if($("language").value!=="html"){
-  notify("Vorschau ist nur für HTML.");
+  notify("Vorschau nur für HTML.");
   return;
  }
-
  const code=$("codeOutput").value;
  if(!code){
   notify("Erstelle zuerst Code.");
   return;
  }
-
  $("preview").srcdoc=code;
  notify("Vorschau aktualisiert.");
 }
@@ -571,85 +626,24 @@ function clearCode(){
  notify("Editor geleert.");
 }
 
-/* AGENT */
-let tasks=getData("warvex_tasks",[]);
-
-function renderTasks(){
- const list=$("taskList");
- list.innerHTML="";
-
- tasks.forEach((task,index)=>{
-  const item=document.createElement("div");
-  item.className="item";
-
-  const label=document.createElement("span");
-  label.textContent=(task.done?"✓ ":"○ ")+task.text;
-
-  if(task.done)label.style.textDecoration="line-through";
-
-  const actions=document.createElement("div");
-
-  const done=document.createElement("button");
-  done.className="secondary";
-  done.textContent=task.done?"↶":"✓";
-  done.onclick=()=>toggleTask(index);
-
-  const del=document.createElement("button");
-  del.className="secondary";
-  del.textContent="✕";
-  del.style.marginLeft="5px";
-  del.onclick=()=>deleteTask(index);
-
-  actions.append(done,del);
-  item.append(label,actions);
-  list.appendChild(item);
- });
-
- const finished=tasks.filter(t=>t.done).length;
- $("lifeStats").textContent=tasks.length+" Aufgaben insgesamt · "+finished+" erledigt.";
+/* SYSTEM */
+function checkSystem(){
+ $("jsStatus").textContent="AKTIV";
+ $("systemStatus").textContent="Alle lokalen Grundfunktionen gestartet.";
+ notify("Systemtest abgeschlossen.");
 }
 
-function addTask(){
- const input=$("taskInput");
- const text=input.value.trim();
-
- if(!text){
-  notify("Bitte eine Aufgabe eingeben.");
-  return;
- }
-
- tasks.push({text,done:false});
- saveData("warvex_tasks",tasks);
- input.value="";
- renderTasks();
- notify("Aufgabe erstellt.");
+function clearAllData(){
+ if(!confirm("Wirklich alle WARVEX-Daten löschen?"))return;
+ ["warvex_chat","warvex_tasks","warvex_devices","warvex_memory"].forEach(k=>localStorage.removeItem(k));
+ location.reload();
 }
 
-function toggleTask(i){
- tasks[i].done=!tasks[i].done;
- saveData("warvex_tasks",tasks);
- renderTasks();
-}
+$("systemStatus").textContent="WARVEX V8.1 gestartet.";
+$("jsStatus").textContent="AKTIV";
+notify("WARVEX SYSTEMS V8.1 bereit.");
 
-function deleteTask(i){
- tasks.splice(i,1);
- saveData("warvex_tasks",tasks);
- renderTasks();
- notify("Aufgabe gelöscht.");
-}
-
-renderTasks();
-
-/* HOME */
-let devices=getData("warvex_devices",{light:false,heat:false});
-
-function renderDevices(){
- $("lightStatus").textContent=devices.light?"AN":"AUS";
- $("lightStatus").className=devices.light?"on":"off";
-
- $("heatStatus").textContent=devices.heat?"AN":"AUS";
- $("heatStatus").className=devices.heat?"on":"off";
-}
-
-function toggleDevice(name){
- devices[name]=!devices[name]
+</script>
+</body>
+ </html>
+ 
