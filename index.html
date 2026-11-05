@@ -8,56 +8,517 @@
 <title>WARVEX SYSTEMS</title>
 <style>
 :root{color-scheme:dark;--bg:#090b10;--panel:#141b27;--red:#ff3048;--line:#2a3546;--muted:#aab5c4}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#f4f6fa;font:16px system-ui,Arial,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:#f4f6fa;font:16px system-ui,Arial,sans-serif}
 header{padding:18px 16px;background:#0e131d;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:2}
-.brand{font-size:23px;font-weight:900;letter-spacing:2px}.brand span{color:var(--red)}#clock{color:var(--muted);margin-top:5px;font-variant-numeric:tabular-nums}
-nav{display:flex;gap:8px;overflow-x:auto;padding:11px;background:#0e131d}button{border:1px solid var(--line);background:#202a39;color:white;border-radius:10px;padding:11px 13px;font-weight:700;cursor:pointer}button.primary{background:var(--red);border-color:var(--red)}nav button{white-space:nowrap}nav button.active{border-color:var(--red);color:#ff8795}
-main{max-width:850px;margin:auto;padding:15px}.panel{display:none;background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:17px;margin-bottom:14px}.panel.active{display:block}h1{font-size:21px;margin:0 0 12px}h2{font-size:17px;margin:17px 0 8px}p{color:var(--muted);line-height:1.5}.actions{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}
-input,textarea{width:100%;background:#0b1018;color:white;border:1px solid var(--line);border-radius:10px;padding:12px;font:inherit;margin:6px 0 12px}textarea{min-height:85px;resize:vertical}.status,#chatLog{background:#0b1018;border:1px solid var(--line);border-radius:10px;padding:12px}#chatLog{min-height:120px;max-height:300px;overflow:auto}.msg{background:#1d2939;border-radius:9px;padding:9px;margin:7px 0;white-space:pre-wrap;overflow-wrap:anywhere}.msg.user{background:#35212b}.item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}.small,footer{font-size:12px;color:var(--muted)}footer{text-align:center;padding:20px}
+.brand{font-size:23px;font-weight:900;letter-spacing:2px}
+.brand span{color:var(--red)}
+#clock{color:var(--muted);margin-top:5px;font-variant-numeric:tabular-nums}
+nav{display:flex;gap:8px;overflow-x:auto;padding:11px;background:#0e131d}
+button{border:1px solid var(--line);background:#202a39;color:white;border-radius:10px;padding:11px 13px;font-weight:700;cursor:pointer}
+button.primary{background:var(--red);border-color:var(--red)}
+nav button{white-space:nowrap}
+nav button.active{border-color:var(--red);color:#ff8795}
+main{max-width:850px;margin:auto;padding:15px}
+.panel{display:none;background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:17px;margin-bottom:14px}
+.panel.active{display:block}
+h1{font-size:21px;margin:0 0 12px}
+h2{font-size:17px;margin:17px 0 8px}
+p{color:var(--muted);line-height:1.5}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}
+input,textarea{width:100%;background:#0b1018;color:white;border:1px solid var(--line);border-radius:10px;padding:12px;font:inherit;margin:6px 0 12px}
+textarea{min-height:85px;resize:vertical}
+.status,#chatLog{background:#0b1018;border:1px solid var(--line);border-radius:10px;padding:12px}
+#chatLog{min-height:120px;max-height:300px;overflow:auto}
+.msg{background:#1d2939;border-radius:9px;padding:9px;margin:7px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg.user{background:#35212b}
+.item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.small,footer{font-size:12px;color:var(--muted)}
+footer{text-align:center;padding:20px}
 </style>
 </head>
 <body>
-<header><div class="brand">WARVEX <span>SYSTEMS</span></div><div id="clock">Uhr startet …</div></header>
+
+<header>
+<div class="brand">WARVEX <span>SYSTEMS</span></div>
+<div id="clock">Uhr startet …</div>
+</header>
+
 <nav id="nav">
-<button class="active" data-page="start">START</button><button data-page="chat">KI CHAT</button><button data-page="voice">SPRACHE</button><button data-page="tasks">AUFGABEN</button><button data-page="home">SMART HOME</button><button data-page="notes">NOTIZEN</button><button data-page="tools">TOOLS</button>
+<button class="active" data-page="start">START</button>
+<button data-page="chat">KI CHAT</button>
+<button data-page="voice">SPRACHE</button>
+<button data-page="tasks">AUFGABEN</button>
+<button data-page="home">SMART HOME</button>
+<button data-page="notes">NOTIZEN</button>
+<button data-page="tools">TOOLS</button>
 </nav>
+
 <main>
-<section class="panel active" id="start"><h1>Systemübersicht</h1><p>Willkommen bei WARVEX SYSTEMS – deiner mobilen Steuerzentrale.</p><div class="status" id="systemStatus">System wird gestartet …</div><div class="actions"><button class="primary" data-go="chat">KI Chat öffnen</button><button data-go="voice">Sprachsteuerung öffnen</button></div><p>Uhr, Chat, Aufgaben, Notizen und Smart-Home-Demo sind verfügbar.</p></section>
-<section class="panel" id="chat"><h1>KI Chat</h1><div id="chatLog"><div class="msg">WARVEX: Hallo! Ich kann lokale Grundbefehle beantworten. Für freie KI-Antworten muss ein KI-Dienst verbunden werden.</div></div><form id="chatForm"><textarea id="chatInput" placeholder="Schreib eine Nachricht …" required></textarea><button class="primary" type="submit">Senden</button></form></section>
-<section class="panel" id="voice"><h1>Sprachsteuerung</h1><p>Tippe auf HEY WARVEX, um das Mikrofon einzuschalten. Die Seite muss geöffnet bleiben.</p><div class="status" id="voiceStatus">Mikrofon ist aus.</div><div class="actions"><button class="primary" id="listenBtn">HEY WARVEX</button><button id="micOff">MIKRO AUS</button></div><p class="small">Beispiele: „Hey WARVEX, wie spät ist es?“, „Hey WARVEX, öffne Notizen“, „Hey WARVEX, SOS Test“ und „Hey WARVEX Stopp“.</p><div class="actions"><button id="sosStart">SOS TEST STARTEN</button><button id="sosStop">SOS TEST STOPPEN</button></div><p class="small">Nur eine Demo. Es wird kein Notruf abgesetzt und niemand kontaktiert.</p></section>
-<section class="panel" id="tasks"><h1>Aufgaben</h1><form id="taskForm"><input id="taskInput" placeholder="Neue Aufgabe …" required><button class="primary" type="submit">Hinzufügen</button></form><div id="taskList"></div></section>
-<section class="panel" id="home"><h1>Smart Home</h1><p>Demo-Schalter – sie steuern keine echten Geräte.</p><div class="item">Wohnzimmer-Licht <button class="toggle">AUS</button></div><div class="item">Heizung <button class="toggle">AUS</button></div><div class="item">Steckdose <button class="toggle">AUS</button></div></section>
-<section class="panel" id="notes"><h1>Notizen</h1><textarea id="noteText" placeholder="Deine Notizen …"></textarea><div class="actions"><button class="primary" id="saveNote">Speichern</button><button id="clearNote">Löschen</button></div><div class="small" id="noteStatus">Speicherung erfolgt lokal im Browser.</div></section>
-<section class="panel" id="tools"><h1>Tools</h1><h2>Uhr</h2><div class="status" id="clockLarge"></div><h2>Systemstatus</h2><div class="status" id="toolStatus">JavaScript startet …</div></section>
-</main><footer>WARVEX SYSTEMS · Mobile Web-App</footer>
+<section class="panel active" id="start">
+<h1>Systemübersicht</h1>
+<p>Willkommen bei WARVEX SYSTEMS – deiner mobilen Steuerzentrale.</p>
+<div class="status" id="systemStatus">System wird gestartet …</div>
+<div class="actions">
+<button class="primary" data-go="chat">KI Chat öffnen</button>
+<button data-go="voice">Sprachsteuerung öffnen</button>
+</div>
+<p>Uhr, Chat, Aufgaben, Notizen und Smart-Home-Demo sind verfügbar.</p>
+</section>
+
+<section class="panel" id="chat">
+<h1>KI Chat</h1>
+<div id="chatLog">
+<div class="msg">WARVEX: Hallo! Ich kann lokale Grundbefehle beantworten. Für freie KI-Antworten muss ein KI-Dienst verbunden werden.</div>
+</div>
+<form id="chatForm">
+<textarea id="chatInput" placeholder="Schreib eine Nachricht …" required></textarea>
+<button class="primary" type="submit">Senden</button>
+</form>
+</section>
+
+<section class="panel" id="voice">
+<h1>Sprachsteuerung</h1>
+<p>Tippe einmal zum Aktivieren und erlaube Chrome den Mikrofonzugriff. Danach steuerst du WARVEX per Sprache.</p>
+<div class="status" id="voiceStatus">Sprachsteuerung ist aus.</div>
+<div class="actions">
+<button class="primary" id="listenBtn">SPRACHSTEUERUNG AKTIVIEREN</button>
+</div>
+<p class="small">Befehle: „Hey WARVEX, wie spät ist es?“, „Hey WARVEX, öffne Notizen“, „Hey WARVEX, SOS Test“, „Hey WARVEX, Stopp“ oder „Hey WARVEX, Sprachsteuerung stoppen“. Der SOS-Test ist nur eine Demo und setzt keinen Notruf ab.</p>
+</section>
+
+<section class="panel" id="tasks">
+<h1>Aufgaben</h1>
+<form id="taskForm">
+<input id="taskInput" placeholder="Neue Aufgabe …" required>
+<button class="primary" type="submit">Hinzufügen</button>
+</form>
+<div id="taskList"></div>
+</section>
+
+<section class="panel" id="home">
+<h1>Smart Home</h1>
+<p>Demo-Schalter – sie steuern keine echten Geräte.</p>
+<div class="item">Wohnzimmer-Licht <button class="toggle">AUS</button></div>
+<div class="item">Heizung <button class="toggle">AUS</button></div>
+<div class="item">Steckdose <button class="toggle">AUS</button></div>
+</section>
+
+<section class="panel" id="notes">
+<h1>Notizen</h1>
+<textarea id="noteText" placeholder="Deine Notizen …"></textarea>
+<div class="actions">
+<button class="primary" id="saveNote">Speichern</button>
+<button id="clearNote">Löschen</button>
+</div>
+<div class="small" id="noteStatus">Speicherung erfolgt lokal im Browser.</div>
+</section>
+
+<section class="panel" id="tools">
+<h1>Tools</h1>
+<h2>Uhr</h2>
+<div class="status" id="clockLarge"></div>
+<h2>Systemstatus</h2>
+<div class="status" id="toolStatus">JavaScript startet …</div>
+</section>
+</main>
+
+<footer>WARVEX SYSTEMS · Mobile Web-App</footer>
+
 <script>
 (function(){
 "use strict";
+
 const $=id=>document.getElementById(id);
-function showPage(id){document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("active",p.id===id));document.querySelectorAll("nav [data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===id));}
-$("nav").addEventListener("click",e=>{const b=e.target.closest("[data-page]");if(b)showPage(b.dataset.page);});
-document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.go)));
-function tick(){const d=new Date(),s=d.toLocaleDateString("de-DE",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})+" · "+d.toLocaleTimeString("de-DE");$("clock").textContent=s;$("clockLarge").textContent=s;}tick();setInterval(tick,1000);
-function addMessage(who,text){const el=document.createElement("div");el.className="msg"+(who==="Du"?" user":"");el.textContent=who+": "+text;$("chatLog").appendChild(el);$("chatLog").scrollTop=$("chatLog").scrollHeight;}
-function answer(text){const q=text.toLowerCase();if(q.includes("uhr")||q.includes("spät"))return"Es ist "+new Date().toLocaleTimeString("de-DE")+".";if(q.includes("datum")||q.includes("tag"))return"Heute ist "+new Date().toLocaleDateString("de-DE")+".";if(q.includes("aufgabe")){showPage("tasks");return"Aufgaben geöffnet.";}if(q.includes("notiz")){showPage("notes");return"Notizen geöffnet.";}if(q.includes("smart home")||q.includes("licht")){showPage("home");return"Smart-Home-Demo geöffnet.";}if(q.includes("chat")){showPage("chat");return"KI Chat geöffnet.";}if(q.includes("hilfe")||q.includes("kannst"))return"Ich kann die Uhr nennen und die Bereiche öffnen. Für freie Antworten fehlt noch ein KI-Dienst.";return"Ich kann zurzeit wegen einem Fehler keine Befehle verstehen.";}
-$("chatForm").addEventListener("submit",e=>{e.preventDefault();const v=$("chatInput").value.trim();if(!v)return;addMessage("Du",v);$("chatInput").value="";addMessage("WARVEX",answer(v));});
-$("taskForm").addEventListener("submit",e=>{e.preventDefault();const v=$("taskInput").value.trim();if(!v)return;const row=document.createElement("div"),label=document.createElement("span"),btn=document.createElement("button");row.className="item";label.textContent=v;btn.textContent="Erledigt";btn.addEventListener("click",()=>row.remove());row.append(label,btn);$("taskList").append(row);$("taskInput").value="";});
-document.querySelectorAll(".toggle").forEach(b=>b.addEventListener("click",()=>{b.textContent=b.textContent==="AUS"?"AN":"AUS";}));
-try{$("noteText").value=localStorage.getItem("warvex_note")||"";}catch(e){}
-$("saveNote").addEventListener("click",()=>{try{localStorage.setItem("warvex_note",$("noteText").value);$("noteStatus").textContent="Notiz gespeichert.";}catch(e){$("noteStatus").textContent="Speichern ist hier nicht verfügbar."; }});
-$("clearNote").addEventListener("click",()=>{$("noteText").value="";try{localStorage.removeItem("warvex_note");}catch(e){}$("noteStatus").textContent="Notiz gelöscht.";});
-let recognition=null,listening=false,restartTimer=null,sosTimer=null,ctx=null,beepTimer=null;
-function say(t){if(!window.speechSynthesis)return;window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="de-DE";window.speechSynthesis.speak(u);}
-function voiceStatus(t){$("voiceStatus").textContent=t;}
-function stopSOS(){if(sosTimer){clearTimeout(sosTimer);sosTimer=null;}if(beepTimer){clearInterval(beepTimer);beepTimer=null;}if(ctx){ctx.close().catch(()=>{});ctx=null;}if(navigator.vibrate)navigator.vibrate(0);voiceStatus(listening?"Mikrofon hört zu.":"Mikrofon ist aus.");}
-function startSOS(){stopSOS();voiceStatus("SOS-Test läuft – nur Demo.");if(navigator.vibrate)navigator.vibrate([250,150,250,150,600]);try{const AC=window.AudioContext||window.webkitAudioContext;if(AC){ctx=new AC();ctx.resume();beepTimer=setInterval(()=>{if(!ctx)return;const o=ctx.createOscillator(),g=ctx.createGain();o.frequency.value=850;g.gain.value=.07;o.connect(g);g.connect(ctx.destination);o.start();o.stop(ctx.currentTime+.16);},550);}}catch(e){}say("Dies ist nur ein SOS-Test. Gefahr erkannt.");sosTimer=setTimeout(stopSOS,10000);}
-$("sosStart").addEventListener("click",startSOS);$("sosStop").addEventListener("click",()=>{stopSOS();say("SOS-Test gestoppt.");});
-function processVoice(spoken){const q=spoken.toLowerCase();if(q.includes("stopp")||q.includes("stop")){stopSOS();say("Gestoppt.");return;}if(q.includes("sos test")){startSOS();return;}if(q.includes("öffne")||q.includes("oeffne")||q.includes("zeige")){if(q.includes("notiz")){showPage("notes");say("Notizen geöffnet.");return;}if(q.includes("aufgabe")){showPage("tasks");say("Aufgaben geöffnet.");return;}if(q.includes("smart")){showPage("home");say("Smart Home geöffnet.");return;}if(q.includes("chat")){showPage("chat");say("KI Chat geöffnet.");return;}}const reply=answer(spoken);addMessage("Du",spoken);addMessage("WARVEX",reply);say(reply);}
-function startListening(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){voiceStatus("Diese Browser-Version unterstützt keine Spracherkennung. Bitte Chrome prüfen.");return;}if(listening)return;try{recognition=new SR();recognition.lang="de-DE";recognition.continuous=true;recognition.interimResults=false;recognition.onstart=()=>voiceStatus("Mikrofon aktiv – sag „Hey WARVEX“.");recognition.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++){if(!e.results[i].isFinal)continue;const heard=e.results[i][0].transcript.trim();if(/hey\s+warvex/i.test(heard)){const command=heard.replace(/hey\s+warvex/i,"").trim();if(command)processVoice(command);else say("Ich höre.");}}};recognition.onerror=e=>voiceStatus("Spracherkennung: "+e.error+". Ggf. Mikrofon neu starten.");recognition.onend=()=>{if(listening){voiceStatus("Sprachverbindung wird neu gestartet …");restartTimer=setTimeout(()=>{if(listening&&recognition){try{recognition.start();}catch(e){voiceStatus("Bitte Mikrofon erneut starten.");}}},900);}};listening=true;recognition.start();$("listenBtn").textContent="MIKROFON AKTIV";}catch(e){listening=false;voiceStatus("Mikrofonstart fehlgeschlagen: "+e.message);}}
-function stopListening(){listening=false;if(restartTimer)clearTimeout(restartTimer);if(recognition){recognition.onend=null;try{recognition.stop();}catch(e){}recognition=null;}stopSOS();$("listenBtn").textContent="HEY WARVEX";voiceStatus("Mikrofon ist aus.");}
-$("listenBtn").addEventListener("click",startListening);$("micOff").addEventListener("click",stopListening);
-$("systemStatus").textContent="System bereit · Navigation und Uhr aktiv";$("toolStatus").textContent="JavaScript läuft · "+((window.SpeechRecognition||window.webkitSpeechRecognition)?"Spracherkennung verfügbar":"Spracherkennung nicht erkannt");
+
+function showPage(id){
+ document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("active",p.id===id));
+ document.querySelectorAll("nav [data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===id));
+}
+
+$("nav").addEventListener("click",e=>{
+ const b=e.target.closest("[data-page]");
+ if(b)showPage(b.dataset.page);
+});
+
+document.querySelectorAll("[data-go]").forEach(b=>{
+ b.addEventListener("click",()=>showPage(b.dataset.go));
+});
+
+function tick(){
+ const d=new Date();
+ const s=d.toLocaleDateString("de-DE",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})+" · "+d.toLocaleTimeString("de-DE");
+ $("clock").textContent=s;
+ $("clockLarge").textContent=s;
+}
+tick();
+setInterval(tick,1000);
+
+function addMessage(who,text){
+ const el=document.createElement("div");
+ el.className="msg"+(who==="Du"?" user":"");
+ el.textContent=who+": "+text;
+ $("chatLog").appendChild(el);
+ $("chatLog").scrollTop=$("chatLog").scrollHeight;
+}
+
+function answer(text){
+ const q=text.toLowerCase();
+
+ if(q.includes("uhr")||q.includes("spät"))
+  return "Es ist "+new Date().toLocaleTimeString("de-DE")+".";
+
+ if(q.includes("datum")||q.includes("tag"))
+  return "Heute ist "+new Date().toLocaleDateString("de-DE")+".";
+
+ if(q.includes("aufgabe")){
+  showPage("tasks");
+  return "Aufgaben geöffnet.";
+ }
+
+ if(q.includes("notiz")){
+  showPage("notes");
+  return "Notizen geöffnet.";
+ }
+
+ if(q.includes("smart home")||q.includes("licht")){
+  showPage("home");
+  return "Smart-Home-Demo geöffnet.";
+ }
+
+ if(q.includes("chat")){
+  showPage("chat");
+  return "KI Chat geöffnet.";
+ }
+
+ if(q.includes("hilfe")||q.includes("kannst"))
+  return "Ich kann die Uhr nennen und die Bereiche öffnen. Für freie Antworten fehlt noch ein KI-Dienst.";
+
+ return "Ich kann zurzeit wegen einem Fehler keine Befehle verstehen.";
+}
+
+$("chatForm").addEventListener("submit",e=>{
+ e.preventDefault();
+ const v=$("chatInput").value.trim();
+ if(!v)return;
+ addMessage("Du",v);
+ $("chatInput").value="";
+ addMessage("WARVEX",answer(v));
+});
+
+$("taskForm").addEventListener("submit",e=>{
+ e.preventDefault();
+ const v=$("taskInput").value.trim();
+ if(!v)return;
+
+ const row=document.createElement("div");
+ const label=document.createElement("span");
+ const btn=document.createElement("button");
+
+ row.className="item";
+ label.textContent=v;
+ btn.textContent="Erledigt";
+
+ btn.addEventListener("click",()=>row.remove());
+ row.append(label,btn);
+ $("taskList").append(row);
+ $("taskInput").value="";
+});
+
+document.querySelectorAll(".toggle").forEach(b=>{
+ b.addEventListener("click",()=>{
+  b.textContent=b.textContent==="AUS"?"AN":"AUS";
+ });
+});
+
+try{
+ $("noteText").value=localStorage.getItem("warvex_note")||"";
+}catch(e){}
+
+$("saveNote").addEventListener("click",()=>{
+ try{
+  localStorage.setItem("warvex_note",$("noteText").value);
+  $("noteStatus").textContent="Notiz gespeichert.";
+ }catch(e){
+  $("noteStatus").textContent="Speichern ist hier nicht verfügbar.";
+ }
+});
+
+$("clearNote").addEventListener("click",()=>{
+ $("noteText").value="";
+ try{localStorage.removeItem("warvex_note");}catch(e){}
+ $("noteStatus").textContent="Notiz gelöscht.";
+});
+
+let recognition=null;
+let listening=false;
+let sosTimer=null;
+let ctx=null;
+let sirenTimer=null;
+
+function say(t){
+ if(!window.speechSynthesis)return;
+
+ window.speechSynthesis.cancel();
+
+ const u=new SpeechSynthesisUtterance(t);
+ u.lang="de-DE";
+ window.speechSynthesis.speak(u);
+}
+
+function voiceStatus(t){
+ $("voiceStatus").textContent=t;
+}
+
+function stopSOS(){
+ if(sosTimer){
+  clearTimeout(sosTimer);
+  sosTimer=null;
+ }
+
+ if(sirenTimer){
+  clearInterval(sirenTimer);
+  sirenTimer=null;
+ }
+
+ if(ctx){
+  ctx.close().catch(()=>{});
+  ctx=null;
+ }
+
+ if(navigator.vibrate)navigator.vibrate(0);
+
+ voiceStatus(listening
+  ?"Mikrofon aktiv – sag „Hey WARVEX“."
+  :"Sprachsteuerung ist aus."
+ );
+}
+
+function startSOS(){
+ stopSOS();
+ voiceStatus("SOS-Test läuft – nur Demo.");
+
+ if(navigator.vibrate){
+  navigator.vibrate([300,120,300,120,700,180,300,120,300]);
+ }
+
+ try{
+  const AC=window.AudioContext||window.webkitAudioContext;
+
+  if(AC){
+   ctx=new AC();
+   ctx.resume();
+
+   let high=true;
+
+   sirenTimer=setInterval(()=>{
+    if(!ctx)return;
+
+    const o=ctx.createOscillator();
+    const g=ctx.createGain();
+
+    o.type="sawtooth";
+    o.frequency.value=high?880:660;
+    high=!high;
+
+    g.gain.setValueAtTime(.0001,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.035,ctx.currentTime+.04);
+    g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.38);
+
+    o.connect(g);
+    g.connect(ctx.destination);
+    o.start();
+    o.stop(ctx.currentTime+.4);
+   },470);
+  }
+ }catch(e){}
+
+ say("Dies ist nur ein SOS-Test. Gefahr erkannt.");
+ sosTimer=setTimeout(stopSOS,12000);
+}
+
+function stopListening(){
+ listening=false;
+
+ if(recognition){
+  recognition.onend=null;
+  recognition.onerror=null;
+
+  try{recognition.stop();}catch(e){}
+
+  recognition=null;
+ }
+
+ stopSOS();
+
+ $("listenBtn").textContent="SPRACHSTEUERUNG AKTIVIEREN";
+ $("listenBtn").classList.add("primary");
+
+ voiceStatus("Sprachsteuerung ist aus.");
+}
+
+function processVoice(spoken){
+ const q=spoken.toLowerCase();
+
+ if(q.includes("sprachsteuerung stoppen")||q.includes("mikrofon aus")){
+  say("Sprachsteuerung wird beendet.");
+  stopListening();
+  return;
+ }
+
+ if(q.includes("stopp")||q.includes("stop")){
+  stopSOS();
+  say("SOS-Test gestoppt.");
+  return;
+ }
+
+ if(q.includes("sos test")){
+  startSOS();
+  return;
+ }
+
+ if(q.includes("öffne")||q.includes("oeffne")||q.includes("zeige")){
+
+  if(q.includes("notiz")){
+   showPage("notes");
+   say("Notizen geöffnet.");
+   return;
+  }
+
+  if(q.includes("aufgabe")){
+   showPage("tasks");
+   say("Aufgaben geöffnet.");
+   return;
+  }
+
+  if(q.includes("smart")){
+   showPage("home");
+   say("Smart Home geöffnet.");
+   return;
+  }
+
+  if(q.includes("chat")){
+   showPage("chat");
+   say("KI Chat geöffnet.");
+   return;
+  }
+
+  if(q.includes("start")){
+   showPage("start");
+   say("Startseite geöffnet.");
+   return;
+  }
+
+  if(q.includes("tools")){
+   showPage("tools");
+   say("Tools geöffnet.");
+   return;
+  }
+ }
+
+ const reply=answer(spoken);
+ addMessage("Du",spoken);
+ addMessage("WARVEX",reply);
+ say(reply);
+}
+
+function startListening(){
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+
+ if(!SR){
+  voiceStatus("Dieser Browser unterstützt keine Spracherkennung. Bitte Chrome verwenden.");
+  return;
+ }
+
+ if(listening)return;
+
+ listening=true;
+
+ $("listenBtn").textContent="STOP";
+ $("listenBtn").classList.remove("primary");
+
+ try{
+  const r=new SR();
+  recognition=r;
+
+  r.lang="de-DE";
+  r.continuous=true;
+  r.interimResults=false;
+  r.maxAlternatives=1;
+
+  r.onstart=()=>{
+   voiceStatus("Mikrofon aktiv – sag „Hey WARVEX“.");
+  };
+
+  r.onresult=e=>{
+   for(let i=e.resultIndex;i<e.results.length;i++){
+    if(!e.results[i].isFinal)continue;
+
+    const heard=e.results[i][0].transcript.trim();
+
+    if(/hey\s+warvex/i.test(heard)){
+     const command=heard.replace(/hey\s+warvex/i,"").trim();
+
+     if(command){
+      processVoice(command);
+     }else{
+      say("Ich höre.");
+     }
+    }
+   }
+  };
+
+  r.onerror=e=>{
+   if(e.error==="not-allowed"||e.error==="service-not-allowed"){
+    voiceStatus("Mikrofonzugriff blockiert. Bitte Chrome-Berechtigung erlauben.");
+    stopListening();
+   }else if(e.error!=="no-speech"&&e.error!=="aborted"){
+    voiceStatus("Spracherkennung: "+e.error);
+   }
+  };
+
+  r.onend=()=>{
+   if(recognition===r)recognition=null;
+
+   if(!listening)return;
+
+   listening=false;
+   stopSOS();
+
+   $("listenBtn").textContent="SPRACHSTEUERUNG AKTIVIEREN";
+   $("listenBtn").classList.add("primary");
+
+   voiceStatus("Die Sprachsteuerung wurde von Chrome beendet.");
+
+   say("Die Sprachsteuerung wurde von Chrome beendet.");
+  };
+
+  r.start();
+
+ }catch(e){
+  voiceStatus("Mikrofonstart fehlgeschlagen: "+e.message);
+  stopListening();
+ }
+}
+
+$("listenBtn").addEventListener("click",()=>{
+ if(listening){
+  stopListening();
+ }else{
+  startListening();
+ }
+});
+
+$("systemStatus").textContent="System bereit · Navigation und Uhr aktiv";
+
+$("toolStatus").textContent=
+ "JavaScript läuft · "+
+ ((window.SpeechRecognition||window.webkitSpeechRecognition)
+  ?"Spracherkennung verfügbar"
+  :"Spracherkennung nicht erkannt");
+
 })();
 </script>
 </body>
-</html>
+  </html>
+  
