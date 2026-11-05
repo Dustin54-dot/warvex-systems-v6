@@ -1,11 +1,11 @@
- 
+
 <!doctype html>
 <html lang="de">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#090b10">
-<title>WARVEX SYSTEMS</title>
+<title>WARVEX SYSTEMS V6</title>
 <style>
 :root{color-scheme:dark;--bg:#090b10;--panel:#141b27;--red:#ff3048;--line:#2a3546;--muted:#aab5c4}
 *{box-sizing:border-box}
@@ -100,7 +100,7 @@ footer{text-align:center;padding:20px}
 <section class="panel" id="chat">
  <h1>KI Chat</h1>
  <div id="chatLog">
-  <div class="msg">WARVEX: Hallo! Ich kann lokale Grundbefehle beantworten. Für freie KI-Antworten muss ein KI-Dienst verbunden werden.</div>
+  <div class="msg">WARVEX: Hallo! Ich bin bereit. Du kannst mir Fragen stellen oder Bereiche öffnen.</div>
  </div>
  <form id="chatForm">
   <textarea id="chatInput" placeholder="Schreib eine Nachricht …" required></textarea>
@@ -111,30 +111,24 @@ footer{text-align:center;padding:20px}
 <section class="panel" id="voice">
  <h1>Sprachsteuerung</h1>
  <p>Wähle einen Modus. Beim direkten Sprachbefehl brauchst du kein Aktivierungswort.</p>
-
  <div class="status" id="voiceStatus">Sprachsteuerung ist aus.</div>
-
  <div class="actions">
   <button class="primary" id="directBtn">SPRACHBEFEHL</button>
   <button id="wakeBtn">HEY WARVEX AKTIVIEREN</button>
   <button id="stopBtn" hidden>STOP</button>
  </div>
-
  <div class="info-card">
   <div class="info-title">DIREKTER SPRACHBEFEHL</div>
-  <p>Tippe einmal und sage direkt „Öffne Notizen“, „Wie spät ist es?“ oder „Öffne Smart Home“.</p>
+  <p>Tippe einmal und sage direkt „Öffne Notizen“, „Wie spät ist es?“ oder stelle eine allgemeine Frage.</p>
  </div>
-
  <div class="info-card">
   <div class="info-title">HEY WARVEX</div>
-  <p>Aktivieren und danach „Hey WARVEX, öffne Notizen“ sagen. Chrome kann längere Erkennungssitzungen beenden.</p>
+  <p>Aktivieren und danach „Hey WARVEX“ und deinen Befehl sagen. Chrome kann längere Erkennungssitzungen beenden.</p>
  </div>
-
  <div class="info-card">
   <div class="info-title">FEHLERDIAGNOSE</div>
   <div id="diagnosticStatus">Noch keine Diagnose durchgeführt.</div>
  </div>
-
  <p class="small">Die Spracherkennung benötigt Browser-Unterstützung und kann eine Internetverbindung benötigen.</p>
 </section>
 
@@ -180,6 +174,34 @@ footer{text-align:center;padding:20px}
 (function(){
 "use strict";
 const $=id=>document.getElementById(id);
+
+/* CLOUDFLARE KI */
+const WORKER_URL="https://warvex-systems-v6.dustina952.workers.dev";
+
+async function askCloudflareAI(prompt){
+ const response=await fetch(WORKER_URL+"/api/ai",{
+  method:"POST",
+  headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({prompt})
+ });
+
+ let data;
+ try{
+  data=await response.json();
+ }catch(e){
+  throw new Error("Der KI-Server hat keine gültige Antwort gesendet.");
+ }
+
+ if(!response.ok||!data.success){
+  throw new Error(data&&data.error?data.error:"KI-Anfrage fehlgeschlagen (HTTP "+response.status+").");
+ }
+
+ if(typeof data.response!=="string"||!data.response.trim()){
+  throw new Error("Die KI hat eine leere Antwort zurückgegeben.");
+ }
+
+ return data.response.trim();
+}
 
 /* NAVIGATION */
 function showPage(id){
@@ -254,7 +276,7 @@ const net=navigator.connection||navigator.mozConnection||navigator.webkitConnect
 if(net&&typeof net.addEventListener==="function")net.addEventListener("change",updateConnection);
 updateConnection();
 
-/* CHAT UND BEFEHLSLOGIK */
+/* CHAT UND LOKALE BEFEHLE */
 function addMessage(who,text){
  const el=document.createElement("div");
  el.className="msg"+(who==="Du"?" user":"");
@@ -262,28 +284,86 @@ function addMessage(who,text){
  $("chatLog").appendChild(el);
  $("chatLog").scrollTop=$("chatLog").scrollHeight;
 }
-function answer(text){
+
+function localAnswer(text){
  const q=text.toLowerCase();
- if(q.includes("uhr")||q.includes("spät"))return "Es ist "+new Date().toLocaleTimeString("de-DE")+".";
- if(q.includes("datum")||q.includes("tag"))return "Heute ist "+new Date().toLocaleDateString("de-DE")+".";
- if(q.includes("akku")||q.includes("batterie"))return battery?"Der Akkustand beträgt "+Math.round(battery.level*100)+" Prozent.":"Der Akkustand ist nicht verfügbar.";
- if(q.includes("internet")||q.includes("verbindung"))return navigator.onLine?"Das Handy hat eine Internetverbindung.":"Das Handy ist offline.";
- if(q.includes("aufgabe")){showPage("tasks");return "Aufgaben geöffnet.";}
- if(q.includes("notiz")){showPage("notes");return "Notizen geöffnet.";}
- if(q.includes("smart home")||q.includes("licht")){showPage("home");return "Smart-Home-Demo geöffnet.";}
- if(q.includes("chat")){showPage("chat");return "KI Chat geöffnet.";}
- if(q.includes("start")){showPage("start");return "Startseite geöffnet.";}
- if(q.includes("tools")){showPage("tools");return "Tools geöffnet.";}
- if(q.includes("hilfe"))return "Ich kann Uhrzeit, Datum, Akku und Internetstatus nennen und die Bereiche öffnen.";
- return "Ich kann zurzeit wegen einem Fehler keine Befehle verstehen.";
+
+ if(q.includes("uhr")||q.includes("spät"))
+  return "Es ist "+new Date().toLocaleTimeString("de-DE")+".";
+
+ if(q.includes("datum")||q.includes("welcher tag"))
+  return "Heute ist "+new Date().toLocaleDateString("de-DE")+".";
+
+ if(q.includes("akku")||q.includes("batterie"))
+  return battery?"Der Akkustand beträgt "+Math.round(battery.level*100)+" Prozent.":"Der Akkustand ist nicht verfügbar.";
+
+ if(q.includes("internet")||q.includes("verbindung"))
+  return navigator.onLine?"Das Handy hat eine Internetverbindung.":"Das Handy ist offline.";
+
+ if(q.includes("aufgabe")||q.includes("öffne aufgaben")){
+  showPage("tasks");
+  return "Aufgaben geöffnet.";
+ }
+
+ if(q.includes("notiz")||q.includes("öffne notizen")){
+  showPage("notes");
+  return "Notizen geöffnet.";
+ }
+
+ if(q.includes("smart home")||q.includes("licht")){
+  showPage("home");
+  return "Smart-Home-Demo geöffnet.";
+ }
+
+ if(q.includes("öffne chat")||q==="chat"){
+  showPage("chat");
+  return "KI Chat geöffnet.";
+ }
+
+ if(q.includes("öffne start")||q==="start"){
+  showPage("start");
+  return "Startseite geöffnet.";
+ }
+
+ if(q.includes("öffne tools")||q==="tools"){
+  showPage("tools");
+  return "Tools geöffnet.";
+ }
+
+ if(q.includes("hilfe"))
+  return "Ich kann Uhrzeit, Datum, Akku und Internetstatus nennen, Bereiche öffnen und allgemeine Fragen über die Cloudflare-KI beantworten.";
+
+ return null;
 }
-$("chatForm").addEventListener("submit",e=>{
+
+async function answer(text){
+ const local=localAnswer(text);
+ if(local!==null)return local;
+ return await askCloudflareAI(text);
+}
+
+/* KI CHAT */
+$("chatForm").addEventListener("submit",async e=>{
  e.preventDefault();
  const v=$("chatInput").value.trim();
  if(!v)return;
+
  addMessage("Du",v);
  $("chatInput").value="";
- addMessage("WARVEX",answer(v));
+
+ const sendButton=$("chatForm").querySelector('button[type="submit"]');
+ if(sendButton)sendButton.disabled=true;
+
+ addMessage("WARVEX","KI wird gefragt …");
+ const pending=$("chatLog").lastElementChild;
+
+ try{
+  pending.textContent="WARVEX: "+await answer(v);
+ }catch(error){
+  pending.textContent="WARVEX: Ich kann gerade keine KI-Antwort abrufen. "+error.message;
+ }finally{
+  if(sendButton)sendButton.disabled=false;
+ }
 });
 
 /* AUFGABEN */
@@ -339,6 +419,7 @@ let lastVoiceError="";
 let gotSpeech=false;
 
 function voiceStatus(text){$("voiceStatus").textContent=text;}
+
 function showVoiceButtons(active){
  $("directBtn").hidden=active;
  $("wakeBtn").hidden=active;
@@ -350,7 +431,7 @@ function explainVoiceError(error){
  switch(error){
   case "not-allowed":
   case "service-not-allowed":
-   return "Mikrofonzugriff verweigert. Prüfe die Mikrofonberechtigung für Chrome und WARVEX.";
+   return "Mikrofonzugriff verweigert. Prüfe die Mikrofonberechtigung für Chrome.";
   case "audio-capture":
    return "Kein Mikrofon verfügbar oder es wird von einer anderen Anwendung verwendet.";
   case "network":
@@ -362,40 +443,56 @@ function explainVoiceError(error){
   case "aborted":
    return "Die Spracherkennung wurde abgebrochen.";
   case "":
-   return "Chrome hat die Spracherkennung beendet. Android oder Chrome können längere Sitzungen automatisch beenden.";
+   return "Chrome hat die Spracherkennung beendet. Längere Sitzungen können automatisch beendet werden.";
   default:
    return "Chrome meldet den Fehler: "+error+". Prüfe Mikrofon, Browser und Internet.";
  }
 }
+
 async function diagnoseVoice(){
  const results=[];
  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
  results.push(SR?"Spracherkennung wird vom Browser angeboten.":"Keine Web-Spracherkennung verfügbar.");
  results.push(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia?"Mikrofon-Schnittstelle vorhanden.":"Mikrofon-Schnittstelle nicht verfügbar.");
  results.push(navigator.onLine?"Internetverbindung vorhanden.":"Keine Internetverbindung.");
+
  if(navigator.permissions&&navigator.permissions.query){
   try{
    const p=await navigator.permissions.query({name:"microphone"});
    results.push("Mikrofonberechtigung: "+p.state+".");
-  }catch(e){results.push("Mikrofonberechtigung nicht abfragbar.");}
+  }catch(e){
+   results.push("Mikrofonberechtigung nicht abfragbar.");
+  }
  }else{
   results.push("Chrome stellt den Berechtigungsstatus nicht bereit.");
  }
+
  $("diagnosticStatus").textContent=results.join(" ");
 }
 
-/* SPRACHBEFEHLE */
-function processVoice(spoken){
+/* SPRACHBEFEHLE MIT KI */
+async function processVoice(spoken){
  const q=spoken.toLowerCase();
+
  if(q.includes("sprachsteuerung stoppen")||q.includes("mikrofon aus")){
   stopListening();
   say("Sprachsteuerung wird beendet.");
   return;
  }
- const reply=answer(spoken);
+
  addMessage("Du",spoken);
- addMessage("WARVEX",reply);
- say(reply);
+ addMessage("WARVEX","Ich prüfe deine Anfrage …");
+ const pending=$("chatLog").lastElementChild;
+
+ try{
+  const reply=await answer(spoken);
+  pending.textContent="WARVEX: "+reply;
+  say(reply);
+ }catch(error){
+  const message="Ich kann gerade keine KI-Antwort abrufen. "+error.message;
+  pending.textContent="WARVEX: "+message;
+  say(message);
+ }
 }
 
 /* SPRACHERKENNUNG */
@@ -404,11 +501,13 @@ function stopListening(){
  const old=recognition;
  recognition=null;
  activeMode=null;
+
  if(old){
   old.onend=null;
   old.onerror=null;
   try{old.stop();}catch(e){}
  }
+
  showVoiceButtons(false);
  voiceStatus("Sprachsteuerung ist aus.");
 }
@@ -417,11 +516,13 @@ function finishRecognition(r,mode){
  if(recognition===r)recognition=null;
  activeMode=null;
  showVoiceButtons(false);
+
  if(manualStop){
   manualStop=false;
   voiceStatus("Sprachsteuerung wurde gestoppt.");
   return;
  }
+
  if(lastVoiceError){
   const reason=explainVoiceError(lastVoiceError);
   $("diagnosticStatus").textContent="Diagnose: "+reason;
@@ -443,11 +544,13 @@ function finishRecognition(r,mode){
 
 function startListening(mode){
  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+
  if(!SR){
   voiceStatus("Dieser Browser unterstützt keine Spracherkennung. Bitte Chrome verwenden.");
   diagnoseVoice();
   return;
  }
+
  if(recognition)return;
 
  activeMode=mode;
@@ -473,6 +576,7 @@ function startListening(mode){
   r.onresult=e=>{
    for(let i=e.resultIndex;i<e.results.length;i++){
     if(!e.results[i].isFinal)continue;
+
     const spoken=e.results[i][0].transcript.trim();
     if(!spoken)continue;
     gotSpeech=true;
@@ -503,7 +607,6 @@ function startListening(mode){
    finishRecognition(r,mode);
   };
 
-  // Wichtig: direkt starten, ohne vorher auf eine asynchrone Diagnose zu warten.
   r.start();
 
  }catch(e){
@@ -519,14 +622,4 @@ function startListening(mode){
 
 /* BUTTONS */
 $("directBtn").addEventListener("click",()=>startListening("direct"));
-$("wakeBtn").addEventListener("click",()=>startListening("wake"));
-$("stopBtn").addEventListener("click",stopListening);
-
-$("systemStatus").textContent="System bereit · Uhr, Datum und Statusanzeigen geladen.";
-$("toolStatus").textContent="JavaScript läuft · "+((window.SpeechRecognition||window.webkitSpeechRecognition)?"Spracherkennung verfügbar":"Spracherkennung nicht erkannt");
-
-})();
-</script>
-</body>
-  </html>
-                              
+$("wakeBtn").addEventListener("click",()=>startListening("wak
