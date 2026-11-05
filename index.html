@@ -7,143 +7,278 @@
 <meta name="theme-color" content="#090b10">
 <title>WARVEX SYSTEMS V6</title>
 <style>
-:root{color-scheme:dark;--bg:#090b10;--panel:#141b27;--red:#ff3048;--line:#2a3546;--muted:#aab5c4}
+:root{
+  color-scheme:dark;
+  --bg:#090b10;
+  --panel:#141b27;
+  --red:#ff3048;
+  --line:#2a3546;
+  --muted:#aab5c4;
+}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:#f4f6fa;font:16px system-ui,Arial,sans-serif}
-header{padding:18px;background:#0e131d;border-bottom:1px solid var(--line)}
+body{
+  margin:0;background:var(--bg);color:#f4f6fa;
+  font:16px system-ui,Arial,sans-serif
+}
+header{
+  padding:18px;background:#0e131d;
+  border-bottom:1px solid var(--line)
+}
 h1{margin:0;color:var(--red);font-size:25px;letter-spacing:2px}
 header small{color:var(--muted)}
-nav{display:flex;gap:8px;overflow:auto;padding:10px;background:#0e131d}
-button{border:1px solid var(--line);border-radius:10px;background:#202b3b;color:white;padding:12px;cursor:pointer;font-weight:600}
-button:active{transform:scale(.98)}
+nav{
+  display:flex;gap:8px;overflow:auto;padding:10px;
+  background:#0e131d;position:sticky;top:0;z-index:5
+}
+button{
+  border:1px solid var(--line);border-radius:10px;
+  background:#202b3b;color:white;padding:12px;
+  cursor:pointer;font-weight:600
+}
+button:disabled{opacity:.5;cursor:wait}
+button.active,.primary{background:var(--red);border-color:var(--red)}
 nav button{white-space:nowrap}
-button.active,.primary{background:var(--red);border-color:var(--red);color:white}
-main{padding:14px;max-width:850px;margin:auto}
+main{padding:14px;max-width:900px;margin:auto}
 .page{display:none}
 .page.active{display:block}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:16px;margin-bottom:13px}
+.card{
+  background:var(--panel);border:1px solid var(--line);
+  border-radius:15px;padding:16px;margin-bottom:13px
+}
 h2{margin:0 0 12px;font-size:20px}
 h3{margin:8px 0}
 .muted{color:var(--muted);font-size:13px}
 .big{font-size:34px;font-weight:700}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-input,textarea{width:100%;padding:13px;border-radius:10px;border:1px solid var(--line);background:#0c121c;color:white;font:inherit;margin:5px 0 10px}
-textarea{min-height:100px;resize:vertical}
+input,textarea{
+  width:100%;padding:13px;border-radius:10px;
+  border:1px solid var(--line);background:#0c121c;
+  color:white;font:inherit;margin:5px 0 10px
+}
+textarea{min-height:110px;resize:vertical}
+#codeEditor{min-height:330px;font:13px monospace;tab-size:2}
 .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-.status{padding:10px;border-radius:9px;background:#0c121c;color:var(--muted);overflow-wrap:anywhere}
-.message{padding:12px;margin:9px 0;border-radius:10px;background:#202b3b;white-space:pre-wrap;overflow-wrap:anywhere}
+.status{
+  padding:10px;border-radius:9px;background:#0c121c;
+  color:var(--muted);overflow-wrap:anywhere
+}
+.message{
+  padding:12px;margin:9px 0;border-radius:10px;
+  background:#202b3b;white-space:pre-wrap;overflow-wrap:anywhere
+}
 .user{border:1px solid #73404a}
+a{color:#ff7182}
 footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
+@media(max-width:520px){
+  .grid{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
+
 <header>
-<h1>WARVEX SYSTEMS</h1>
-<small>V6 · Dein persönlicher KI-Assistent</small>
+  <h1>WARVEX SYSTEMS</h1>
+  <small>V6 · KI-Assistent · Sprachsystem · Code Studio</small>
 </header>
 
 <nav>
-<button class="active" data-page="start">START</button>
-<button data-page="chat">KI CHAT</button>
-<button data-page="voice">SPRACHE</button>
-<button data-page="tools">TOOLS</button>
-<button data-page="notes">NOTIZEN</button>
-<button data-page="home">SMART HOME</button>
+  <button class="active" data-page="start">START</button>
+  <button data-page="chat">KI CHAT</button>
+  <button data-page="voice">SPRACHE</button>
+  <button data-page="code">PROGRAMMIEREN</button>
+  <button data-page="tools">TOOLS</button>
+  <button data-page="notes">NOTIZEN</button>
+  <button data-page="home">SMART HOME</button>
 </nav>
 
 <main>
+
 <section id="start" class="page active">
-<div class="card">
-<h2>Systemübersicht</h2>
-<div class="big" id="clock">--:--:--</div>
-<div id="date">Datum wird geladen …</div>
-</div>
-<div class="grid">
-<div class="card"><div class="muted">AKKU</div><h3 id="battery">Wird geladen …</h3></div>
-<div class="card"><div class="muted">INTERNET</div><h3 id="internet">Prüfe Verbindung …</h3></div>
-</div>
-<div class="card">
-<h2>Systemstatus</h2>
-<div class="status" id="systemStatus">WARVEX startet …</div>
-<p class="muted" id="toolStatus">Initialisierung …</p>
-</div>
-<div class="card">
-<h2>Schnellzugriff</h2>
-<div class="actions">
-<button class="primary" data-open="chat">KI CHAT</button>
-<button data-open="voice">SPRACHE</button>
-<button data-open="tools">TOOLS</button>
-</div>
-</div>
+  <div class="card">
+    <h2>Systemübersicht</h2>
+    <div class="big" id="clock">--:--:--</div>
+    <div id="date">Datum wird geladen …</div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="muted">AKKU</div>
+      <h3 id="battery">Wird geladen …</h3>
+    </div>
+    <div class="card">
+      <div class="muted">INTERNET</div>
+      <h3 id="internet">Prüfe Verbindung …</h3>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Systemstatus</h2>
+    <div class="status" id="systemStatus">WARVEX startet …</div>
+    <p class="muted" id="toolStatus">Initialisierung …</p>
+  </div>
+
+  <div class="card">
+    <h2>Schnellzugriff</h2>
+    <div class="actions">
+      <button class="primary" data-open="chat">KI CHAT</button>
+      <button data-open="voice">SPRACHE</button>
+      <button data-open="code">PROGRAMMIEREN</button>
+      <button data-open="tools">TOOLS</button>
+    </div>
+  </div>
 </section>
 
 <section id="chat" class="page">
-<div class="card">
-<h2>WARVEX KI</h2>
-<p class="muted">Stelle eine Frage. WARVEX verbindet sich mit deinem Cloudflare-Worker.</p>
-<div id="chatMessages" aria-live="polite">
-<div class="message">WARVEX: Hallo! Was möchtest du wissen?</div>
-</div>
-<textarea id="chatInput" placeholder="Schreibe deine Nachricht …"></textarea>
-<div class="actions">
-<button class="primary" id="sendBtn">SENDEN</button>
-<button id="clearChat">CHAT LÖSCHEN</button>
-</div>
-<p class="muted" id="chatStatus">Bereit.</p>
-</div>
+  <div class="card">
+    <h2>WARVEX KI</h2>
+    <p class="muted">Direkt mit der Cloudflare-KI verbunden.</p>
+    <div id="chatMessages" aria-live="polite">
+      <div class="message">WARVEX: Hallo! Was möchtest du wissen?</div>
+    </div>
+    <textarea id="chatInput" placeholder="Schreibe deine Nachricht …"></textarea>
+    <div class="actions">
+      <button class="primary" id="sendBtn">SENDEN</button>
+      <button id="clearChat">CHAT LÖSCHEN</button>
+    </div>
+    <p class="muted" id="chatStatus">Bereit.</p>
+  </div>
 </section>
 
 <section id="voice" class="page">
-<div class="card">
-<h2>Sprachsteuerung</h2>
-<p class="muted">Direktmodus hört einen Befehl. Hey-WARVEX-Modus wartet auf das Aktivierungswort, solange der Browser die Erkennung unterstützt.</p>
-<div class="actions">
-<button class="primary" id="directBtn">SPRACHBEFEHL</button>
-<button id="wakeBtn">HEY WARVEX</button>
-<button id="stopBtn">STOP</button>
-</div>
-<div class="status" id="voiceStatus">Sprachsteuerung ist ausgeschaltet.</div>
-<p class="muted" id="diagnosticStatus">Diagnose noch nicht gestartet.</p>
-</div>
+  <div class="card">
+    <h2>Sprachsteuerung</h2>
+    <p class="muted">
+      Online-Stimme: Seraphina. Ersatz: deutsche Browser-Stimme.
+    </p>
+    <div class="actions">
+      <button class="primary" id="directBtn">SPRACHBEFEHL</button>
+      <button id="wakeBtn">HEY WARVEX</button>
+      <button id="stopBtn">STOP</button>
+      <button id="testVoiceBtn">STIMME TESTEN</button>
+    </div>
+    <div class="status" id="voiceStatus">Sprachsteuerung ausgeschaltet.</div>
+    <p class="muted" id="ttsStatus">Sprachsystem wird geprüft …</p>
+    <p class="muted" id="diagnosticStatus">Diagnose noch nicht gestartet.</p>
+  </div>
+</section>
+
+<section id="code" class="page">
+  <div class="card">
+    <h2>WARVEX CODE STUDIO</h2>
+    <p class="muted">
+      Dein Programmierbereich mit direkter KI-Unterstützung.
+      Die KI kann Code erklären, Fehler untersuchen und kleinere
+      Codeabschnitte erstellen.
+    </p>
+
+    <h3>Deine Programmierfrage</h3>
+    <textarea id="codePrompt"
+      placeholder="Beispiel: Erstelle eine Funktion, die die Uhrzeit anzeigt."></textarea>
+
+    <div class="actions">
+      <button class="primary" id="codeAskBtn">KI FRAGEN</button>
+      <button id="codeExplainBtn">CODE ERKLÄREN</button>
+    </div>
+
+    <p class="muted" id="codeStatus">KI-Verbindung bereit.</p>
+
+    <h3>KI-Ergebnis</h3>
+    <div class="status" id="codeAnswer">
+      Hier erscheint die Antwort deiner KI.
+    </div>
+    <div class="actions">
+      <button id="insertCodeBtn">ERGEBNIS IN EDITOR</button>
+      <button id="copyAnswerBtn">ERGEBNIS KOPIEREN</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Code-Editor</h2>
+    <p class="muted">
+      Hier kannst du deinen Code bearbeiten und kopieren.
+      Änderungen werden nicht automatisch auf GitHub gespeichert.
+    </p>
+
+    <textarea id="codeEditor" spellcheck="false"
+      placeholder="// Dein Code kommt hier hinein …"></textarea>
+
+    <div class="actions">
+      <button class="primary" id="copyEditorBtn">CODE KOPIEREN</button>
+      <button id="clearEditorBtn">EDITOR LEEREN</button>
+    </div>
+    <p class="muted" id="editorStatus">Editor bereit.</p>
+  </div>
+
+  <div class="card">
+    <h2>GitHub Verbindung</h2>
+    <p class="muted">
+      Öffne dein WARVEX-Projekt oder bearbeite direkt die
+      index.html-Datei.
+    </p>
+    <div class="actions">
+      <a href="https://github.com/Dustin54-dot/warvex-systems-v6"
+         target="_blank" rel="noopener">
+        <button class="primary">GITHUB PROJEKT</button>
+      </a>
+      <a href="https://github.com/Dustin54-dot/warvex-systems-v6/edit/main/index.html"
+         target="_blank" rel="noopener">
+        <button>INDEX.HTML BEARBEITEN</button>
+      </a>
+      <a href="https://dustin54-dot.github.io/warvex-systems-v6/"
+         target="_blank" rel="noopener">
+        <button>WEB-APP ÖFFNEN</button>
+      </a>
+    </div>
+    <div class="status">
+      KI-Verbindung: Cloudflare Worker<br>
+      GitHub: Projekt und Editor direkt erreichbar<br>
+      Automatisches Committen: nicht eingerichtet
+    </div>
+  </div>
 </section>
 
 <section id="tools" class="page">
-<div class="card">
-<h2>System-Tools</h2>
-<div class="actions">
-<button id="timeBtn">UHRZEIT</button>
-<button id="dateBtn">DATUM</button>
-<button id="batteryBtn">AKKU</button>
-<button id="internetBtn">INTERNET</button>
-<button id="diagnoseBtn">DIAGNOSE</button>
-</div>
-<div class="status" id="toolResult">Wähle ein Tool aus.</div>
-</div>
+  <div class="card">
+    <h2>System-Tools</h2>
+    <div class="actions">
+      <button id="timeBtn">UHRZEIT</button>
+      <button id="dateBtn">DATUM</button>
+      <button id="batteryBtn">AKKU</button>
+      <button id="internetBtn">INTERNET</button>
+      <button id="diagnoseBtn">DIAGNOSE</button>
+    </div>
+    <div class="status" id="toolResult">Wähle ein Tool aus.</div>
+  </div>
 </section>
 
 <section id="notes" class="page">
-<div class="card">
-<h2>Notizen</h2>
-<textarea id="noteInput" placeholder="Deine Notiz …"></textarea>
-<div class="actions">
-<button class="primary" id="saveNote">SPEICHERN</button>
-<button id="deleteNote">LÖSCHEN</button>
-</div>
-<div class="status" id="noteStatus">Notizen werden lokal in diesem Browser gespeichert.</div>
-</div>
+  <div class="card">
+    <h2>Notizen</h2>
+    <textarea id="noteInput" placeholder="Deine Notiz …"></textarea>
+    <div class="actions">
+      <button class="primary" id="saveNote">SPEICHERN</button>
+      <button id="deleteNote">LÖSCHEN</button>
+    </div>
+    <div class="status" id="noteStatus">
+      Notizen werden lokal in diesem Browser gespeichert.
+    </div>
+  </div>
 </section>
 
 <section id="home" class="page">
-<div class="card">
-<h2>Smart Home Demo</h2>
-<p class="muted">Dies sind Demo-Schalter. Sie steuern noch keine echten Geräte.</p>
-<div class="actions">
-<button id="lightBtn">LICHT: AUS</button>
-<button id="plugBtn">STECKDOSE: AUS</button>
-</div>
-<div class="status" id="homeStatus">Demo bereit.</div>
-</div>
+  <div class="card">
+    <h2>Smart Home Demo</h2>
+    <p class="muted">
+      Diese Demo-Schalter steuern noch keine echten Geräte.
+    </p>
+    <div class="actions">
+      <button id="lightBtn">LICHT: AUS</button>
+      <button id="plugBtn">STECKDOSE: AUS</button>
+    </div>
+    <div class="status" id="homeStatus">Demo bereit.</div>
+  </div>
 </section>
+
 </main>
 
 <footer>WARVEX SYSTEMS V6 · Web-App</footer>
@@ -152,466 +287,476 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
 "use strict";
 
 const $ = id => document.getElementById(id);
-const WORKER_URL = "https://warvex-systems-v6.dustina952.workers.dev/api/ai";
+
+const WORKER =
+  "https://warvex-systems-v6.dustina952.workers.dev";
+
+const AI_URL = WORKER + "/api/ai";
+const TTS_URL = WORKER + "/api/tts";
 
 let recognition = null;
-let activeMode = null;
 let lightOn = false;
 let plugOn = false;
-
-// DEUTSCHE SPRACHAUSGABE
 let germanVoice = null;
-let voicesReady = false;
 
-function chooseGermanVoice(){
-  if(!("speechSynthesis" in window)) return;
-
-  const voices = window.speechSynthesis.getVoices() || [];
-  const germanVoices = voices.filter(v =>
-    /^de([_-]|$)/i.test(v.lang || "")
-  );
-
-  germanVoices.sort((a,b)=>{
-    const score = voice => {
-      const name = (voice.name || "").toLowerCase();
-      let points = 0;
-
-      if(/^de[-_]de/i.test(voice.lang)) points += 8;
-      if(name.includes("google")) points += 6;
-      if(name.includes("deutsch") || name.includes("german")) points += 4;
-      if(voice.localService) points += 2;
-
-      return points;
-    };
-
-    return score(b)-score(a);
-  });
-
-  germanVoice = germanVoices[0] || null;
-  voicesReady = true;
-}
-
-if("speechSynthesis" in window){
-  chooseGermanVoice();
-  window.speechSynthesis.addEventListener("voiceschanged",chooseGermanVoice);
-}
-
-function say(text){
-  if(!("speechSynthesis" in window)){
-    $("voiceStatus").textContent = "Sprachausgabe wird nicht unterstützt.";
-    return;
-  }
-
-  const synth = window.speechSynthesis;
-  synth.cancel();
-  chooseGermanVoice();
-
-  const utterance = new SpeechSynthesisUtterance(String(text));
-  utterance.lang = "de-DE";
-
-  if(germanVoice) utterance.voice = germanVoice;
-
-  utterance.rate = 0.94;
-  utterance.pitch = 1.0;
-  utterance.volume = 1.0;
-
-  utterance.onerror = event=>{
-    $("diagnosticStatus").textContent =
-      "Sprachausgabe-Fehler: "+(event.error || "unbekannt");
-  };
-
-  synth.speak(utterance);
-}
+let ttsState = "unknown";
+let outageAnnounced = false;
+let currentAudio = null;
 
 function showPage(name){
-  document.querySelectorAll(".page").forEach(p=>
+  document.querySelectorAll(".page").forEach(p =>
     p.classList.toggle("active",p.id===name)
   );
 
-  document.querySelectorAll("nav button").forEach(b=>
+  document.querySelectorAll("nav button").forEach(b =>
     b.classList.toggle("active",b.dataset.page===name)
   );
 }
 
-document.querySelectorAll("[data-page]").forEach(button=>{
-  button.addEventListener("click",()=>showPage(button.dataset.page));
+document.querySelectorAll("[data-page]").forEach(button => {
+  button.addEventListener("click",() =>
+    showPage(button.dataset.page)
+  );
 });
 
-document.querySelectorAll("[data-open]").forEach(button=>{
-  button.addEventListener("click",()=>showPage(button.dataset.open));
+document.querySelectorAll("[data-open]").forEach(button => {
+  button.addEventListener("click",() =>
+    showPage(button.dataset.open)
+  );
 });
+
+/* UHR UND DATUM */
 
 function updateClock(){
   const now = new Date();
   $("clock").textContent = now.toLocaleTimeString("de-DE");
   $("date").textContent = now.toLocaleDateString("de-DE",{
-    weekday:"long",day:"2-digit",month:"long",year:"numeric"
+    weekday:"long",
+    day:"2-digit",
+    month:"long",
+    year:"numeric"
   });
 }
 
 updateClock();
 setInterval(updateClock,1000);
 
+/* INTERNET */
+
 function updateInternet(){
-  $("internet").textContent = navigator.onLine ? "Verbunden" : "Offline";
+  $("internet").textContent =
+    navigator.onLine ? "Verbunden" : "Offline";
 }
 
 window.addEventListener("online",updateInternet);
 window.addEventListener("offline",updateInternet);
 updateInternet();
 
+/* AKKU */
+
 async function updateBattery(){
   if(!navigator.getBattery){
-    $("battery").textContent = "Nicht verfügbar";
+    $("battery").textContent="Nicht verfügbar";
     return;
   }
 
   try{
-    const battery = await navigator.getBattery();
+    const battery=await navigator.getBattery();
 
-    const show = ()=>{
+    const update=()=>{
       $("battery").textContent =
         Math.round(battery.level*100)+"%"+
         (battery.charging?" · Lädt":"");
     };
 
-    show();
-    battery.addEventListener("levelchange",show);
-    battery.addEventListener("chargingchange",show);
+    update();
+    battery.addEventListener("levelchange",update);
+    battery.addEventListener("chargingchange",update);
   }catch(error){
-    $("battery").textContent = "Nicht verfügbar";
+    $("battery").textContent="Nicht verfügbar";
   }
 }
 
 updateBattery();
 
+/* DEUTSCHE ERSATZSTIMME */
+
+function chooseGermanVoice(){
+  if(!("speechSynthesis" in window)) return;
+
+  const voices=window.speechSynthesis.getVoices()||[];
+
+  const list=voices.filter(v =>
+    /^de([_-]|$)/i.test(v.lang||"")
+  );
+
+  list.sort((a,b)=>{
+    const score=v=>{
+      let n=0;
+      const name=(v.name||"").toLowerCase();
+
+      if(/^de[-_]de/i.test(v.lang)) n+=8;
+      if(name.includes("google")) n+=6;
+      if(name.includes("german")||name.includes("deutsch")) n+=4;
+      if(v.localService) n+=2;
+
+      return n;
+    };
+
+    return score(b)-score(a);
+  });
+
+  germanVoice=list[0]||null;
+}
+
+if("speechSynthesis" in window){
+  chooseGermanVoice();
+  speechSynthesis.addEventListener(
+    "voiceschanged",chooseGermanVoice
+  );
+}
+
+/* BROWSER-TTS ALS ERSATZ */
+
+function speakWithBrowser(text){
+  return new Promise((resolve,reject)=>{
+    if(!("speechSynthesis" in window) ||
+       typeof SpeechSynthesisUtterance==="undefined"){
+      reject(new Error("Browser-Sprachausgabe nicht verfügbar."));
+      return;
+    }
+
+    chooseGermanVoice();
+
+    const utterance=new SpeechSynthesisUtterance(String(text));
+    utterance.lang="de-DE";
+    utterance.rate=0.94;
+    utterance.pitch=1;
+    utterance.volume=1;
+
+    if(germanVoice) utterance.voice=germanVoice;
+
+    utterance.onend=()=>resolve();
+    utterance.onerror=e=>
+      reject(new Error(e.error||"Browser-TTS-Fehler"));
+
+    speechSynthesis.cancel();
+    speechSynthesis.speak(utterance);
+  });
+}
+
+/* ONLINE-TTS */
+
+async function requestSeraphina(text){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),20000);
+
+  try{
+    const response=await fetch(TTS_URL,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({text}),
+      signal:controller.signal
+    });
+
+    if(!response.ok){
+      let detail="";
+      try{
+        detail=await response.text();
+      }catch(e){}
+
+      throw new Error(
+        "Online-TTS HTTP "+response.status+" "+detail.slice(0,150)
+      );
+    }
+
+    const blob=await response.blob();
+
+    if(!blob.size){
+      throw new Error("Online-TTS lieferte keine Audiodatei.");
+    }
+
+    return blob;
+  }finally{
+    clearTimeout(timer);
+  }
+}
+
+/* AUDIO ABSPIELEN */
+
+async function playAudioBlob(blob){
+  if(currentAudio){
+    currentAudio.pause();
+    currentAudio=null;
+  }
+
+  if("speechSynthesis" in window){
+    speechSynthesis.cancel();
+  }
+
+  const url=URL.createObjectURL(blob);
+  const audio=new Audio(url);
+  currentAudio=audio;
+
+  try{
+    await audio.play();
+
+    await new Promise((resolve,reject)=>{
+      audio.onended=resolve;
+      audio.onerror=()=>reject(
+        new Error("Audiodatei konnte nicht abgespielt werden.")
+      );
+    });
+  }finally{
+    audio.pause();
+    URL.revokeObjectURL(url);
+    if(currentAudio===audio) currentAudio=null;
+  }
+}
+
+/* DREI TTS-ZUSTÄNDE */
+
+const OUTAGE_MESSAGE =
+  "Das Sprach-Online-System ist nicht verfügbar. " +
+  "Ein schwächeres System hat übernommen.";
+
+const RECOVERY_MESSAGE =
+  "Das Sprach-Online-System ist wieder online. " +
+  "Seraphina ist wieder aktiv.";
+
+function updateTtsStatus(message){
+  $("ttsStatus").textContent=message;
+}
+
+async function say(text){
+  const spokenText=String(text||"").trim();
+  if(!spokenText) return;
+
+  updateTtsStatus("Online-Sprachsystem wird verwendet …");
+
+  try{
+    const audio=await requestSeraphina(spokenText);
+
+    /* War das System vorher ausgefallen? */
+    if(ttsState==="fallback"||ttsState==="none"){
+      updateTtsStatus("Online-Sprachsystem wieder verfügbar.");
+
+      try{
+        const recoveryAudio=await requestSeraphina(RECOVERY_MESSAGE);
+        await playAudioBlob(recoveryAudio);
+      }catch(error){
+        try{
+          await speakWithBrowser(RECOVERY_MESSAGE);
+        }catch(browserError){
+          updateTtsStatus(
+            "Online-TTS wieder da. Wiederherstellungsmeldung " +
+            "konnte nicht gesprochen werden."
+          );
+        }
+      }
+
+      ttsState="online";
+      outageAnnounced=false;
+    }else{
+      ttsState="online";
+    }
+
+    updateTtsStatus("Seraphina Online-TTS: aktiv.");
+    await playAudioBlob(audio);
+    return;
+
+  }catch(error){
+    console.warn("Online-TTS nicht verfügbar:",error);
+  }
+
+  /* Online-System ist ausgefallen */
+  if(!outageAnnounced){
+    outageAnnounced=true;
+
+    try{
+      await speakWithBrowser(OUTAGE_MESSAGE);
+    }catch(error){
+      updateTtsStatus(
+        "Keine Sprachausgabe verfügbar. Online-TTS und Ersatz-TTS " +
+        "funktionieren nicht."
+      );
+    }
+  }
+
+  /* Ersatzsystem versuchen */
+  try{
+    await speakWithBrowser(spokenText);
+    ttsState="fallback";
+    updateTtsStatus(
+      "Ersatzsystem aktiv. Online-Sprachsystem nicht verfügbar."
+    );
+  }catch(error){
+    ttsState="none";
+    updateTtsStatus(
+      "Keine Sprachausgabe verfügbar. Bitte Browser und TTS prüfen."
+    );
+    $("voiceStatus").textContent=
+      "Keine Sprachausgabe verfügbar. "+error.message;
+  }
+}
+
+/* KI-VERBINDUNG */
+
+async function askAI(prompt){
+  const response=await fetch(AI_URL,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({prompt})
+  });
+
+  const data=await response.json().catch(()=>null);
+
+  if(!response.ok||!data||data.success!==true){
+    throw new Error(
+      data?.error||"Cloudflare-KI nicht erreichbar."
+    );
+  }
+
+  const answer=data.response||data.result||data.text;
+
+  if(typeof answer!=="string"||!answer.trim()){
+    throw new Error("Die KI hat keine Antwort geliefert.");
+  }
+
+  return answer.trim();
+}
+
+/* CHAT */
+
 function addMessage(who,text){
-  const el = document.createElement("div");
-  el.className = "message"+(who==="Du"?" user":"");
-  el.textContent = who+": "+text;
+  const el=document.createElement("div");
+  el.className="message"+(who==="Du"?" user":"");
+  el.textContent=who+": "+text;
   $("chatMessages").appendChild(el);
   el.scrollIntoView({behavior:"smooth",block:"end"});
 }
 
-async function askAI(prompt){
-  $("chatStatus").textContent = "WARVEX verbindet sich mit der KI …";
-
-  try{
-    const response = await fetch(WORKER_URL,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({prompt})
-    });
-
-    const data = await response.json().catch(()=>null);
-
-    if(!response.ok){
-      throw new Error(data?.error || "HTTP-Fehler "+response.status);
-    }
-
-    if(!data || data.success !== true){
-      throw new Error(data?.error || "Die KI hat keine gültige Antwort gesendet.");
-    }
-
-    const answer = data.response || data.result || data.text;
-
-    if(typeof answer !== "string" || !answer.trim()){
-      throw new Error("Die KI-Antwort war leer.");
-    }
-
-    $("chatStatus").textContent = "KI verbunden.";
-    return answer.trim();
-
-  }catch(error){
-    $("chatStatus").textContent = "KI-Fehler: "+error.message;
-    throw error;
-  }
-}
-
 async function sendChat(){
-  const prompt = $("chatInput").value.trim();
-  if(!prompt) return;
+  const prompt=$("chatInput").value.trim();
+  if(!prompt)return;
 
-  $("chatInput").value = "";
+  $("chatInput").value="";
   addMessage("Du",prompt);
-  $("sendBtn").disabled = true;
+  $("sendBtn").disabled=true;
+  $("chatStatus").textContent="WARVEX fragt die KI …";
 
   try{
-    const answer = await askAI(prompt);
+    const answer=await askAI(prompt);
     addMessage("WARVEX",answer);
+    $("chatStatus").textContent="KI verbunden.";
   }catch(error){
-    addMessage("WARVEX",
-      "Ich kann zurzeit wegen eines Fehlers keine Antwort geben. "+error.message
-    );
+    addMessage("WARVEX","KI-Fehler: "+error.message);
+    $("chatStatus").textContent="KI nicht verfügbar.";
   }finally{
-    $("sendBtn").disabled = false;
+    $("sendBtn").disabled=false;
   }
 }
 
 $("sendBtn").addEventListener("click",sendChat);
 
-$("chatInput").addEventListener("keydown",event=>{
-  if(event.key==="Enter" && !event.shiftKey){
-    event.preventDefault();
+$("chatInput").addEventListener("keydown",e=>{
+  if(e.key==="Enter"&&!e.shiftKey){
+    e.preventDefault();
     sendChat();
   }
 });
 
 $("clearChat").addEventListener("click",()=>{
   $("chatMessages").replaceChildren();
-  addMessage("WARVEX","Chat wurde geleert. Was möchtest du wissen?");
+  addMessage("WARVEX","Chat wurde geleert.");
 });
 
-function localCommand(text){
-  const q = text.toLowerCase().trim();
+/* PROGRAMMIERFENSTER */
 
-  if(q.includes("uhrzeit") || q==="uhr"){
-    return "Es ist "+new Date().toLocaleTimeString("de-DE")+".";
-  }
+let lastCodeAnswer="";
 
-  if(q.includes("datum")){
-    return "Heute ist "+new Date().toLocaleDateString("de-DE")+".";
-  }
+async function codeAsk(mode){
+  const prompt=$("codePrompt").value.trim();
 
-  if(q.includes("akku")){
-    return "Der Akkustand steht auf der Startseite. Manche Browser geben ihn nicht frei.";
-  }
-
-  if(q.includes("internet")){
-    return navigator.onLine
-      ? "Dein Browser meldet eine Internetverbindung."
-      : "Du bist offline.";
-  }
-
-  if(q.includes("öffne chat") || q==="chat"){
-    showPage("chat");
-    return "KI-Chat geöffnet.";
-  }
-
-  if(q.includes("öffne start") || q==="start"){
-    showPage("start");
-    return "Startseite geöffnet.";
-  }
-
-  if(q.includes("öffne tools") || q==="tools"){
-    showPage("tools");
-    return "Tools geöffnet.";
-  }
-
-  if(q.includes("öffne notizen") || q==="notizen"){
-    showPage("notes");
-    return "Notizen geöffnet.";
-  }
-
-  if(q.includes("smart home") || q.includes("öffne home")){
-    showPage("home");
-    return "Smart-Home-Demo geöffnet.";
-  }
-
-  return null;
-}
-
-async function processVoice(text){
-  const local = localCommand(text);
-
-  if(local){
-    $("voiceStatus").textContent = local;
-    say(local);
+  if(!prompt){
+    $("codeStatus").textContent=
+      "Bitte schreibe zuerst deine Programmierfrage.";
     return;
   }
 
-  $("voiceStatus").textContent = "WARVEX verarbeitet deinen Befehl …";
+  const currentCode=$("codeEditor").value.slice(0,2200);
+
+  let instruction="Du bist WARVEX CODE ASSISTANT. "+
+    "Antworte auf Deutsch. Sei technisch korrekt und knapp. ";
+
+  if(mode==="explain"){
+    instruction+="Erkläre den folgenden Code verständlich und "+
+      "nenne mögliche Fehler. Erfinde keine Testergebnisse. ";
+  }else{
+    instruction+="Hilf bei der Programmierung. Wenn sinnvoll, "+
+      "liefere einen kleinen, vollständigen Codeabschnitt. "+
+      "Verwende Codeblöcke. Behaupte nicht, dass du Dateien "+
+      "auf GitHub geändert hast. ";
+  }
+
+  const fullPrompt=instruction+
+    "\nAufgabe:\n"+prompt+
+    "\n\nAktueller Code (Auszug):\n"+currentCode;
+
+  $("codeAskBtn").disabled=true;
+  $("codeExplainBtn").disabled=true;
+  $("codeStatus").textContent="WARVEX KI arbeitet …";
+  $("codeAnswer").textContent="Antwort wird erstellt …";
 
   try{
-    const answer = await askAI(text);
-    $("voiceStatus").textContent = answer;
-    say(answer);
+    lastCodeAnswer=await askAI(fullPrompt);
+    $("codeAnswer").textContent=lastCodeAnswer;
+    $("codeStatus").textContent="KI-Antwort erhalten.";
   }catch(error){
-    const message =
-      "Ich kann zurzeit wegen eines Fehlers keine Befehle verstehen. "+
-      error.message;
-
-    $("voiceStatus").textContent = message;
-    say(message);
+    lastCodeAnswer="";
+    $("codeAnswer").textContent="KI-Fehler: "+error.message;
+    $("codeStatus").textContent="Verbindung fehlgeschlagen.";
+  }finally{
+    $("codeAskBtn").disabled=false;
+    $("codeExplainBtn").disabled=false;
   }
 }
 
-function voiceStatus(text){
-  $("voiceStatus").textContent = text;
+$("codeAskBtn").addEventListener("click",()=>codeAsk("create"));
+$("codeExplainBtn").addEventListener("click",()=>codeAsk("explain"));
+
+function stripCodeFences(text){
+  return String(text||"")
+    .replace(/^```[a-zA-Z0-9_-]*\s*/,"")
+    .replace(/\s*```$/,"")
+    .trim();
 }
 
-function startListening(mode){
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-  if(!SR){
-    const message =
-      "Dieser Browser unterstützt keine Spracherkennung. Bitte Chrome verwenden.";
-
-    voiceStatus(message);
-    $("diagnosticStatus").textContent = message;
-    say(message);
+$("insertCodeBtn").addEventListener("click",()=>{
+  if(!lastCodeAnswer){
+    $("codeStatus").textContent="Noch kein KI-Ergebnis vorhanden.";
     return;
   }
 
-  if(recognition){
-    voiceStatus("Die Spracherkennung läuft bereits. Drücke zuerst STOP.");
-    return;
-  }
+  $("codeEditor").value=stripCodeFences(lastCodeAnswer);
+  $("editorStatus").textContent="KI-Ergebnis in den Editor übernommen.";
+});
+
+$("copyAnswerBtn").addEventListener("click",async()=>{
+  if(!lastCodeAnswer)return;
 
   try{
-    const r = new SR();
-    recognition = r;
-    activeMode = mode;
-
-    r.lang = "de-DE";
-    r.continuous = mode==="wake";
-    r.interimResults = false;
-    r.maxAlternatives = 1;
-
-    r.onstart = ()=>{
-      voiceStatus(
-        mode==="wake"
-          ? "Hey WARVEX aktiv. Sage Hey WARVEX und deinen Befehl."
-          : "Ich höre zu. Sprich jetzt."
-      );
-
-      $("diagnosticStatus").textContent = "Mikrofon gestartet.";
-    };
-
-    r.onresult = event=>{
-      for(let i=event.resultIndex;i<event.results.length;i++){
-        if(!event.results[i].isFinal) continue;
-
-        const spoken = event.results[i][0].transcript.trim();
-        if(!spoken) continue;
-
-        if(mode==="direct"){
-          processVoice(spoken);
-          r.stop();
-          return;
-        }
-
-        if(mode==="wake" && /hey\s+warvex/i.test(spoken)){
-          const command = spoken.replace(/hey\s+warvex/i,"").trim();
-
-          if(command) processVoice(command);
-          else say("Ich höre.");
-        }
-      }
-    };
-
-    r.onerror = event=>{
-      const reason = "Sprachfehler: "+(event.error || "unbekannt");
-      voiceStatus(reason);
-      $("diagnosticStatus").textContent = reason;
-    };
-
-    r.onend = ()=>{
-      if(recognition===r){
-        recognition = null;
-        activeMode = null;
-
-        if(mode==="direct"){
-          voiceStatus("Sprachbefehl beendet.");
-        }else{
-          voiceStatus("Spracherkennung beendet. Bei Bedarf erneut starten.");
-        }
-      }
-    };
-
-    r.start();
-
+    await navigator.clipboard.writeText(lastCodeAnswer);
+    $("codeStatus").textContent="KI-Ergebnis kopiert.";
   }catch(error){
-    recognition = null;
-    activeMode = null;
-
-    const message = "Sprachstart fehlgeschlagen: "+error.message;
-    voiceStatus(message);
-    $("diagnosticStatus").textContent = message;
+    $("codeStatus").textContent="Kopieren nicht möglich.";
   }
-}
-
-function stopListening(){
-  if(recognition){
-    try{recognition.stop();}catch(error){}
-    recognition = null;
-    activeMode = null;
-  }
-
-  voiceStatus("Sprachsteuerung gestoppt.");
-  $("diagnosticStatus").textContent = "Manuell gestoppt.";
-}
-
-$("directBtn").addEventListener("click",()=>startListening("direct"));
-$("wakeBtn").addEventListener("click",()=>startListening("wake"));
-$("stopBtn").addEventListener("click",stopListening);
-
-$("timeBtn").addEventListener("click",()=>{
-  $("toolResult").textContent =
-    "Uhrzeit: "+new Date().toLocaleTimeString("de-DE");
 });
 
-$("dateBtn").addEventListener("click",()=>{
-  $("toolResult").textContent =
-    "Datum: "+new Date().toLocaleDateString("de-DE");
-});
-
-$("batteryBtn").addEventListener("click",()=>{
-  $("toolResult").textContent = "Akku: "+$("battery").textContent;
-});
-
-$("internetBtn").addEventListener("click",()=>{
-  updateInternet();
-  $("toolResult").textContent = "Internet: "+$("internet").textContent;
-});
-
-$("diagnoseBtn").addEventListener("click",()=>{
-  $("toolResult").textContent =
-    "Web-App aktiv. Online: "+navigator.onLine+
-    ". Sprache: "+
-    (window.SpeechRecognition || window.webkitSpeechRecognition
-      ? "unterstützt"
-      : "nicht unterstützt")+".";
-});
-
-$("saveNote").addEventListener("click",()=>{
+$("copyEditorBtn").addEventListener("click",async()=>{
   try{
-    localStorage.setItem("warvex_note",$("noteInput").value);
-    $("noteStatus").textContent = "Notiz gespeichert.";
+    await navigator.clipboard.writeText($("codeEditor").value);
+    $("editorStatus").textContent="Code wurde kopiert.";
   }catch(error){
-    $("noteStatus").textContent =
-      "Speichern nicht möglich: "+error.message;
-  }
-});
-
-$("deleteNote").addEventListener("click",()=>{
-  $("noteInput").value = "";
-  localStorage.removeItem("warvex_note");
-  $("noteStatus").textContent = "Notiz gelöscht.";
-});
-
-try{
-  $("noteInput").value = localStorage.getItem("warvex_note") || "";
-}catch(error){}
-
-$("lightBtn").addEventListener("click",()=>{
-  lightOn = !lightOn;
-  $("lightBtn").textContent = "LICHT: "+(lightOn?"AN":"AUS");
-  $("homeStatus").textContent =
-    "Demo-Licht "+(lightOn?"eingeschaltet.":"ausgeschaltet.");
-});
-
-$("plugBtn").addEventListener("click",()=>{
-  plugOn = !plugOn;
-  $("plugBtn").textContent = "STECKDOSE: "+(plugOn?"AN":"AUS");
-  $("homeStatus").textContent =
-    "Demo-Steckdose "+(plugOn?"eingeschaltet.":"ausgeschaltet.");
-});
-
-$("systemStatus").textContent = "WARVEX SYSTEMS V6 ist gestartet.";
-$("toolStatus").textContent =
-  "Web-App aktiv · Cloudflare-KI-Endpunkt eingerichtet.";
-</script>
-</body>
-  </html>
-  
+    $("editorStatus").textContent=
+      "Kopieren nicht möglich. Bitte Code manuell markieren.
