@@ -159,14 +159,84 @@ let activeMode = null;
 let lightOn = false;
 let plugOn = false;
 
+// DEUTSCHE SPRACHAUSGABE
+let germanVoice = null;
+let voicesReady = false;
+
+function chooseGermanVoice(){
+  if(!("speechSynthesis" in window)) return;
+
+  const voices = window.speechSynthesis.getVoices() || [];
+  const germanVoices = voices.filter(v =>
+    /^de([_-]|$)/i.test(v.lang || "")
+  );
+
+  germanVoices.sort((a,b)=>{
+    const score = voice => {
+      const name = (voice.name || "").toLowerCase();
+      let points = 0;
+
+      if(/^de[-_]de/i.test(voice.lang)) points += 8;
+      if(name.includes("google")) points += 6;
+      if(name.includes("deutsch") || name.includes("german")) points += 4;
+      if(voice.localService) points += 2;
+
+      return points;
+    };
+
+    return score(b)-score(a);
+  });
+
+  germanVoice = germanVoices[0] || null;
+  voicesReady = true;
+}
+
+if("speechSynthesis" in window){
+  chooseGermanVoice();
+  window.speechSynthesis.addEventListener("voiceschanged",chooseGermanVoice);
+}
+
+function say(text){
+  if(!("speechSynthesis" in window)){
+    $("voiceStatus").textContent = "Sprachausgabe wird nicht unterstützt.";
+    return;
+  }
+
+  const synth = window.speechSynthesis;
+  synth.cancel();
+  chooseGermanVoice();
+
+  const utterance = new SpeechSynthesisUtterance(String(text));
+  utterance.lang = "de-DE";
+
+  if(germanVoice) utterance.voice = germanVoice;
+
+  utterance.rate = 0.94;
+  utterance.pitch = 1.0;
+  utterance.volume = 1.0;
+
+  utterance.onerror = event=>{
+    $("diagnosticStatus").textContent =
+      "Sprachausgabe-Fehler: "+(event.error || "unbekannt");
+  };
+
+  synth.speak(utterance);
+}
+
 function showPage(name){
-  document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id===name));
-  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===name));
+  document.querySelectorAll(".page").forEach(p=>
+    p.classList.toggle("active",p.id===name)
+  );
+
+  document.querySelectorAll("nav button").forEach(b=>
+    b.classList.toggle("active",b.dataset.page===name)
+  );
 }
 
 document.querySelectorAll("[data-page]").forEach(button=>{
   button.addEventListener("click",()=>showPage(button.dataset.page));
 });
+
 document.querySelectorAll("[data-open]").forEach(button=>{
   button.addEventListener("click",()=>showPage(button.dataset.open));
 });
@@ -174,14 +244,18 @@ document.querySelectorAll("[data-open]").forEach(button=>{
 function updateClock(){
   const now = new Date();
   $("clock").textContent = now.toLocaleTimeString("de-DE");
-  $("date").textContent = now.toLocaleDateString("de-DE",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
+  $("date").textContent = now.toLocaleDateString("de-DE",{
+    weekday:"long",day:"2-digit",month:"long",year:"numeric"
+  });
 }
+
 updateClock();
 setInterval(updateClock,1000);
 
 function updateInternet(){
   $("internet").textContent = navigator.onLine ? "Verbunden" : "Offline";
 }
+
 window.addEventListener("online",updateInternet);
 window.addEventListener("offline",updateInternet);
 updateInternet();
@@ -191,11 +265,16 @@ async function updateBattery(){
     $("battery").textContent = "Nicht verfügbar";
     return;
   }
+
   try{
     const battery = await navigator.getBattery();
-    const show = ()=> {
-      $("battery").textContent = Math.round(battery.level*100)+"%"+(battery.charging?" · Lädt":"");
+
+    const show = ()=>{
+      $("battery").textContent =
+        Math.round(battery.level*100)+"%"+
+        (battery.charging?" · Lädt":"");
     };
+
     show();
     battery.addEventListener("levelchange",show);
     battery.addEventListener("chargingchange",show);
@@ -203,15 +282,8 @@ async function updateBattery(){
     $("battery").textContent = "Nicht verfügbar";
   }
 }
-updateBattery();
 
-function say(text){
-  if(!("speechSynthesis" in window)) return;
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(String(text));
-  utterance.lang = "de-DE";
-  window.speechSynthesis.speak(utterance);
-}
+updateBattery();
 
 function addMessage(who,text){
   const el = document.createElement("div");
@@ -223,6 +295,7 @@ function addMessage(who,text){
 
 async function askAI(prompt){
   $("chatStatus").textContent = "WARVEX verbindet sich mit der KI …";
+
   try{
     const response = await fetch(WORKER_URL,{
       method:"POST",
@@ -231,18 +304,24 @@ async function askAI(prompt){
     });
 
     const data = await response.json().catch(()=>null);
+
     if(!response.ok){
       throw new Error(data?.error || "HTTP-Fehler "+response.status);
     }
+
     if(!data || data.success !== true){
       throw new Error(data?.error || "Die KI hat keine gültige Antwort gesendet.");
     }
+
     const answer = data.response || data.result || data.text;
+
     if(typeof answer !== "string" || !answer.trim()){
       throw new Error("Die KI-Antwort war leer.");
     }
+
     $("chatStatus").textContent = "KI verbunden.";
     return answer.trim();
+
   }catch(error){
     $("chatStatus").textContent = "KI-Fehler: "+error.message;
     throw error;
@@ -252,25 +331,32 @@ async function askAI(prompt){
 async function sendChat(){
   const prompt = $("chatInput").value.trim();
   if(!prompt) return;
+
   $("chatInput").value = "";
   addMessage("Du",prompt);
   $("sendBtn").disabled = true;
+
   try{
     const answer = await askAI(prompt);
     addMessage("WARVEX",answer);
   }catch(error){
-    addMessage("WARVEX","Ich kann zurzeit wegen eines Fehlers keine Antwort geben. "+error.message);
+    addMessage("WARVEX",
+      "Ich kann zurzeit wegen eines Fehlers keine Antwort geben. "+error.message
+    );
   }finally{
     $("sendBtn").disabled = false;
   }
 }
+
 $("sendBtn").addEventListener("click",sendChat);
+
 $("chatInput").addEventListener("keydown",event=>{
   if(event.key==="Enter" && !event.shiftKey){
     event.preventDefault();
     sendChat();
   }
 });
+
 $("clearChat").addEventListener("click",()=>{
   $("chatMessages").replaceChildren();
   addMessage("WARVEX","Chat wurde geleert. Was möchtest du wissen?");
@@ -278,50 +364,73 @@ $("clearChat").addEventListener("click",()=>{
 
 function localCommand(text){
   const q = text.toLowerCase().trim();
+
   if(q.includes("uhrzeit") || q==="uhr"){
     return "Es ist "+new Date().toLocaleTimeString("de-DE")+".";
   }
+
   if(q.includes("datum")){
     return "Heute ist "+new Date().toLocaleDateString("de-DE")+".";
   }
+
   if(q.includes("akku")){
     return "Der Akkustand steht auf der Startseite. Manche Browser geben ihn nicht frei.";
   }
+
   if(q.includes("internet")){
-    return navigator.onLine ? "Dein Browser meldet eine Internetverbindung." : "Du bist offline.";
+    return navigator.onLine
+      ? "Dein Browser meldet eine Internetverbindung."
+      : "Du bist offline.";
   }
+
   if(q.includes("öffne chat") || q==="chat"){
-    showPage("chat"); return "KI-Chat geöffnet.";
+    showPage("chat");
+    return "KI-Chat geöffnet.";
   }
+
   if(q.includes("öffne start") || q==="start"){
-    showPage("start"); return "Startseite geöffnet.";
+    showPage("start");
+    return "Startseite geöffnet.";
   }
+
   if(q.includes("öffne tools") || q==="tools"){
-    showPage("tools"); return "Tools geöffnet.";
+    showPage("tools");
+    return "Tools geöffnet.";
   }
+
   if(q.includes("öffne notizen") || q==="notizen"){
-    showPage("notes"); return "Notizen geöffnet.";
+    showPage("notes");
+    return "Notizen geöffnet.";
   }
+
   if(q.includes("smart home") || q.includes("öffne home")){
-    showPage("home"); return "Smart-Home-Demo geöffnet.";
+    showPage("home");
+    return "Smart-Home-Demo geöffnet.";
   }
+
   return null;
 }
 
 async function processVoice(text){
   const local = localCommand(text);
+
   if(local){
     $("voiceStatus").textContent = local;
     say(local);
     return;
   }
+
   $("voiceStatus").textContent = "WARVEX verarbeitet deinen Befehl …";
+
   try{
     const answer = await askAI(text);
     $("voiceStatus").textContent = answer;
     say(answer);
   }catch(error){
-    const message = "Ich kann zurzeit wegen eines Fehlers keine Befehle verstehen. "+error.message;
+    const message =
+      "Ich kann zurzeit wegen eines Fehlers keine Befehle verstehen. "+
+      error.message;
+
     $("voiceStatus").textContent = message;
     say(message);
   }
@@ -333,34 +442,46 @@ function voiceStatus(text){
 
 function startListening(mode){
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
   if(!SR){
-    const message = "Dieser Browser unterstützt keine Spracherkennung. Bitte Chrome verwenden.";
+    const message =
+      "Dieser Browser unterstützt keine Spracherkennung. Bitte Chrome verwenden.";
+
     voiceStatus(message);
     $("diagnosticStatus").textContent = message;
     say(message);
     return;
   }
+
   if(recognition){
     voiceStatus("Die Spracherkennung läuft bereits. Drücke zuerst STOP.");
     return;
   }
+
   try{
     const r = new SR();
     recognition = r;
     activeMode = mode;
+
     r.lang = "de-DE";
     r.continuous = mode==="wake";
     r.interimResults = false;
     r.maxAlternatives = 1;
 
     r.onstart = ()=>{
-      voiceStatus(mode==="wake" ? "Hey WARVEX aktiv. Sage Hey WARVEX und deinen Befehl." : "Ich höre zu. Sprich jetzt.");
+      voiceStatus(
+        mode==="wake"
+          ? "Hey WARVEX aktiv. Sage Hey WARVEX und deinen Befehl."
+          : "Ich höre zu. Sprich jetzt."
+      );
+
       $("diagnosticStatus").textContent = "Mikrofon gestartet.";
     };
 
     r.onresult = event=>{
       for(let i=event.resultIndex;i<event.results.length;i++){
         if(!event.results[i].isFinal) continue;
+
         const spoken = event.results[i][0].transcript.trim();
         if(!spoken) continue;
 
@@ -372,6 +493,7 @@ function startListening(mode){
 
         if(mode==="wake" && /hey\s+warvex/i.test(spoken)){
           const command = spoken.replace(/hey\s+warvex/i,"").trim();
+
           if(command) processVoice(command);
           else say("Ich höre.");
         }
@@ -388,15 +510,21 @@ function startListening(mode){
       if(recognition===r){
         recognition = null;
         activeMode = null;
-        if(mode==="direct") voiceStatus("Sprachbefehl beendet.");
-        else voiceStatus("Spracherkennung beendet. Bei Bedarf erneut starten.");
+
+        if(mode==="direct"){
+          voiceStatus("Sprachbefehl beendet.");
+        }else{
+          voiceStatus("Spracherkennung beendet. Bei Bedarf erneut starten.");
+        }
       }
     };
 
     r.start();
+
   }catch(error){
     recognition = null;
     activeMode = null;
+
     const message = "Sprachstart fehlgeschlagen: "+error.message;
     voiceStatus(message);
     $("diagnosticStatus").textContent = message;
@@ -409,6 +537,7 @@ function stopListening(){
     recognition = null;
     activeMode = null;
   }
+
   voiceStatus("Sprachsteuerung gestoppt.");
   $("diagnosticStatus").textContent = "Manuell gestoppt.";
 }
@@ -418,35 +547,49 @@ $("wakeBtn").addEventListener("click",()=>startListening("wake"));
 $("stopBtn").addEventListener("click",stopListening);
 
 $("timeBtn").addEventListener("click",()=>{
-  $("toolResult").textContent = "Uhrzeit: "+new Date().toLocaleTimeString("de-DE");
+  $("toolResult").textContent =
+    "Uhrzeit: "+new Date().toLocaleTimeString("de-DE");
 });
+
 $("dateBtn").addEventListener("click",()=>{
-  $("toolResult").textContent = "Datum: "+new Date().toLocaleDateString("de-DE");
+  $("toolResult").textContent =
+    "Datum: "+new Date().toLocaleDateString("de-DE");
 });
+
 $("batteryBtn").addEventListener("click",()=>{
   $("toolResult").textContent = "Akku: "+$("battery").textContent;
 });
+
 $("internetBtn").addEventListener("click",()=>{
   updateInternet();
   $("toolResult").textContent = "Internet: "+$("internet").textContent;
 });
+
 $("diagnoseBtn").addEventListener("click",()=>{
-  $("toolResult").textContent = "Web-App aktiv. Online: "+navigator.onLine+". Sprache: "+(window.SpeechRecognition || window.webkitSpeechRecognition ? "unterstützt" : "nicht unterstützt")+".";
+  $("toolResult").textContent =
+    "Web-App aktiv. Online: "+navigator.onLine+
+    ". Sprache: "+
+    (window.SpeechRecognition || window.webkitSpeechRecognition
+      ? "unterstützt"
+      : "nicht unterstützt")+".";
 });
 
 $("saveNote").addEventListener("click",()=>{
   try{
-    localStorage.setItem("warvex_note", $("noteInput").value);
+    localStorage.setItem("warvex_note",$("noteInput").value);
     $("noteStatus").textContent = "Notiz gespeichert.";
   }catch(error){
-    $("noteStatus").textContent = "Speichern nicht möglich: "+error.message;
+    $("noteStatus").textContent =
+      "Speichern nicht möglich: "+error.message;
   }
 });
+
 $("deleteNote").addEventListener("click",()=>{
   $("noteInput").value = "";
   localStorage.removeItem("warvex_note");
   $("noteStatus").textContent = "Notiz gelöscht.";
 });
+
 try{
   $("noteInput").value = localStorage.getItem("warvex_note") || "";
 }catch(error){}
@@ -454,17 +597,21 @@ try{
 $("lightBtn").addEventListener("click",()=>{
   lightOn = !lightOn;
   $("lightBtn").textContent = "LICHT: "+(lightOn?"AN":"AUS");
-  $("homeStatus").textContent = "Demo-Licht "+(lightOn?"eingeschaltet.":"ausgeschaltet.");
+  $("homeStatus").textContent =
+    "Demo-Licht "+(lightOn?"eingeschaltet.":"ausgeschaltet.");
 });
+
 $("plugBtn").addEventListener("click",()=>{
   plugOn = !plugOn;
   $("plugBtn").textContent = "STECKDOSE: "+(plugOn?"AN":"AUS");
-  $("homeStatus").textContent = "Demo-Steckdose "+(plugOn?"eingeschaltet.":"ausgeschaltet.");
+  $("homeStatus").textContent =
+    "Demo-Steckdose "+(plugOn?"eingeschaltet.":"ausgeschaltet.");
 });
 
 $("systemStatus").textContent = "WARVEX SYSTEMS V6 ist gestartet.";
-$("toolStatus").textContent = "Web-App aktiv · Cloudflare-KI-Endpunkt eingerichtet.";
+$("toolStatus").textContent =
+  "Web-App aktiv · Cloudflare-KI-Endpunkt eingerichtet.";
 </script>
 </body>
- </html>
- 
+  </html>
+  
