@@ -6,121 +6,292 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#090b10">
 <title>WARVEX SYSTEMS</title>
+
 <style>
-:root{color-scheme:dark;--bg:#090b10;--panel:#141b27;--red:#ff3048;--line:#2a3546;--muted:#aab5c4}
+:root{
+ color-scheme:dark;
+ --bg:#090b10;
+ --panel:#141b27;
+ --red:#ff3048;
+ --line:#2a3546;
+ --muted:#aab5c4;
+}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:#f4f6fa;font:16px system-ui,Arial,sans-serif}
-header{padding:18px 16px;background:#0e131d;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:2}
+body{
+ margin:0;
+ background:var(--bg);
+ color:#f4f6fa;
+ font:16px system-ui,Arial,sans-serif;
+}
+header{
+ padding:18px 16px;
+ background:#0e131d;
+ border-bottom:1px solid var(--line);
+ position:sticky;
+ top:0;
+ z-index:2;
+}
 .brand{font-size:23px;font-weight:900;letter-spacing:2px}
 .brand span{color:var(--red)}
-#clock{color:var(--muted);margin-top:5px;font-variant-numeric:tabular-nums}
-nav{display:flex;gap:8px;overflow-x:auto;padding:11px;background:#0e131d}
-button{border:1px solid var(--line);background:#202a39;color:white;border-radius:10px;padding:11px 13px;font-weight:700;cursor:pointer}
-button.primary{background:var(--red);border-color:var(--red)}
+#clock{color:var(--muted);margin-top:5px}
+nav{
+ display:flex;
+ gap:8px;
+ overflow-x:auto;
+ padding:11px;
+ background:#0e131d;
+}
+button{
+ border:1px solid var(--line);
+ background:#202a39;
+ color:white;
+ border-radius:10px;
+ padding:11px 13px;
+ font-weight:700;
+ cursor:pointer;
+}
+button.primary{
+ background:var(--red);
+ border-color:var(--red);
+}
+button:disabled{opacity:.5}
 nav button{white-space:nowrap}
 nav button.active{border-color:var(--red);color:#ff8795}
 main{max-width:850px;margin:auto;padding:15px}
-.panel{display:none;background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:17px;margin-bottom:14px}
+.panel{
+ display:none;
+ background:var(--panel);
+ border:1px solid var(--line);
+ border-radius:15px;
+ padding:17px;
+ margin-bottom:14px;
+}
 .panel.active{display:block}
 h1{font-size:21px;margin:0 0 12px}
 h2{font-size:17px;margin:17px 0 8px}
 p{color:var(--muted);line-height:1.5}
 .actions{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}
-input,textarea{width:100%;background:#0b1018;color:white;border:1px solid var(--line);border-radius:10px;padding:12px;font:inherit;margin:6px 0 12px}
+input,textarea{
+ width:100%;
+ background:#0b1018;
+ color:white;
+ border:1px solid var(--line);
+ border-radius:10px;
+ padding:12px;
+ font:inherit;
+ margin:6px 0 12px;
+}
 textarea{min-height:85px;resize:vertical}
-.status,#chatLog{background:#0b1018;border:1px solid var(--line);border-radius:10px;padding:12px}
+.status,#chatLog{
+ background:#0b1018;
+ border:1px solid var(--line);
+ border-radius:10px;
+ padding:12px;
+}
 #chatLog{min-height:120px;max-height:300px;overflow:auto}
-.msg{background:#1d2939;border-radius:9px;padding:9px;margin:7px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg{
+ background:#1d2939;
+ border-radius:9px;
+ padding:9px;
+ margin:7px 0;
+ white-space:pre-wrap;
+ overflow-wrap:anywhere;
+}
 .msg.user{background:#35212b}
-.item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.item{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ gap:10px;
+ padding:10px 0;
+ border-bottom:1px solid var(--line);
+}
 .small,footer{font-size:12px;color:var(--muted)}
 footer{text-align:center;padding:20px}
+.info-card{
+ background:#0b1018;
+ border:1px solid var(--line);
+ border-radius:12px;
+ padding:13px;
+ margin:9px 0;
+}
+.info-title{font-size:12px;color:var(--muted)}
+.info-value{font-size:19px;font-weight:800;margin-top:4px}
+#stopBtn{background:#a51e31;border-color:#a51e31}
 </style>
 </head>
+
 <body>
 
 <header>
-<div class="brand">WARVEX <span>SYSTEMS</span></div>
-<div id="clock">Uhr startet …</div>
+ <div class="brand">WARVEX <span>SYSTEMS</span></div>
+ <div id="clock">Uhr startet …</div>
 </header>
 
 <nav id="nav">
-<button class="active" data-page="start">START</button>
-<button data-page="chat">KI CHAT</button>
-<button data-page="voice">SPRACHE</button>
-<button data-page="tasks">AUFGABEN</button>
-<button data-page="home">SMART HOME</button>
-<button data-page="notes">NOTIZEN</button>
-<button data-page="tools">TOOLS</button>
+ <button class="active" data-page="start">START</button>
+ <button data-page="chat">KI CHAT</button>
+ <button data-page="voice">SPRACHE</button>
+ <button data-page="tasks">AUFGABEN</button>
+ <button data-page="home">SMART HOME</button>
+ <button data-page="notes">NOTIZEN</button>
+ <button data-page="tools">TOOLS</button>
 </nav>
 
 <main>
+
 <section class="panel active" id="start">
-<h1>Systemübersicht</h1>
-<p>Willkommen bei WARVEX SYSTEMS – deiner mobilen Steuerzentrale.</p>
-<div class="status" id="systemStatus">System wird gestartet …</div>
-<div class="actions">
-<button class="primary" data-go="chat">KI Chat öffnen</button>
-<button data-go="voice">Sprachsteuerung öffnen</button>
-</div>
-<p>Uhr, Chat, Aufgaben, Notizen und Smart-Home-Demo sind verfügbar.</p>
+ <h1>WARVEX Systemübersicht</h1>
+ <p>Deine mobile Steuerzentrale.</p>
+
+ <div class="info-card">
+  <div class="info-title">UHRZEIT</div>
+  <div class="info-value" id="startTime">--:--:--</div>
+  <div class="small" id="startDate">Datum wird geladen …</div>
+ </div>
+
+ <div class="info-card">
+  <div class="info-title">AKKUSTAND</div>
+  <div class="info-value" id="batteryValue">Wird geprüft …</div>
+  <div class="small" id="batteryDetail">Akku-Information wird geladen.</div>
+ </div>
+
+ <div class="info-card">
+  <div class="info-title">INTERNET & NETZWERK</div>
+  <div class="info-value" id="connectionValue">Wird geprüft …</div>
+  <div class="small" id="connectionDetail">Verbindung wird geprüft.</div>
+ </div>
+
+ <div class="info-card">
+  <div class="info-title">GERÄTEVERBINDUNGEN</div>
+  <div class="info-value" id="deviceValue">Nicht vollständig verfügbar</div>
+  <div class="small" id="deviceDetail">
+   Der Browser kann bereits verbundene Bluetooth-Geräte nicht automatisch auflisten.
+  </div>
+ </div>
+
+ <div class="status" id="systemStatus">
+  System wird gestartet …
+ </div>
+
+ <div class="actions">
+  <button class="primary" data-go="chat">KI Chat öffnen</button>
+  <button data-go="voice">Sprachsteuerung öffnen</button>
+ </div>
 </section>
 
 <section class="panel" id="chat">
-<h1>KI Chat</h1>
-<div id="chatLog">
-<div class="msg">WARVEX: Hallo! Ich kann lokale Grundbefehle beantworten. Für freie KI-Antworten muss ein KI-Dienst verbunden werden.</div>
-</div>
-<form id="chatForm">
-<textarea id="chatInput" placeholder="Schreib eine Nachricht …" required></textarea>
-<button class="primary" type="submit">Senden</button>
-</form>
+ <h1>KI Chat</h1>
+ <div id="chatLog">
+  <div class="msg">
+   WARVEX: Hallo! Ich kann lokale Grundbefehle beantworten. Für freie KI-Antworten muss ein KI-Dienst verbunden werden.
+  </div>
+ </div>
+
+ <form id="chatForm">
+  <textarea id="chatInput" placeholder="Schreib eine Nachricht …" required></textarea>
+  <button class="primary" type="submit">Senden</button>
+ </form>
 </section>
 
 <section class="panel" id="voice">
-<h1>Sprachsteuerung</h1>
-<p>Tippe einmal zum Aktivieren und erlaube Chrome den Mikrofonzugriff. Danach steuerst du WARVEX per Sprache.</p>
-<div class="status" id="voiceStatus">Sprachsteuerung ist aus.</div>
-<div class="actions">
-<button class="primary" id="listenBtn">SPRACHSTEUERUNG AKTIVIEREN</button>
-</div>
-<p class="small">Befehle: „Hey WARVEX, wie spät ist es?“, „Hey WARVEX, öffne Notizen“, „Hey WARVEX, SOS Test“, „Hey WARVEX, Stopp“ oder „Hey WARVEX, Sprachsteuerung stoppen“. Der SOS-Test ist nur eine Demo und setzt keinen Notruf ab.</p>
+ <h1>Sprachsteuerung</h1>
+
+ <p>
+  Wähle einen Sprachmodus. Bei Sprachbefehl brauchst du kein Aktivierungswort.
+ </p>
+
+ <div class="status" id="voiceStatus">
+  Sprachsteuerung ist aus.
+ </div>
+
+ <div class="actions">
+  <button class="primary" id="directBtn">
+   SPRACHBEFEHL
+  </button>
+
+  <button id="wakeBtn">
+   HEY WARVEX AKTIVIEREN
+  </button>
+
+  <button id="stopBtn" hidden>
+   STOP
+  </button>
+ </div>
+
+ <div class="info-card">
+  <div class="info-title">DIREKTER SPRACHBEFEHL</div>
+  <p>
+   Einmal tippen und direkt sprechen:
+   „Öffne Notizen“, „Wie spät ist es?“ oder „Öffne Smart Home“.
+  </p>
+ </div>
+
+ <div class="info-card">
+  <div class="info-title">HEY WARVEX</div>
+  <p>
+   Aktivieren und danach „Hey WARVEX, öffne Notizen“ sagen.
+   Chrome kann diese Erkennung selbstständig beenden.
+  </p>
+ </div>
+
+ <div class="info-card">
+  <div class="info-title">FEHLERDIAGNOSE</div>
+  <div id="diagnosticStatus">
+   Noch keine Diagnose durchgeführt.
+  </div>
+ </div>
+
+ <p class="small">
+  Hinweis: Die Spracherkennung benötigt eine Browser-Unterstützung und kann eine Internetverbindung benötigen.
+  Der SOS-Test ist nur eine Demo und setzt keinen Notruf ab.
+ </p>
 </section>
 
 <section class="panel" id="tasks">
-<h1>Aufgaben</h1>
-<form id="taskForm">
-<input id="taskInput" placeholder="Neue Aufgabe …" required>
-<button class="primary" type="submit">Hinzufügen</button>
-</form>
-<div id="taskList"></div>
+ <h1>Aufgaben</h1>
+
+ <form id="taskForm">
+  <input id="taskInput" placeholder="Neue Aufgabe …" required>
+  <button class="primary" type="submit">Hinzufügen</button>
+ </form>
+
+ <div id="taskList"></div>
 </section>
 
 <section class="panel" id="home">
-<h1>Smart Home</h1>
-<p>Demo-Schalter – sie steuern keine echten Geräte.</p>
-<div class="item">Wohnzimmer-Licht <button class="toggle">AUS</button></div>
-<div class="item">Heizung <button class="toggle">AUS</button></div>
-<div class="item">Steckdose <button class="toggle">AUS</button></div>
+ <h1>Smart Home</h1>
+ <p>Demo-Schalter – sie steuern keine echten Geräte.</p>
+
+ <div class="item">Wohnzimmer-Licht <button class="toggle">AUS</button></div>
+ <div class="item">Heizung <button class="toggle">AUS</button></div>
+ <div class="item">Steckdose <button class="toggle">AUS</button></div>
 </section>
 
 <section class="panel" id="notes">
-<h1>Notizen</h1>
-<textarea id="noteText" placeholder="Deine Notizen …"></textarea>
-<div class="actions">
-<button class="primary" id="saveNote">Speichern</button>
-<button id="clearNote">Löschen</button>
-</div>
-<div class="small" id="noteStatus">Speicherung erfolgt lokal im Browser.</div>
+ <h1>Notizen</h1>
+
+ <textarea id="noteText" placeholder="Deine Notizen …"></textarea>
+
+ <div class="actions">
+  <button class="primary" id="saveNote">Speichern</button>
+  <button id="clearNote">Löschen</button>
+ </div>
+
+ <div class="small" id="noteStatus">
+  Speicherung erfolgt lokal im Browser.
+ </div>
 </section>
 
 <section class="panel" id="tools">
-<h1>Tools</h1>
-<h2>Uhr</h2>
-<div class="status" id="clockLarge"></div>
-<h2>Systemstatus</h2>
-<div class="status" id="toolStatus">JavaScript startet …</div>
+ <h1>Tools</h1>
+ <h2>Uhr</h2>
+ <div class="status" id="clockLarge"></div>
+
+ <h2>Systemstatus</h2>
+ <div class="status" id="toolStatus"></div>
 </section>
+
 </main>
 
 <footer>WARVEX SYSTEMS · Mobile Web-App</footer>
@@ -131,9 +302,16 @@ footer{text-align:center;padding:20px}
 
 const $=id=>document.getElementById(id);
 
+/* NAVIGATION */
+
 function showPage(id){
- document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("active",p.id===id));
- document.querySelectorAll("nav [data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===id));
+ document.querySelectorAll(".panel").forEach(p=>{
+  p.classList.toggle("active",p.id===id);
+ });
+
+ document.querySelectorAll("nav [data-page]").forEach(b=>{
+  b.classList.toggle("active",b.dataset.page===id);
+ });
 }
 
 $("nav").addEventListener("click",e=>{
@@ -145,19 +323,147 @@ document.querySelectorAll("[data-go]").forEach(b=>{
  b.addEventListener("click",()=>showPage(b.dataset.go));
 });
 
+/* UHR UND DATUM */
+
 function tick(){
  const d=new Date();
- const s=d.toLocaleDateString("de-DE",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})+" · "+d.toLocaleTimeString("de-DE");
- $("clock").textContent=s;
- $("clockLarge").textContent=s;
+
+ const time=d.toLocaleTimeString("de-DE");
+ const date=d.toLocaleDateString("de-DE",{
+  weekday:"long",
+  day:"2-digit",
+  month:"long",
+  year:"numeric"
+ });
+
+ $("clock").textContent=date+" · "+time;
+ $("clockLarge").textContent=date+" · "+time;
+ $("startTime").textContent=time;
+ $("startDate").textContent=date;
 }
+
 tick();
 setInterval(tick,1000);
 
+/* AKKU */
+
+let battery=null;
+
+function updateBattery(){
+ if(!battery){
+  $("batteryValue").textContent="Nicht verfügbar";
+  $("batteryDetail").textContent=
+   "Chrome stellt keine Akku-Information bereit.";
+  return;
+ }
+
+ const percent=Math.round(battery.level*100);
+
+ $("batteryValue").textContent=percent+" %";
+
+ $("batteryDetail").textContent=
+  battery.charging
+   ?"Handy wird gerade geladen."
+   :"Handy wird gerade nicht geladen.";
+}
+
+async function loadBattery(){
+ if(!navigator.getBattery){
+  updateBattery();
+  return;
+ }
+
+ try{
+  battery=await navigator.getBattery();
+
+  updateBattery();
+
+  battery.addEventListener("levelchange",updateBattery);
+  battery.addEventListener("chargingchange",updateBattery);
+
+ }catch(e){
+  battery=null;
+  updateBattery();
+ }
+}
+
+loadBattery();
+
+/* INTERNET UND NETZWERK */
+
+function updateConnection(){
+ const online=navigator.onLine;
+
+ const connection=
+  navigator.connection||
+  navigator.mozConnection||
+  navigator.webkitConnection;
+
+ if(!online){
+  $("connectionValue").textContent="OFFLINE";
+  $("connectionDetail").textContent=
+   "Keine aktive Internetverbindung erkannt.";
+  return;
+ }
+
+ $("connectionValue").textContent="ONLINE";
+
+ if(connection){
+  const type=connection.type;
+  const effective=connection.effectiveType;
+
+  let detail="Internetverbindung vorhanden.";
+
+  if(type==="wifi"){
+   detail="Netzwerk: WLAN.";
+  }else if(type==="cellular"){
+   detail="Netzwerk: Mobilfunk.";
+  }else if(type&&type!=="unknown"){
+   detail="Netzwerk: "+type+".";
+  }else if(effective){
+   detail="Verbindungsqualität laut Browser: "+effective+".";
+  }
+
+  $("connectionDetail").textContent=detail;
+ }else{
+  $("connectionDetail").textContent=
+   "Internet vorhanden. Chrome gibt den genauen Netzwerktyp nicht frei.";
+ }
+}
+
+window.addEventListener("online",updateConnection);
+window.addEventListener("offline",updateConnection);
+
+const net=
+ navigator.connection||
+ navigator.mozConnection||
+ navigator.webkitConnection;
+
+if(net){
+ net.addEventListener("change",updateConnection);
+}
+
+updateConnection();
+
+/* GERÄTEVERBINDUNGEN */
+
+function updateDevices(){
+ $("deviceValue").textContent="Browser eingeschränkt";
+
+ $("deviceDetail").textContent=
+  "Internetstatus wird angezeigt. Bereits verbundene Bluetooth-Geräte und andere Geräteverbindungen kann diese Web-App nicht automatisch auslesen.";
+}
+
+updateDevices();
+
+/* CHAT */
+
 function addMessage(who,text){
  const el=document.createElement("div");
+
  el.className="msg"+(who==="Du"?" user":"");
  el.textContent=who+": "+text;
+
  $("chatLog").appendChild(el);
  $("chatLog").scrollTop=$("chatLog").scrollHeight;
 }
@@ -165,11 +471,25 @@ function addMessage(who,text){
 function answer(text){
  const q=text.toLowerCase();
 
- if(q.includes("uhr")||q.includes("spät"))
+ if(q.includes("uhr")||q.includes("spät")){
   return "Es ist "+new Date().toLocaleTimeString("de-DE")+".";
+ }
 
- if(q.includes("datum")||q.includes("tag"))
+ if(q.includes("datum")||q.includes("tag")){
   return "Heute ist "+new Date().toLocaleDateString("de-DE")+".";
+ }
+
+ if(q.includes("akku")||q.includes("batterie")){
+  return battery
+   ?"Der Akkustand beträgt "+Math.round(battery.level*100)+" Prozent."
+   :"Der Akkustand ist über den Browser nicht verfügbar.";
+ }
+
+ if(q.includes("internet")||q.includes("verbindung")){
+  return navigator.onLine
+   ?"Das Handy hat eine Internetverbindung."
+   :"Das Handy ist laut Browser offline.";
+ }
 
  if(q.includes("aufgabe")){
   showPage("tasks");
@@ -191,23 +511,34 @@ function answer(text){
   return "KI Chat geöffnet.";
  }
 
- if(q.includes("hilfe")||q.includes("kannst"))
-  return "Ich kann die Uhr nennen und die Bereiche öffnen. Für freie Antworten fehlt noch ein KI-Dienst.";
+ if(q.includes("start")){
+  showPage("start");
+  return "Startseite geöffnet.";
+ }
+
+ if(q.includes("hilfe")){
+  return "Du kannst Uhrzeit, Datum, Akku und Internetstatus abfragen und die Bereiche öffnen.";
+ }
 
  return "Ich kann zurzeit wegen einem Fehler keine Befehle verstehen.";
 }
 
 $("chatForm").addEventListener("submit",e=>{
  e.preventDefault();
+
  const v=$("chatInput").value.trim();
  if(!v)return;
+
  addMessage("Du",v);
  $("chatInput").value="";
  addMessage("WARVEX",answer(v));
 });
 
+/* AUFGABEN */
+
 $("taskForm").addEventListener("submit",e=>{
  e.preventDefault();
+
  const v=$("taskInput").value.trim();
  if(!v)return;
 
@@ -220,16 +551,22 @@ $("taskForm").addEventListener("submit",e=>{
  btn.textContent="Erledigt";
 
  btn.addEventListener("click",()=>row.remove());
+
  row.append(label,btn);
  $("taskList").append(row);
+
  $("taskInput").value="";
 });
+
+/* SMART HOME DEMO */
 
 document.querySelectorAll(".toggle").forEach(b=>{
  b.addEventListener("click",()=>{
   b.textContent=b.textContent==="AUS"?"AN":"AUS";
  });
 });
+
+/* NOTIZEN */
 
 try{
  $("noteText").value=localStorage.getItem("warvex_note")||"";
@@ -240,35 +577,128 @@ $("saveNote").addEventListener("click",()=>{
   localStorage.setItem("warvex_note",$("noteText").value);
   $("noteStatus").textContent="Notiz gespeichert.";
  }catch(e){
-  $("noteStatus").textContent="Speichern ist hier nicht verfügbar.";
+  $("noteStatus").textContent="Speichern nicht verfügbar.";
  }
 });
 
 $("clearNote").addEventListener("click",()=>{
  $("noteText").value="";
- try{localStorage.removeItem("warvex_note");}catch(e){}
+
+ try{
+  localStorage.removeItem("warvex_note");
+ }catch(e){}
+
  $("noteStatus").textContent="Notiz gelöscht.";
 });
 
-let recognition=null;
-let listening=false;
-let sosTimer=null;
-let ctx=null;
-let sirenTimer=null;
+/* SPRACHAUSGABE */
 
-function say(t){
+function say(text){
  if(!window.speechSynthesis)return;
 
  window.speechSynthesis.cancel();
 
- const u=new SpeechSynthesisUtterance(t);
+ const u=new SpeechSynthesisUtterance(text);
  u.lang="de-DE";
+
  window.speechSynthesis.speak(u);
 }
 
-function voiceStatus(t){
- $("voiceStatus").textContent=t;
+/* SPRACHSTATUS */
+
+let recognition=null;
+let activeMode=null;
+let manualStop=false;
+let lastVoiceError="";
+let gotSpeech=false;
+let sosTimer=null;
+let sirenTimer=null;
+let audioContext=null;
+
+function voiceStatus(text){
+ $("voiceStatus").textContent=text;
 }
+
+function showVoiceButtons(active){
+ $("directBtn").hidden=active;
+ $("wakeBtn").hidden=active;
+ $("stopBtn").hidden=!active;
+}
+
+/* FEHLERDIAGNOSE */
+
+function explainVoiceError(error){
+ switch(error){
+
+  case "not-allowed":
+  case "service-not-allowed":
+   return "Mikrofonzugriff verweigert. Prüfe die Mikrofonberechtigung für Chrome und diese Website.";
+
+  case "audio-capture":
+   return "Kein Mikrofon verfügbar oder das Mikrofon wird gerade von einer anderen Anwendung verwendet.";
+
+  case "network":
+   return "Die Verbindung zum Spracherkennungsdienst ist fehlgeschlagen. Prüfe deine Internetverbindung.";
+
+  case "no-speech":
+   return "Es wurde keine Sprache erkannt. Prüfe, ob das Mikrofon funktioniert und ob du laut genug sprichst.";
+
+  case "language-not-supported":
+   return "Die deutsche Sprache wird vom aktuellen Spracherkennungsdienst nicht unterstützt.";
+
+  case "aborted":
+   return "Die Spracherkennung wurde abgebrochen.";
+
+  case "":
+   return "Chrome hat die Spracherkennung beendet. Android oder Chrome können längere Spracherkennungssitzungen automatisch beenden.";
+
+  default:
+   return "Chrome meldet den Fehler: "+error+". Prüfe Mikrofon, Browser und Internetverbindung.";
+ }
+}
+
+async function diagnoseVoice(){
+ $("diagnosticStatus").textContent="Prüfe Browser und Mikrofonfunktionen …";
+
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+
+ const results=[];
+
+ results.push(
+  SR
+   ?"Spracherkennung wird vom Browser angeboten."
+   :"Dieser Browser bietet keine Web-Spracherkennung an."
+ );
+
+ results.push(
+  navigator.mediaDevices&&navigator.mediaDevices.getUserMedia
+   ?"Mikrofon-Schnittstelle vorhanden."
+   :"Mikrofon-Schnittstelle nicht verfügbar."
+ );
+
+ results.push(
+  navigator.onLine
+   ?"Internetverbindung vorhanden."
+   :"Keine Internetverbindung erkannt."
+ );
+
+ if(navigator.permissions&&navigator.permissions.query){
+  try{
+   const permission=await navigator.permissions.query({name:"microphone"});
+
+   results.push("Mikrofonberechtigung: "+permission.state+".");
+  }catch(e){
+   results.push("Mikrofonberechtigung kann nicht abgefragt werden.");
+  }
+ }else{
+  results.push("Chrome stellt den Berechtigungsstatus nicht bereit.");
+ }
+
+ $("diagnosticStatus").textContent=results.join(" ");
+ return results.join(" ");
+}
+
+/* SOS DEMO */
 
 function stopSOS(){
  if(sosTimer){
@@ -281,21 +711,19 @@ function stopSOS(){
   sirenTimer=null;
  }
 
- if(ctx){
-  ctx.close().catch(()=>{});
-  ctx=null;
+ if(audioContext){
+  audioContext.close().catch(()=>{});
+  audioContext=null;
  }
 
- if(navigator.vibrate)navigator.vibrate(0);
-
- voiceStatus(listening
-  ?"Mikrofon aktiv – sag „Hey WARVEX“."
-  :"Sprachsteuerung ist aus."
- );
+ if(navigator.vibrate){
+  navigator.vibrate(0);
+ }
 }
 
 function startSOS(){
  stopSOS();
+
  voiceStatus("SOS-Test läuft – nur Demo.");
 
  if(navigator.vibrate){
@@ -306,63 +734,56 @@ function startSOS(){
   const AC=window.AudioContext||window.webkitAudioContext;
 
   if(AC){
-   ctx=new AC();
-   ctx.resume();
+   audioContext=new AC();
+   audioContext.resume();
 
    let high=true;
 
    sirenTimer=setInterval(()=>{
-    if(!ctx)return;
+    if(!audioContext)return;
 
-    const o=ctx.createOscillator();
-    const g=ctx.createGain();
+    const o=audioContext.createOscillator();
+    const g=audioContext.createGain();
 
     o.type="sawtooth";
     o.frequency.value=high?880:660;
     high=!high;
 
-    g.gain.setValueAtTime(.0001,ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(.035,ctx.currentTime+.04);
-    g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.38);
+    g.gain.setValueAtTime(.0001,audioContext.currentTime);
+    g.gain.exponentialRampToValueAtTime(.035,audioContext.currentTime+.04);
+    g.gain.exponentialRampToValueAtTime(.0001,audioContext.currentTime+.38);
 
     o.connect(g);
-    g.connect(ctx.destination);
+    g.connect(audioContext.destination);
+
     o.start();
-    o.stop(ctx.currentTime+.4);
+    o.stop(audioContext.currentTime+.4);
+
    },470);
   }
  }catch(e){}
 
  say("Dies ist nur ein SOS-Test. Gefahr erkannt.");
- sosTimer=setTimeout(stopSOS,12000);
+
+ sosTimer=setTimeout(()=>{
+  stopSOS();
+  voiceStatus("SOS-Test beendet.");
+ },12000);
 }
 
-function stopListening(){
- listening=false;
-
- if(recognition){
-  recognition.onend=null;
-  recognition.onerror=null;
-
-  try{recognition.stop();}catch(e){}
-
-  recognition=null;
- }
-
- stopSOS();
-
- $("listenBtn").textContent="SPRACHSTEUERUNG AKTIVIEREN";
- $("listenBtn").classList.add("primary");
-
- voiceStatus("Sprachsteuerung ist aus.");
-}
+/* SPRACHBEFEHLE */
 
 function processVoice(spoken){
  const q=spoken.toLowerCase();
 
  if(q.includes("sprachsteuerung stoppen")||q.includes("mikrofon aus")){
-  say("Sprachsteuerung wird beendet.");
   stopListening();
+  say("Sprachsteuerung wird beendet.");
+  return;
+ }
+
+ if(q.includes("sos test")){
+  startSOS();
   return;
  }
 
@@ -372,153 +793,118 @@ function processVoice(spoken){
   return;
  }
 
- if(q.includes("sos test")){
-  startSOS();
-  return;
- }
-
- if(q.includes("öffne")||q.includes("oeffne")||q.includes("zeige")){
-
-  if(q.includes("notiz")){
-   showPage("notes");
-   say("Notizen geöffnet.");
-   return;
-  }
-
-  if(q.includes("aufgabe")){
-   showPage("tasks");
-   say("Aufgaben geöffnet.");
-   return;
-  }
-
-  if(q.includes("smart")){
-   showPage("home");
-   say("Smart Home geöffnet.");
-   return;
-  }
-
-  if(q.includes("chat")){
-   showPage("chat");
-   say("KI Chat geöffnet.");
-   return;
-  }
-
-  if(q.includes("start")){
-   showPage("start");
-   say("Startseite geöffnet.");
-   return;
-  }
-
-  if(q.includes("tools")){
-   showPage("tools");
-   say("Tools geöffnet.");
-   return;
-  }
- }
-
  const reply=answer(spoken);
+
  addMessage("Du",spoken);
  addMessage("WARVEX",reply);
+
  say(reply);
 }
 
-function startListening(){
+/* SPRACHERKENNUNG */
+
+function stopListening(){
+ manualStop=true;
+
+ const oldRecognition=recognition;
+
+ recognition=null;
+ activeMode=null;
+
+ if(oldRecognition){
+  oldRecognition.onend=null;
+  oldRecognition.onerror=null;
+
+  try{
+   oldRecognition.stop();
+  }catch(e){}
+ }
+
+ stopSOS();
+
+ showVoiceButtons(false);
+
+ voiceStatus("Sprachsteuerung ist aus.");
+}
+
+function finishRecognition(r,mode){
+ if(recognition===r){
+  recognition=null;
+ }
+
+ activeMode=null;
+ showVoiceButtons(false);
+
+ if(manualStop){
+  manualStop=false;
+  voiceStatus("Sprachsteuerung wurde gestoppt.");
+  return;
+ }
+
+ if(mode==="wake"){
+  const reason=explainVoiceError(lastVoiceError);
+
+  $("diagnosticStatus").textContent=
+   "Diagnose: "+reason;
+
+  voiceStatus(
+   "Die Sprachsteuerung wurde von Chrome beendet. Grund: "+reason
+  );
+
+  say("Die Sprachsteuerung wurde von Chrome beendet. Grund: "+reason);
+
+ }else{
+  if(lastVoiceError){
+   const reason=explainVoiceError(lastVoiceError);
+
+   $("diagnosticStatus").textContent="Diagnose: "+reason;
+   voiceStatus(reason);
+   say(reason);
+
+  }else if(!gotSpeech){
+   voiceStatus("Kein Sprachbefehl erkannt. Bitte erneut versuchen.");
+   say("Ich habe keinen Sprachbefehl erkannt. Bitte versuche es erneut.");
+
+  }else{
+   voiceStatus("Sprachbefehl verarbeitet.");
+  }
+ }
+}
+
+async function startListening(mode){
  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 
  if(!SR){
   voiceStatus("Dieser Browser unterstützt keine Spracherkennung. Bitte Chrome verwenden.");
+  await diagnoseVoice();
   return;
  }
 
- if(listening)return;
+ if(recognition)return;
 
- listening=true;
+ activeMode=mode;
+ manualStop=false;
+ lastVoiceError="";
+ gotSpeech=false;
 
- $("listenBtn").textContent="STOP";
- $("listenBtn").classList.remove("primary");
+ showVoiceButtons(true);
+
+ voiceStatus(
+  mode==="wake"
+   ?"Hey WARVEX ist aktiv. Warte auf dein Aktivierungswort …"
+   :"Mikrofon wird gestartet. Sprich jetzt deinen Befehl."
+ );
+
+ await diagnoseVoice();
+
+ if(activeMode!==mode)return;
 
  try{
   const r=new SR();
+
   recognition=r;
 
   r.lang="de-DE";
-  r.continuous=true;
+  r.continuous=(mode==="wake");
   r.interimResults=false;
-  r.maxAlternatives=1;
-
-  r.onstart=()=>{
-   voiceStatus("Mikrofon aktiv – sag „Hey WARVEX“.");
-  };
-
-  r.onresult=e=>{
-   for(let i=e.resultIndex;i<e.results.length;i++){
-    if(!e.results[i].isFinal)continue;
-
-    const heard=e.results[i][0].transcript.trim();
-
-    if(/hey\s+warvex/i.test(heard)){
-     const command=heard.replace(/hey\s+warvex/i,"").trim();
-
-     if(command){
-      processVoice(command);
-     }else{
-      say("Ich höre.");
-     }
-    }
-   }
-  };
-
-  r.onerror=e=>{
-   if(e.error==="not-allowed"||e.error==="service-not-allowed"){
-    voiceStatus("Mikrofonzugriff blockiert. Bitte Chrome-Berechtigung erlauben.");
-    stopListening();
-   }else if(e.error!=="no-speech"&&e.error!=="aborted"){
-    voiceStatus("Spracherkennung: "+e.error);
-   }
-  };
-
-  r.onend=()=>{
-   if(recognition===r)recognition=null;
-
-   if(!listening)return;
-
-   listening=false;
-   stopSOS();
-
-   $("listenBtn").textContent="SPRACHSTEUERUNG AKTIVIEREN";
-   $("listenBtn").classList.add("primary");
-
-   voiceStatus("Die Sprachsteuerung wurde von Chrome beendet.");
-
-   say("Die Sprachsteuerung wurde von Chrome beendet.");
-  };
-
-  r.start();
-
- }catch(e){
-  voiceStatus("Mikrofonstart fehlgeschlagen: "+e.message);
-  stopListening();
- }
-}
-
-$("listenBtn").addEventListener("click",()=>{
- if(listening){
-  stopListening();
- }else{
-  startListening();
- }
-});
-
-$("systemStatus").textContent="System bereit · Navigation und Uhr aktiv";
-
-$("toolStatus").textContent=
- "JavaScript läuft · "+
- ((window.SpeechRecognition||window.webkitSpeechRecognition)
-  ?"Spracherkennung verfügbar"
-  :"Spracherkennung nicht erkannt");
-
-})();
-</script>
-</body>
-  </html>
-  
+ 
