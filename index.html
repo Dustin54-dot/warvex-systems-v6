@@ -162,6 +162,7 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
 .med-alert-banner{display:none;margin-top:10px;padding:14px 8px;text-align:center;border:2px solid #ff354e;border-radius:9px;background:linear-gradient(90deg,#350713,#8b1025,#350713);color:#fff;box-shadow:0 0 22px #ff1e3c88}
 .med-alert-banner strong{display:block;font-size:clamp(22px,5vw,34px);letter-spacing:2px;color:#ff8794}
 .med-alert-banner span{font-size:12px}
+.med-ack-button{display:block;width:100%;margin-top:12px;padding:15px;background:#ff3048;border:2px solid #ffd4d9;color:#fff;font-size:16px;font-weight:900;letter-spacing:1px;box-shadow:0 0 18px #ff304888}.med-ack-button[hidden]{display:none}
 .medical-page.heart-alarm-active .med-alert-banner,.medical-page.lung-alarm-active .med-alert-banner{display:block;animation:med-banner-flash .8s steps(2,end) infinite}
 .med-test-area{margin-top:10px;border:1px solid #735525;background:#211706;border-radius:9px;padding:11px}
 .med-test-area h3{margin:0 0 6px;color:#ffd58a;font-size:13px}
@@ -338,8 +339,8 @@ main:has(#medical.active){max-width:1500px;padding:clamp(9px,2vw,24px)}
   <div class="med-system-box"><h3>⚙ SYSTEMSTATUS</h3><div class="med-missing">Smartwatch: <strong>Nicht verbunden</strong><br>Medizinische Geräte: <strong>Keine Daten</strong><br>Vitaldaten: <strong>Nicht verfügbar</strong></div></div>
   <div class="med-system-box"><h3>VERBINDUNGEN</h3><div class="med-missing">○ Health Connect<br>○ Herzfrequenzsensor<br>○ SpO₂-Sensor<br>○ Atemmessung</div></div>
  </div>
- <div class="med-alert-banner" role="status"><strong id="medAlarmTitle">⚠ ALARM-SIMULATION</strong><span id="medAlarmText">Dies ist ein lokaler Funktionstest – kein medizinischer Alarm.</span></div>
- <div class="med-test-area"><h3>⚠ TEMPORÄRER ALARM-TEST</h3><p class="med-test-note">Nur zum Prüfen von Animation und Ton. Keine echten Messwerte und keine medizinische Überwachung.</p><div class="actions"><button class="primary" id="medHeartTest">HERZ-ALARM TEST</button><button class="primary" id="medLungTest">LUNGENALARM TEST</button><button id="medStopTest">TEST STOPPEN</button></div><div class="med-test-status" id="medTestStatus" aria-live="polite">Testmodus bereit. Kein Alarm aktiv.</div></div>
+ <div class="med-alert-banner" role="status"><strong id="medAlarmTitle">⚠ ALARM-SIMULATION</strong><span id="medAlarmText">Dies ist ein lokaler Funktionstest – kein medizinischer Alarm.</span><button id="medAlarmSeen" class="med-ack-button" hidden>ALARM GESEHEN</button></div>
+ <div class="med-test-area"><h3>⚠ MEDICAL ALARM-TESTS</h3><p class="med-test-note">Alle Alarme sind Simulationen. Keine echten Messwerte, keine medizinische Überwachung und keine automatische Notruf-Funktion.</p><div class="actions"><button class="primary" id="medHeartTest">HERZ-ALARM TEST</button><button class="primary" id="medLungTest">LUNGENALARM TEST</button><button class="primary" id="medCriticalTest">KRITISCHEN ALARM TESTEN</button><button id="medStopTest">TEST STOPPEN</button></div><div class="med-test-status" id="medTestStatus" aria-live="polite">Testmodus bereit. Kein Alarm aktiv.</div></div>
  <div class="med-ai-bar"><span style="font-size:25px">✚</span><div><strong>WARVEX MEDICAL AI</strong><small>Medizinische Informationen verständlich erklärt · ersetzt keine ärztliche Untersuchung.</small></div></div>
 </div></section>
 
@@ -923,7 +924,23 @@ async function sendChat(){
   const prompt=$("chatInput").value.trim();
   if(!prompt)return;
 
-  $("chatInput").value="";
+  if(medicalAwaitingConfirmation){
+    $("chatInput").value="";
+    addMessage("Du",prompt);
+    const normalized=prompt.toLocaleLowerCase("de-DE").replace(/[.!?]/g,"").trim();
+    if(normalized==="ich habe den alarm gesehen"){
+      medicalAwaitingConfirmation=false;
+      stopMedicalTest(true);
+      $("medTestStatus").textContent="Alarm im Test bestätigt. Die Simulation wurde beendet.";
+      $("medTestStatus").classList.remove("med-alert");
+      addMessage("WARVEX MEDICAL","Bestätigung erhalten: Du hast den Alarm gesehen. Der Testalarm wurde beendet. Das bestätigt nur deine Wahrnehmung und sagt nichts über deinen Gesundheitszustand aus.");
+      $("chatStatus").textContent="WARVEX MEDICAL: Testalarm bestätigt.";
+    }else{
+      addMessage("WARVEX MEDICAL","Zur Bestätigung schreibe bitte genau: Ich habe den Alarm gesehen.");
+      $("chatStatus").textContent="Bestätigung noch offen.";
+    }
+    return;
+  }
   addMessage("Du",prompt);
   $("sendBtn").disabled=true;
   $("chatStatus").textContent="WARVEX fragt die KI …";
@@ -1079,52 +1096,107 @@ $("stopBtn").addEventListener("click",stopListening);
 $("testVoiceBtn").addEventListener("click",()=>say("Hallo. Ich bin VEXARA, die Online-Sprach-KI von WARVEX SYSTEMS."));
 
 
-/* TEMPORÄRER WARVEX MEDICAL ALARM-TEST – reine Simulation */
-let medicalAlarmTimer=null, medicalAudioContext=null, medicalAlarmMode=null, medicalBeepStep=0;
+/* WARVEX MEDICAL ALARM-TEST – lokale Simulation, keine Sensorüberwachung */
+let medicalAlarmTimer=null, medicalEscalationTimer=null, medicalAudioContext=null;
+let medicalAlarmMode=null, medicalAlarmLevel=1, medicalElapsedSeconds=0;
+let medicalAwaitingConfirmation=false;
+
 function stopMedicalTest(silent=false){
  if(medicalAlarmTimer){clearInterval(medicalAlarmTimer);medicalAlarmTimer=null;}
- medicalAlarmMode=null;medicalBeepStep=0;
- $("medical").classList.remove("heart-alarm-active","lung-alarm-active");
+ if(medicalEscalationTimer){clearInterval(medicalEscalationTimer);medicalEscalationTimer=null;}
+ medicalAlarmMode=null;medicalAlarmLevel=1;medicalElapsedSeconds=0;
+ $("medical").classList.remove("heart-alarm-active","lung-alarm-active","critical-alarm-active");
+ const seen=$("medAlarmSeen");if(seen)seen.hidden=true;
  if(medicalAudioContext){try{medicalAudioContext.close();}catch(error){}medicalAudioContext=null;}
- if(!silent&&$("medTestStatus")){$("medTestStatus").textContent="Test gestoppt. Keine echte Messung aktiv.";$("medTestStatus").classList.remove("med-alert");}
+ if(!silent&&$("medTestStatus")){
+  $("medTestStatus").textContent="Test gestoppt. Keine echte Messung aktiv.";
+  $("medTestStatus").classList.remove("med-alert");
+ }
 }
+
+function medicalTone(freq, startAt, duration, volume){
+ const now=medicalAudioContext.currentTime+startAt;
+ const osc=medicalAudioContext.createOscillator();
+ const gain=medicalAudioContext.createGain();
+ osc.type="square";
+ osc.frequency.setValueAtTime(freq,now);
+ gain.gain.setValueAtTime(.0001,now);
+ gain.gain.exponentialRampToValueAtTime(volume,now+.012);
+ gain.gain.setValueAtTime(volume,now+duration*.65);
+ gain.gain.exponentialRampToValueAtTime(.0001,now+duration);
+ osc.connect(gain);gain.connect(medicalAudioContext.destination);
+ osc.start(now);osc.stop(now+duration+.015);
+}
+
 function medicalBeep(){
  try{
-  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+  const AC=window.AudioContext||window.webkitAudioContext;
+  if(!AC)return;
   if(!medicalAudioContext||medicalAudioContext.state==="closed")medicalAudioContext=new AC();
   if(medicalAudioContext.state==="suspended")medicalAudioContext.resume();
-  const now=medicalAudioContext.currentTime;
-  const level=Math.min(3,1+Math.floor(medicalBeepStep/7));
-  const base=[880,1280,1680][level-1];
-  const freq=base+(medicalBeepStep%2)*150;
-  const duration=level===3?.19:.15;
-  const osc=medicalAudioContext.createOscillator(),gain=medicalAudioContext.createGain();
-  osc.type="square";
-  osc.frequency.setValueAtTime(freq,now);
-  osc.frequency.exponentialRampToValueAtTime(freq*1.08,now+duration*.55);
-  const volume=[.065,.082,.10][level-1];
-  gain.gain.setValueAtTime(.0001,now);
-  gain.gain.exponentialRampToValueAtTime(volume,now+.014);
-  gain.gain.setValueAtTime(volume,now+duration*.48);
-  gain.gain.exponentialRampToValueAtTime(.0001,now+duration);
-  osc.connect(gain);gain.connect(medicalAudioContext.destination);
-  osc.start(now);osc.stop(now+duration+.01);
-  medicalBeepStep++;
+  const volume=[.075,.095,.12][medicalAlarmLevel-1];
+  const pitchShift=[0,120,240][medicalAlarmLevel-1];
+  if(medicalAlarmMode==="heart"){
+    medicalTone(920+pitchShift,0,.16,volume);
+    medicalTone(1180+pitchShift,.23,.16,volume);
+  }else if(medicalAlarmMode==="lungs"){
+    medicalTone(620+pitchShift,0,.34,volume);
+    medicalTone(760+pitchShift,.48,.34,volume);
+  }else{
+    medicalTone(1120+pitchShift,0,.13,volume);
+    medicalTone(1420+pitchShift,.19,.13,volume);
+    medicalTone(1120+pitchShift,.38,.13,volume);
+  }
+ }catch(error){
   const status=$("medTestStatus");
-  if(status)status.textContent="SIMULATION · Alarmstufe "+level+"/3 · steigende Tonhöhe und Lautstärke – keine Messdaten.";
- }catch(error){$("medTestStatus").textContent="Animation aktiv; Audio wird vom Browser blockiert.";}
+  if(status)status.textContent="Alarmanzeige aktiv; Audiowiedergabe wird vom Browser blockiert.";
+ }
 }
+
+function updateMedicalEscalation(){
+ medicalElapsedSeconds++;
+ const nextLevel=Math.min(3,1+Math.floor(medicalElapsedSeconds/10));
+ if(nextLevel>medicalAlarmLevel){
+  medicalAlarmLevel=nextLevel;
+  const status=$("medTestStatus");
+  if(status)status.textContent="SIMULATION · Eskalationsstufe "+medicalAlarmLevel+"/3 · seit "+medicalElapsedSeconds+" Sekunden unbeantwortet. Tonmuster und Lautstärke steigen kontrolliert.";
+  const title=$("medAlarmTitle");
+  if(title)title.textContent="⚠ "+(medicalAlarmMode==="heart"?"HERZ":medicalAlarmMode==="lungs"?"LUNGEN":"KRITISCHER")+" ALARM – STUFE "+medicalAlarmLevel+"/3 · TEST";
+  medicalBeep();
+ }
+}
+
 function startMedicalTest(mode){
- stopMedicalTest(true);medicalAlarmMode=mode;medicalBeepStep=0;
- const page=$("medical"),status=$("medTestStatus");
- if(mode==="heart"){page.classList.add("heart-alarm-active");$("medAlarmTitle").textContent="⚠ HERZ-ALARM – TEST";$("medAlarmText").textContent="Simulierter Alarmton und Anzeige – keine Messung." ;status.textContent="SIMULATION: Herzalarm-Test läuft.";}
- else{page.classList.add("lung-alarm-active");$("medAlarmTitle").textContent="⚠ LUNGENALARM – TEST";$("medAlarmText").textContent="Simulierter Alarmton und Anzeige – keine Messung.";status.textContent="SIMULATION: Lungentest läuft.";}
- status.classList.add("med-alert");medicalBeep();
- medicalAlarmTimer=setInterval(medicalBeep,440);
+ stopMedicalTest(true);
+ medicalAlarmMode=mode;medicalAlarmLevel=1;medicalElapsedSeconds=0;
+ const page=$("medical"),status=$("medTestStatus"),seen=$("medAlarmSeen");
+ page.classList.add(mode==="heart"?"heart-alarm-active":mode==="lungs"?"lung-alarm-active":"critical-alarm-active");
+ const label=mode==="heart"?"HERZ-ALARM":mode==="lungs"?"LUNGENALARM":"KRITISCHER ALARM";
+ $("medAlarmTitle").textContent="⚠ "+label+" – TEST";
+ $("medAlarmText").textContent="SIMULATION: Dieser Alarm wurde manuell gestartet. Es liegen keine echten Messdaten vor.";
+ if(seen)seen.hidden=false;
+ status.textContent="SIMULATION · "+label+" läuft. Ohne Bestätigung steigt die Alarmstufe alle 10 Sekunden bis Stufe 3.";
+ status.classList.add("med-alert");
+ medicalBeep();
+ medicalAlarmTimer=setInterval(medicalBeep,1400);
+ medicalEscalationTimer=setInterval(updateMedicalEscalation,1000);
 }
+
 $("medHeartTest").addEventListener("click",()=>startMedicalTest("heart"));
 $("medLungTest").addEventListener("click",()=>startMedicalTest("lungs"));
-$("medStopTest").addEventListener("click",()=>stopMedicalTest());
+$("medCriticalTest").addEventListener("click",()=>startMedicalTest("critical"));
+$("medStopTest").addEventListener("click",()=>{
+ medicalAwaitingConfirmation=false;
+ stopMedicalTest();
+});
+$("medAlarmSeen").addEventListener("click",()=>{
+ if(!medicalAlarmMode)return;
+ medicalAwaitingConfirmation=true;
+ showPage("chat");
+ addMessage("WARVEX MEDICAL","Du hast auf „Alarm gesehen“ gedrückt. Bitte bestätige jetzt, dass du den Alarm wahrgenommen hast. Schreibe exakt: Ich habe den Alarm gesehen.");
+ $("chatStatus").textContent="WARVEX MEDICAL wartet auf deine Textbestätigung.";
+ $("chatInput").focus();
+});
 
 /* SYSTEM-TOOLS */
 $("timeBtn").addEventListener("click",()=>$("toolResult").textContent="Uhrzeit: "+new Date().toLocaleTimeString("de-DE"));
