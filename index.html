@@ -148,7 +148,7 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
   <div class="card">
     <h2>Sprachsteuerung</h2>
     <p class="muted">
-      Online-Stimme: Seraphina. Ersatz: deutsche Browser-Stimme.
+      Online-Stimme: VEXARA · WARVEX Sprach-KI. Ersatz: deutsche Browser-Stimme.
     </p>
     <div class="actions">
       <button class="primary" id="directBtn">SPRACHBEFEHL</button>
@@ -466,7 +466,7 @@ function speakWithBrowser(text){
 
 /* ONLINE-TTS */
 
-async function requestSeraphina(text){
+async function requestVexara(text){
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),20000);
 
@@ -489,10 +489,26 @@ async function requestSeraphina(text){
       );
     }
 
+    const contentType=(response.headers.get("content-type")||"").toLowerCase();
+
+    if(contentType.includes("application/json") || contentType.includes("text/")){
+      const detail=await response.text();
+      let message=detail.slice(0,220);
+      try{
+        const data=JSON.parse(detail);
+        message=data.error||data.message||data.details||message;
+      }catch(e){}
+      throw new Error("VEXARA lieferte statt Audio eine Meldung: "+message);
+    }
+
     const blob=await response.blob();
 
     if(!blob.size){
-      throw new Error("Online-TTS lieferte keine Audiodatei.");
+      throw new Error("VEXARA lieferte eine leere Audiodatei.");
+    }
+
+    if(!contentType.startsWith("audio/") && contentType!=="application/octet-stream"){
+      throw new Error("Unerwarteter Audio-Typ: "+(contentType||"unbekannt"));
     }
 
     return blob;
@@ -541,11 +557,13 @@ const OUTAGE_MESSAGE =
 
 const RECOVERY_MESSAGE =
   "Das Sprach-Online-System ist wieder online. " +
-  "Seraphina ist wieder aktiv.";
+  "VEXARA ist wieder aktiv.";
 
 function updateTtsStatus(message){
   $("ttsStatus").textContent=message;
 }
+
+let lastVexaraError="";
 
 async function say(text){
   const spokenText=String(text||"").trim();
@@ -554,14 +572,14 @@ async function say(text){
   updateTtsStatus("Online-Sprachsystem wird verwendet …");
 
   try{
-    const audio=await requestSeraphina(spokenText);
+    const audio=await requestVexara(spokenText);
 
     /* War das System vorher ausgefallen? */
     if(ttsState==="fallback"||ttsState==="none"){
       updateTtsStatus("Online-Sprachsystem wieder verfügbar.");
 
       try{
-        const recoveryAudio=await requestSeraphina(RECOVERY_MESSAGE);
+        const recoveryAudio=await requestVexara(RECOVERY_MESSAGE);
         await playAudioBlob(recoveryAudio);
       }catch(error){
         try{
@@ -580,12 +598,13 @@ async function say(text){
       ttsState="online";
     }
 
-    updateTtsStatus("Seraphina Online-TTS: aktiv.");
+    updateTtsStatus("VEXARA Online-TTS: aktiv.");
     await playAudioBlob(audio);
     return;
 
   }catch(error){
-    console.warn("Online-TTS nicht verfügbar:",error);
+    lastVexaraError=error && error.message ? error.message : String(error);
+    console.warn("VEXARA Online-TTS nicht verfügbar:",error);
   }
 
   /* Online-System ist ausgefallen */
@@ -607,7 +626,8 @@ async function say(text){
     await speakWithBrowser(spokenText);
     ttsState="fallback";
     updateTtsStatus(
-      "Ersatzsystem aktiv. Online-Sprachsystem nicht verfügbar."
+      "Deutsche Ersatzstimme aktiv. VEXARA-Fehler: "+
+      (lastVexaraError||"Online-Sprachdienst antwortet nicht.")
     );
   }catch(error){
     ttsState="none";
@@ -876,7 +896,7 @@ function stopListening(){
 $("directBtn").addEventListener("click",()=>startListening("direct"));
 $("wakeBtn").addEventListener("click",()=>startListening("wake"));
 $("stopBtn").addEventListener("click",stopListening);
-$("testVoiceBtn").addEventListener("click",()=>say("Hallo Dustin. Seraphina ist bereit. Wenn die Online-Stimme nicht antwortet, übernimmt automatisch die Ersatzstimme."));
+$("testVoiceBtn").addEventListener("click",()=>say("Hallo. Ich bin VEXARA, die Sprach-KI von WARVEX SYSTEMS."));
 
 /* SYSTEM-TOOLS */
 $("timeBtn").addEventListener("click",()=>$("toolResult").textContent="Uhrzeit: "+new Date().toLocaleTimeString("de-DE"));
