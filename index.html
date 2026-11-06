@@ -284,6 +284,25 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
 <footer>WARVEX SYSTEMS V6 · Web-App</footer>
 
 <script>
+/* FRÜHDIAGNOSE: fängt Fehler im nachfolgenden Hauptscript ab */
+window.addEventListener("error", function(event) {
+  const message = "JavaScript-Startfehler: " + (event.message || "Unbekannter Fehler") +
+    (event.lineno ? " · Zeile " + event.lineno : "");
+  const status = document.getElementById("systemStatus");
+  const clock = document.getElementById("clock");
+  if (status) status.textContent = message;
+  if (clock) clock.textContent = "JS-FEHLER";
+  console.error(message, event.error || "");
+});
+window.addEventListener("unhandledrejection", function(event) {
+  const message = "Nicht behandelter Fehler: " +
+    (event.reason && event.reason.message ? event.reason.message : String(event.reason));
+  const status = document.getElementById("systemStatus");
+  if (status) status.textContent = message;
+  console.error(message);
+});
+</script>
+<script>
 "use strict";
 
 const $ = id => document.getElementById(id);
