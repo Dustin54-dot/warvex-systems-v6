@@ -73,182 +73,59 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
   .grid{grid-template-columns:1fr}
 }
 
-/* WARVEX MEDICAL – futuristische, rein visuelle Demo */
-.medical-page{color:#eaf8ff}
-.medical-page .med-shell{background:radial-gradient(ellipse at 50% 35%,#0d3150 0%,#071521 48%,#060b13 100%);border:1px solid #164768;border-radius:18px;padding:14px;overflow:hidden}
-.med-topline{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
-.med-brand{font-weight:800;letter-spacing:2px;color:#74dcff}
-.med-device-pill{font-size:12px;color:#ffb9c0;border:1px solid #743743;background:#351720;padding:7px 10px;border-radius:99px}
-.med-layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(220px,.9fr);gap:12px}
-.med-stage{position:relative;min-height:450px;display:flex;align-items:center;justify-content:center;border:1px solid #174967;border-radius:15px;background:linear-gradient(180deg,rgba(13,53,82,.55),rgba(2,12,23,.82));overflow:hidden}
-.med-stage:before,.med-stage:after{content:"";position:absolute;left:50%;top:50%;width:78%;aspect-ratio:1;border:1px solid rgba(65,197,255,.35);border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 30px rgba(0,174,255,.13),inset 0 0 30px rgba(0,174,255,.08)}
-.med-stage:after{width:94%;border-style:dashed;animation:med-spin 28s linear infinite}
-.med-human{position:relative;z-index:1;width:min(100%,330px);height:440px;filter:drop-shadow(0 0 12px rgba(53,190,255,.65))}
-.med-human .med-body-shape{fill:rgba(42,174,238,.12);stroke:#71d9ff;stroke-width:2.4;stroke-linejoin:round}
-.med-human .med-body-detail{fill:none;stroke:rgba(111,220,255,.42);stroke-width:1.3}
-.med-heart-core{fill:#ff465b;stroke:#ff9aa5;stroke-width:1.8;transform-box:fill-box;transform-origin:center}
-.med-lungs path{fill:rgba(77,195,255,.18);stroke:#7be0ff;stroke-width:2}
-.med-organ-glow{filter:drop-shadow(0 0 8px currentColor)}
-.med-side{display:flex;flex-direction:column;gap:10px}
-.med-panel{background:rgba(6,21,35,.88);border:1px solid #185071;border-radius:13px;padding:12px;min-width:0}
-.med-panel h3{margin:0 0 9px;color:#82ddff;font-size:14px;letter-spacing:1px}
-.med-value-row{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid rgba(92,173,210,.16);font-size:13px}
+/* WARVEX MEDICAL – klinische, responsive Gesundheitsoberfläche */
+.medical-page{color:#172b3b}
+.medical-page .med-shell{background:#f4f8fb;color:#172b3b;border:1px solid #d8e3eb;border-radius:18px;padding:clamp(12px,2vw,22px);box-shadow:0 12px 34px #061c2b12}
+.med-topline{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:4px 2px 16px;border-bottom:1px solid #dce6ed}
+.med-brand{font-size:clamp(20px,3vw,28px);font-weight:850;letter-spacing:.4px;color:#123b55}
+.med-device-pill{font-size:11px;font-weight:700;color:#8b5b14;border:1px solid #f0d9a9;background:#fff8e9;padding:8px 11px;border-radius:99px}
+.med-intro{margin:15px 0;padding:14px 16px;background:#eaf4f8;border:1px solid #d3e5ed;border-left:4px solid #2483a6;border-radius:10px}
+.med-intro strong{display:block;color:#16445c;font-size:15px;margin-bottom:4px}
+.med-intro p{margin:0;color:#536a79;font-size:12px;line-height:1.6}
+.med-section-title{display:flex;align-items:center;gap:8px;margin:18px 2px 10px;color:#24465b;font-size:14px;font-weight:800;letter-spacing:.45px}
+.med-clinic-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
+.med-column{display:flex;flex-direction:column;gap:12px;min-width:0}
+.med-panel{background:#fff;border:1px solid #dce6ed;border-radius:12px;padding:14px;min-width:0;box-shadow:0 3px 12px #102f4010}
+.med-panel h3{margin:0 0 10px;color:#28536b;font-size:12px;letter-spacing:.7px}
+.med-value-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #edf1f4;font-size:13px;color:#4d6270}
 .med-value-row:last-child{border-bottom:0}
-.med-dash{color:#82dfff;font-weight:800;letter-spacing:2px}
-.med-muted{color:#8eafc3;font-size:11px}
-.med-heart-panel-icon{color:#ff6577;font-size:29px;display:inline-block;line-height:1}
-.med-ecg{width:100%;height:48px;display:block}
-.med-ecg path{fill:none;stroke:#63d8ff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:220;stroke-dashoffset:0}
-.med-lung-icon{width:38px;height:38px;vertical-align:middle}
-.med-system{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.med-system-box{background:rgba(6,21,35,.9);border:1px solid #185071;border-radius:12px;padding:12px}
-.med-system-box h3{margin:0 0 8px;color:#8bdfff;font-size:13px}
-.med-missing{font-size:12px;color:#a9c6d8;line-height:1.8}
-.med-test-area{margin-top:12px;border:1px solid #6c4d20;background:rgba(47,31,8,.45);border-radius:13px;padding:13px}
-.med-test-area h3{margin:0 0 6px;color:#ffd58a}
-.med-test-note{font-size:12px;color:#f3d5a4;margin:0 0 10px}
-.med-test-area .actions button{flex:1;min-width:130px}
-.med-test-status{font-size:12px;color:#b7d6e6;margin-top:10px;min-height:18px}
-.med-alert{color:#ff7885!important}
-.medical-page.heart-alarm-active .med-heart-core,
-.medical-page.heart-alarm-active .med-heart-panel-icon{animation:med-heartbeat .72s ease-in-out infinite}
-.medical-page.heart-alarm-active .med-ecg path{stroke:#ff5268;stroke-dasharray:18 7;animation:med-ecg 1.05s linear infinite}
-.medical-page.heart-alarm-active .med-pulse-row{color:#ff7182;animation:med-warning-blink .72s steps(2,end) infinite}
-.medical-page.heart-alarm-active .med-pulse-row .med-dash{animation:med-warning-blink .72s steps(2,end) infinite}
-.medical-page.lung-alarm-active .med-lung-row{animation:med-warning-blink .9s steps(2,end) infinite}
-.medical-page.lung-alarm-active .med-lung-row .med-dash{animation:med-warning-blink .9s steps(2,end) infinite}
-.medical-page.lung-alarm-active .med-lungs{transform-box:fill-box;transform-origin:center;animation:med-lungs 1.35s ease-in-out infinite alternate}
-.medical-page.lung-alarm-active .med-lung-icon{animation:med-lungs 1.35s ease-in-out infinite alternate}
-.medical-page.lung-alarm-active .med-lung-row{color:#ff7182}
-@keyframes med-warning-blink{50%{opacity:.22;filter:brightness(1.8)}}
-@keyframes med-heartbeat{0%,100%{transform:scale(1)}12%{transform:scale(1.18)}24%{transform:scale(.98)}38%{transform:scale(1.12)}52%{transform:scale(1)}}
-@keyframes med-ecg{to{stroke-dashoffset:-100}}
-@keyframes med-lungs{from{transform:scale(.94)}to{transform:scale(1.08)}}
-@keyframes med-spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
-@media(max-width:650px){.med-layout{grid-template-columns:1fr}.med-stage{min-height:410px}.med-human{height:400px}.med-system{grid-template-columns:1fr}}
-
-
-/* WARVEX MEDICAL – Klinikmonitor-Layout */
-.medical-page .med-shell{background:#020914;border:1px solid #07517b;border-radius:16px;padding:12px;box-shadow:inset 0 0 35px #00304c}
-.med-topline{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 4px 12px;border-bottom:1px solid #125078}
-.med-brand{font-size:clamp(18px,4vw,27px);font-weight:900;letter-spacing:2px;color:#61d9ff}
-.med-device-pill{font-size:11px;color:#ffc0c6;border:1px solid #77303b;background:#260c16;padding:7px 10px;border-radius:30px}
-.med-clinic-grid{display:grid;grid-template-columns:minmax(155px,.9fr) minmax(190px,1.15fr) minmax(155px,.9fr);gap:9px;margin-top:10px}
-.med-column{display:flex;flex-direction:column;gap:9px;min-width:0}
-.med-panel{background:linear-gradient(145deg,#061b2d,#030b15);border:1px solid #12618b;border-radius:9px;padding:10px;min-width:0;box-shadow:inset 0 0 16px #06213b}
-.med-panel h3{margin:0 0 8px;color:#65dfff;font-size:12px;letter-spacing:1px}
-.med-stage{position:relative;min-height:440px;display:flex;align-items:center;justify-content:center;border:1px solid #075b8d;border-radius:10px;background:radial-gradient(ellipse,#07385c 0%,#031629 55%,#020914 100%);overflow:hidden}
-.med-stage:before,.med-stage:after{content:"";position:absolute;left:50%;top:50%;width:88%;aspect-ratio:1;border:1px solid #1b9cdb55;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 28px #008edc33,inset 0 0 25px #008edc22}
-.med-stage:after{width:105%;border-style:dashed;animation:med-spin 28s linear infinite}
-.med-human{position:relative;z-index:1;width:min(100%,300px);height:420px;filter:drop-shadow(0 0 12px #18baff99)}
-.med-human .med-body-shape{fill:rgba(42,174,238,.12);stroke:#71d9ff;stroke-width:2.4;stroke-linejoin:round}
-.med-human .med-body-detail{fill:none;stroke:#6fdcff70;stroke-width:1.3}
-.med-heart-core{fill:#ff4058;stroke:#ff9aa5;stroke-width:1.8;transform-box:fill-box;transform-origin:center}
-.med-lungs path{fill:#37b9ef30;stroke:#7be0ff;stroke-width:2}
-.med-value-row{display:flex;justify-content:space-between;gap:5px;padding:9px 0;border-bottom:1px solid #5cacd022;font-size:12px}
-.med-value-row:last-child{border-bottom:0}
-.med-dash{color:#7fe4ff;font-weight:800;letter-spacing:1px;white-space:nowrap}
-.med-muted{color:#8eafc3;font-size:10px;line-height:1.5}
-.med-number{font-size:clamp(19px,3vw,25px);color:#76ddff;font-weight:800}
-.med-mini-ecg{width:100%;height:36px;display:block}
-.med-mini-ecg path{fill:none;stroke:#51d6ff;stroke-width:2;stroke-linecap:round}
-.med-organ-art{width:100%;height:105px;display:block}
-.med-organ-art path{fill:#ff526733;stroke:#ff8294;stroke-width:2}
-.med-organ-art.lungs path{fill:#38baff22;stroke:#65dcff}
-.med-system{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
-.med-system-box{background:#041526;border:1px solid #12547a;border-radius:9px;padding:10px}
-.med-system-box h3{margin:0 0 7px;color:#68dfff;font-size:12px}
-.med-missing{font-size:11px;color:#b5d8e9;line-height:1.8}
-.med-alert-banner{display:none;margin-top:10px;padding:14px 8px;text-align:center;border:2px solid #ff354e;border-radius:9px;background:linear-gradient(90deg,#350713,#8b1025,#350713);color:#fff;box-shadow:0 0 22px #ff1e3c88}
-.med-alert-banner strong{display:block;font-size:clamp(22px,5vw,34px);letter-spacing:2px;color:#ff8794}
+.med-dash{color:#1d6685;font-weight:800;letter-spacing:.5px;white-space:nowrap}
+.med-muted{color:#718491;font-size:11px;line-height:1.55;margin:9px 0 0}
+.med-organ-art{width:100%;height:78px;display:block;max-width:180px;margin:0 auto 6px}
+.med-organ-art path{fill:#fbe8e9;stroke:#c65c69;stroke-width:2}
+.med-organ-art.lungs path{fill:#e4f3f8;stroke:#3986a2}
+.med-mini-ecg{width:100%;height:34px;display:block}
+.med-mini-ecg path{fill:none;stroke:#4c9bb5;stroke-width:2;stroke-linecap:round}
+.med-system{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.med-system-box{background:#fff;border:1px solid #dce6ed;border-radius:12px;padding:14px}
+.med-system-box h3{margin:0 0 8px;color:#28536b;font-size:12px}
+.med-missing{font-size:12px;color:#627887;line-height:1.9}
+.med-missing strong{color:#344e5e}
+.med-alert-banner{display:none;margin-top:12px;padding:14px;text-align:center;border:2px solid #df5262;border-radius:11px;background:#fff0f1;color:#7e1d2a}
+.med-alert-banner strong{display:block;font-size:clamp(19px,4vw,26px);letter-spacing:.5px;color:#b3273b;margin-bottom:5px}
 .med-alert-banner span{font-size:12px}
-.med-ack-button{display:block;width:100%;margin-top:12px;padding:15px;background:#ff3048;border:2px solid #ffd4d9;color:#fff;font-size:16px;font-weight:900;letter-spacing:1px;box-shadow:0 0 18px #ff304888}.med-ack-button[hidden]{display:none}
-.medical-page.heart-alarm-active .med-alert-banner,.medical-page.lung-alarm-active .med-alert-banner{display:block;animation:med-banner-flash .8s steps(2,end) infinite}
-.medical-page.critical-alarm-active .med-alert-banner{display:block;animation:med-banner-flash .55s steps(2,end) infinite}
-.med-test-area{margin-top:10px;border:1px solid #735525;background:#211706;border-radius:9px;padding:11px}
-.med-test-area h3{margin:0 0 6px;color:#ffd58a;font-size:13px}
-.med-test-note{font-size:11px;color:#f3d5a4;margin:0 0 9px}
-.med-test-area .actions button{flex:1;min-width:115px}
-.med-test-status{font-size:11px;color:#b7d6e6;margin-top:8px;min-height:16px}
-.med-alert{color:#ff7885!important}
-.med-ai-bar{display:flex;align-items:center;gap:12px;margin-top:10px;padding:12px;border:1px solid #0874a7;border-radius:9px;background:#041b2c;color:#68dfff}
-.med-ai-bar strong{display:block;font-size:13px;letter-spacing:1px}
-.med-ai-bar small{display:block;color:#b5d9ed;font-size:11px;margin-top:4px}
-.medical-page.heart-alarm-active .med-heart-core{animation:med-heartbeat .72s ease-in-out infinite}
+.med-ack-button{display:block;width:100%;margin-top:12px;padding:14px;background:#b52d40;border:1px solid #8e1c2d;border-radius:8px;color:#fff;font-size:14px;font-weight:850;letter-spacing:.5px}
+.med-ack-button[hidden]{display:none}
+.medical-page.heart-alarm-active .med-alert-banner,.medical-page.lung-alarm-active .med-alert-banner,.medical-page.critical-alarm-active .med-alert-banner{display:block}
+.med-test-area{margin-top:12px;border:1px solid #ead8b5;background:#fffaf0;border-radius:12px;padding:14px}
+.med-test-area h3{margin:0 0 6px;color:#79551e;font-size:13px}
+.med-test-note{font-size:11px;color:#806b4b;margin:0 0 10px;line-height:1.55}
+.med-test-area .actions button{flex:1;min-width:125px}
+.med-test-area button{background:#edf2f5;color:#29485a;border:1px solid #ccd9e1}
+.med-test-area button.primary{background:#2e718e;border-color:#2e718e;color:#fff}
+.med-test-status{font-size:12px;color:#526c7b;margin-top:10px;min-height:18px}
+.med-alert{color:#b3273b!important;font-weight:800}
+.med-ai-bar{display:flex;align-items:center;gap:12px;margin-top:12px;padding:14px;border:1px solid #cfe1e9;border-radius:11px;background:#eaf4f8;color:#24566e}
+.med-ai-bar strong{display:block;font-size:13px;letter-spacing:.5px}
+.med-ai-bar small{display:block;color:#5b7180;font-size:11px;margin-top:4px;line-height:1.5}
+.med-disclaimer{margin:12px 2px 2px;color:#647986;font-size:10px;line-height:1.6}
 .medical-page.heart-alarm-active .med-heart-panel-icon{animation:med-heartbeat .72s ease-in-out infinite}
-.medical-page.heart-alarm-active .med-pulse-row{color:#ff7182;animation:med-warning-blink .72s steps(2,end) infinite}
-.medical-page.lung-alarm-active .med-lung-row{color:#ff7182;animation:med-warning-blink .9s steps(2,end) infinite}
-.medical-page.lung-alarm-active .med-lungs{transform-box:fill-box;transform-origin:center;animation:med-lungs 1.35s ease-in-out infinite alternate}
-@keyframes med-warning-blink{50%{opacity:.25;filter:brightness(1.8)}}
-@keyframes med-banner-flash{50%{filter:brightness(1.8);box-shadow:0 0 32px #ff1e3c}}
-@keyframes med-heartbeat{0%,100%{transform:scale(1)}12%{transform:scale(1.18)}24%{transform:scale(.98)}38%{transform:scale(1.12)}52%{transform:scale(1)}}
-@keyframes med-lungs{from{transform:scale(.94)}to{transform:scale(1.08)}}
-@keyframes med-spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
-@media(max-width:680px){.med-clinic-grid{grid-template-columns:1fr 1fr}.med-center-column{grid-column:1/-1;grid-row:1}.med-stage{min-height:360px}.med-human{height:350px}.med-system{grid-template-columns:1fr}.med-column{gap:7px}}
-@media(max-width:390px){.med-clinic-grid{grid-template-columns:1fr}.med-center-column{grid-column:auto;grid-row:auto}.med-stage{min-height:340px}}
-
-
-/* MEDICAL REDESIGN V2 – anatomischer Scan und klinische Monitoroberfläche */
-main:has(#medical.active){max-width:1500px;padding:clamp(9px,2vw,24px)}
-.medical-page .med-shell{background:radial-gradient(ellipse at 50% 32%,#092c45 0%,#041321 42%,#02070d 100%);border:1px solid #17658b;border-radius:16px;padding:clamp(10px,1.5vw,18px);box-shadow:0 18px 55px #0009,inset 0 0 48px #0077aa20}
-.med-topline{padding:7px 5px 14px;border-bottom:1px solid #1b5877}
-.med-brand{font-size:clamp(19px,2.3vw,29px);letter-spacing:2.5px;text-shadow:0 0 18px #30caff66}
-.med-device-pill{font-weight:700;letter-spacing:.6px;background:#250d15;border-color:#a43b4a}
-.med-clinic-grid{grid-template-columns:minmax(210px,.9fr) minmax(300px,1.2fr) minmax(210px,.9fr);gap:12px;margin-top:14px}
-.med-column{gap:12px}
-.med-panel{background:linear-gradient(145deg,#071e30ed,#020b15f5);border:1px solid #1a6388;border-radius:10px;padding:13px;box-shadow:0 8px 20px #0004,inset 0 0 22px #0b5c8020}
-.med-panel h3{font-size:12px;letter-spacing:1.35px;color:#8ae7ff}
-.med-stage{min-height:565px;border:1px solid #1674a0;border-radius:12px;background:radial-gradient(ellipse at 50% 43%,#0a4267 0%,#05243b 42%,#020b16 100%);box-shadow:inset 0 0 45px #00aaff25,0 0 26px #009de51c}
-.med-stage:before{width:74%;border-color:#48c9f866;box-shadow:0 0 50px #00baff20,inset 0 0 35px #00baff18}
-.med-stage:after{width:88%;border-color:#48c9f844}
-.med-human{width:min(100%,340px);height:550px;filter:drop-shadow(0 0 17px #2cc8ff88)}
-.med-human .med-body-shape{fill:rgba(50,179,235,.12);stroke:#8ceaff;stroke-width:1.65;stroke-linejoin:round}
-.med-human .med-body-detail{fill:none;stroke:#9beaff55;stroke-width:1.2;stroke-linecap:round}
-.med-vessels path{stroke:#54cfff;stroke-linecap:round;stroke-linejoin:round}
-.med-lungs path{fill:#39b8ef28;stroke:#8deaff;stroke-width:2.1}
-.med-heart-core{fill:#ed304e;stroke:#ff9eae;stroke-width:1.8;transform-box:fill-box;transform-origin:center}
-.med-value-row{padding:11px 0;font-size:13px}
-.med-number{font-size:clamp(22px,2.2vw,30px);text-shadow:0 0 12px #37caff45}
-.med-organ-art{height:116px;filter:drop-shadow(0 0 8px #25baff44)}
-.med-organ-art path{stroke-width:1.8}
-.med-system{margin-top:12px;gap:12px}
-.med-system-box{border:1px solid #17638a;border-radius:10px;background:linear-gradient(145deg,#061b2c,#020a13);padding:13px}
-.med-alert-banner{border-width:2px;box-shadow:0 0 28px #ff1e3c99,inset 0 0 18px #ff1e3c33}
-.med-alert-banner strong{font-size:clamp(24px,4vw,38px);text-shadow:0 0 15px #ff334f}
-.med-test-area{border-color:#8a672c;background:linear-gradient(110deg,#241706,#130d05);box-shadow:inset 0 0 18px #f6b74412}
-.med-ai-bar{background:linear-gradient(100deg,#041b2b,#06263a);border-color:#167aa7;box-shadow:0 0 20px #009ed51c}
-@media(max-width:850px){.med-clinic-grid{grid-template-columns:1fr 1fr}.med-center-column{grid-column:1/-1;grid-row:1}.med-stage{min-height:460px}.med-human{height:450px}.med-system{grid-template-columns:1fr 1fr}}
-@media(max-width:520px){.med-clinic-grid{grid-template-columns:1fr 1fr;gap:8px}.med-center-column{grid-column:1/-1;grid-row:1}.med-stage{min-height:410px}.med-human{height:400px}.med-column{gap:8px}.med-panel{padding:10px}.med-system{grid-template-columns:1fr}.med-test-area .actions button{min-width:100%;}}
-@media(max-width:360px){.med-clinic-grid{grid-template-columns:1fr}.med-center-column{grid-column:auto;grid-row:auto}.med-stage{min-height:370px}.med-human{height:360px}}
-.medical-page.heart-alarm-active .med-heart-core{animation:med-heartbeat .62s ease-in-out infinite;filter:drop-shadow(0 0 13px #ff294d)}
-.medical-page.medical-vibration-active .med-device-pill{animation:med-device-vibrate .16s linear infinite;box-shadow:0 0 16px #ff3048aa}
-@keyframes med-device-vibrate{0%,100%{transform:translateX(0)}25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}
-.medical-page.lung-alarm-active .med-lungs{animation:med-lungs .85s ease-in-out infinite alternate}
-
-
-/* WARVEX MEDICAL – 3D-Hologram-Upgrade */
-.medical-page .med-stage{perspective:1100px;isolation:isolate}
-.medical-page .med-stage:before{width:78%;height:78%;border-radius:50%;transform:translate(-50%,-50%) rotateX(68deg);box-shadow:0 0 65px #08baff33,inset 0 0 45px #08baff25}
-.medical-page .med-stage:after{width:90%;height:90%;border-radius:50%;transform:translate(-50%,-50%) rotateX(68deg);border-color:#52d9ff66}
-.medical-page .med-human-3d{width:min(100%,390px);height: min(610px,78vh);min-height:430px;overflow:visible;transform:rotateY(-7deg) rotateX(1deg);transform-style:preserve-3d;filter:drop-shadow(0 0 18px #2cc8ff99) drop-shadow(0 16px 24px #00101c);animation:med-float-3d 7s ease-in-out infinite}
-.medical-page .med-human-3d .med-body-shape{fill:url(#medSkin3d);stroke:url(#medEdge3d);stroke-width:2.2}
-.medical-page .med-human-3d .med-depth-back{transform:translateZ(-18px)}
-.medical-page .med-human-3d .med-scan-lines{animation:med-scan-pass 5s linear infinite}
-.medical-page .med-human-3d .med-lungs{transform-box:fill-box;transform-origin:center;filter:drop-shadow(0 0 9px #5adfff99)}
-.medical-page .med-human-3d .med-heart-core{transform-box:fill-box;transform-origin:center;filter:drop-shadow(0 0 12px #ff315f)}
-@keyframes med-float-3d{0%,100%{transform:rotateY(-7deg) translateY(0)}50%{transform:rotateY(7deg) translateY(-7px)}}
-@keyframes med-scan-pass{0%{opacity:.08}50%{opacity:.42}100%{opacity:.08}}
-@media(max-width:850px){.medical-page .med-human-3d{height:min(510px,70vh);min-height:390px;width:min(100%,350px)}}
-@media(max-width:520px){.medical-page .med-human-3d{height:430px;min-height:390px;width:min(100%,340px)}}
-@media(prefers-reduced-motion:reduce){.medical-page .med-human-3d,.medical-page .med-scan-lines{animation:none}}
-
-
-/* WARVEX MEDICAL – echtes GLB/WebGL-Hologramm */
-.medical-page .med-stage{position:relative}
-.medical-page .med3d-canvas{position:absolute;inset:0;width:100%;height:100%;min-height:390px;z-index:2}
-.medical-page .med3d-canvas canvas{display:block;width:100%;height:100%;touch-action:pan-y}
-.medical-page .med3d-status{position:absolute;z-index:3;left:8px;right:8px;bottom:8px;text-align:center;color:#8ddfff;font-size:10px;letter-spacing:.7px;text-shadow:0 0 8px #001522;pointer-events:none}
-@media(max-width:520px){.medical-page .med3d-canvas{min-height:390px}}
+.medical-page.heart-alarm-active .med-pulse-row{color:#b3273b}
+.medical-page.lung-alarm-active .med-lung-row{color:#b3273b}
+.medical-page.medical-vibration-active .med-device-pill{outline:2px solid #df5262}
+@keyframes med-heartbeat{0%,100%{transform:scale(1)}12%{transform:scale(1.15)}24%{transform:scale(.98)}38%{transform:scale(1.1)}52%{transform:scale(1)}}
+@media(max-width:620px){.med-clinic-grid{grid-template-columns:1fr}.med-system{grid-template-columns:1fr}.med-test-area .actions button{min-width:100%}}
+@media(prefers-reduced-motion:reduce){.medical-page *{animation:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
@@ -309,37 +186,34 @@ main:has(#medical.active){max-width:1500px;padding:clamp(9px,2vw,24px)}
 
 <section id="medical" class="page medical-page">
 <div class="med-shell">
- <div class="med-topline"><div class="med-brand">✚ WARVEX MEDICAL</div><div class="med-device-pill">● KEINE GERÄTE VERBUNDEN</div></div>
+ <div class="med-topline"><div class="med-brand">✚ WARVEX MEDICAL</div><div class="med-device-pill">● KEIN SENSOR VERBUNDEN</div></div>
+ <div class="med-intro"><strong>Gesundheitsübersicht</strong><p>Medizinische Informationen und Messwerte an einem Ort. Messwerte erscheinen erst, wenn eine kompatible und korrekt verbundene Quelle Daten bereitstellt.</p></div>
+ <div class="med-section-title">▦ VITALWERTE</div>
  <div class="med-clinic-grid">
   <div class="med-column">
-   <div class="med-panel"><h3>⌁ LIVE-VITALWERTE</h3>
-    <div class="med-value-row med-pulse-row"><span>♥ Puls</span><strong class="med-dash">— BPM</strong></div>
-    <div class="med-value-row"><span>◉ SpO₂</span><strong class="med-dash">— %</strong></div>
+   <div class="med-panel"><h3>AKTUELLE MESSWERTE</h3>
+    <div class="med-value-row med-pulse-row"><span>♥ Herzfrequenz</span><strong class="med-dash">— BPM</strong></div>
+    <div class="med-value-row"><span>◉ Sauerstoffsättigung (SpO₂)</span><strong class="med-dash">— %</strong></div>
     <div class="med-value-row med-lung-row"><span>Atmung</span><strong class="med-dash">— /min</strong></div>
     <div class="med-value-row"><span>Temperatur</span><strong class="med-dash">— °C</strong></div>
-    <p class="med-muted">Wartet auf kompatiblen Sensor. Ohne Verbindung werden keine Live-Werte angezeigt.</p>
+    <p class="med-muted">Noch keine Messdaten vorhanden. Es werden keine Werte geschätzt oder erfunden.</p>
    </div>
-   <div class="med-panel"><h3>EKG / HERZFREQUENZ</h3><svg class="med-mini-ecg" viewBox="0 0 220 36"><path d="M0 18 H220"/></svg><div class="med-muted">Kein EKG-Signal verbunden</div></div>
-  </div>
-  <div class="med-column med-center-column">
-   <div class="med-stage" aria-label="Blauer holografischer Körperscan">
-    <div id="med3dCanvas" class="med3d-canvas" role="img" aria-label="Echter 3D-Hologramm-Körperscan mit Herz und Lungen"></div>
-    <div id="med3dStatus" class="med3d-status" aria-live="polite">3D-Körperscan wird vorbereitet …</div>
-   </div>
+   <div class="med-panel"><h3>HERZFREQUENZ / EKG</h3><svg class="med-mini-ecg" viewBox="0 0 220 36" role="img" aria-label="Kein EKG-Signal"><path d="M0 18 H220"/></svg><div class="med-muted">Kein EKG-Signal verbunden. Ein EKG kann nicht durch eine normale Smartwatch-Anzeige ersetzt werden.</div></div>
   </div>
   <div class="med-column">
-   <div class="med-panel"><h3>◉ LUNGEN</h3><svg class="med-organ-art lungs" viewBox="0 0 150 105"><path d="M72 12 V43 M78 12 V43 M68 35 C48 16 29 35 25 72 C23 91 43 96 59 79 C68 69 71 52 72 42 M82 35 C102 16 121 35 125 72 C127 91 107 96 91 79 C82 69 79 52 78 42"/></svg><div class="med-muted">Keine Atemmessung · Status unbekannt</div></div>
-   <div class="med-panel"><h3><span class="med-heart-panel-icon">♥</span> HERZ</h3><svg class="med-organ-art" viewBox="0 0 150 105"><path d="M75 28 C57 8 30 20 36 48 C41 68 63 83 75 94 C87 83 109 68 114 48 C120 20 93 8 75 28 Z"/></svg><div class="med-muted">Kein Herzsensor verbunden</div></div>
-   <div class="med-panel"><h3>◉ KREISLAUF</h3><svg class="med-mini-ecg" viewBox="0 0 220 36"><path d="M0 18 H220"/></svg><div class="med-muted">Keine Kreislaufdaten vorhanden</div></div>
+   <div class="med-panel"><h3>ATMUNGSSYSTEM</h3><svg class="med-organ-art lungs" viewBox="0 0 150 105" role="img" aria-label="Schematische Darstellung der Lunge"><path d="M72 12 V43 M78 12 V43 M68 35 C48 16 29 35 25 72 C23 91 43 96 59 79 C68 69 71 52 72 42 M82 35 C102 16 121 35 125 72 C127 91 107 96 91 79 C82 69 79 52 78 42"/></svg><div class="med-muted">Schematische Illustration · keine Atemmessung verfügbar</div></div>
+   <div class="med-panel"><h3>HERZ-KREISLAUF-SYSTEM</h3><svg class="med-organ-art" viewBox="0 0 150 105" role="img" aria-label="Schematische Darstellung des Herzens"><path d="M75 28 C57 8 30 20 36 48 C41 68 63 83 75 94 C87 83 109 68 114 48 C120 20 93 8 75 28 Z"/></svg><div class="med-muted">Schematische Illustration · kein Herzsensor verbunden</div></div>
   </div>
  </div>
+ <div class="med-section-title">▦ GERÄTE & DATENQUELLEN</div>
  <div class="med-system">
-  <div class="med-system-box"><h3>⚙ SYSTEMSTATUS</h3><div class="med-missing">Smartwatch: <strong>Nicht verbunden</strong><br>Medizinische Geräte: <strong>Keine Daten</strong><br>Vitaldaten: <strong>Nicht verfügbar</strong></div></div>
-  <div class="med-system-box"><h3>VERBINDUNGEN</h3><div class="med-missing">○ Health Connect<br>○ Herzfrequenzsensor<br>○ SpO₂-Sensor<br>○ Atemmessung</div></div>
+  <div class="med-system-box"><h3>VERBINDUNGSSTATUS</h3><div class="med-missing">Smartwatch: <strong>Nicht verbunden</strong><br>Medizinische Geräte: <strong>Nicht verbunden</strong><br>Letzte Synchronisierung: <strong>Keine Daten</strong></div></div>
+  <div class="med-system-box"><h3>UNTERSTÜTZTE DATENARTEN</h3><div class="med-missing">○ Herzfrequenz<br>○ Sauerstoffsättigung (SpO₂)<br>○ Atemfrequenz<br>○ Körpertemperatur</div><p class="med-muted">Die tatsächliche Verfügbarkeit hängt vom Gerät, dessen Sensoren und einer späteren Schnittstellen-Anbindung ab.</p></div>
  </div>
  <div class="med-alert-banner" role="status"><strong id="medAlarmTitle">⚠ ALARM-SIMULATION</strong><span id="medAlarmText">Dies ist ein lokaler Funktionstest – kein medizinischer Alarm.</span><button id="medAlarmSeen" class="med-ack-button" hidden>ALARM GESEHEN</button></div>
- <div class="med-test-area"><h3>⚠ MEDICAL ALARM-TESTS</h3><p class="med-test-note">Alle Alarme sind Simulationen. Keine echten Messwerte, keine medizinische Überwachung und keine automatische Notruf-Funktion.</p><div class="actions"><button class="primary" id="medHeartTest">HERZ-ALARM TEST</button><button class="primary" id="medLungTest">LUNGENALARM TEST</button><button class="primary" id="medCriticalTest">KRITISCHEN ALARM TESTEN</button><button id="medStopTest">TEST STOPPEN</button></div><div class="med-test-status" id="medTestStatus" aria-live="polite">Testmodus bereit. Kein Alarm aktiv.</div></div>
- <div class="med-ai-bar"><span style="font-size:25px">✚</span><div><strong>WARVEX MEDICAL AI</strong><small>Medizinische Informationen verständlich erklärt · ersetzt keine ärztliche Untersuchung.</small></div></div>
+ <div class="med-test-area"><h3>ALARMSYSTEM – FUNKTIONSTEST</h3><p class="med-test-note">Die folgenden Tests prüfen nur die lokale Anzeige, den Signalton und – falls vom Browser unterstützt – die Vibration. Sie überwachen keine Gesundheit und erkennen keine medizinischen Notfälle.</p><div class="actions"><button class="primary" id="medHeartTest">HERZ-ALARM TEST</button><button class="primary" id="medLungTest">ATEM-ALARM TEST</button><button class="primary" id="medCriticalTest">KRITISCHEN TEST STARTEN</button><button id="medStopTest">TEST STOPPEN</button></div><div class="med-test-status" id="medTestStatus" aria-live="polite">Testmodus bereit. Kein Alarm aktiv.</div></div>
+ <div class="med-ai-bar"><span style="font-size:25px">✚</span><div><strong>WARVEX MEDICAL AI</strong><small>Erklärt medizinische Begriffe und allgemeine Gesundheitsthemen verständlich. Keine Diagnose und kein Ersatz für medizinisches Fachpersonal.</small></div></div>
+ <p class="med-disclaimer">Hinweis: WARVEX MEDICAL ist derzeit eine Informations- und Demonstrationsoberfläche. Es besteht keine zertifizierte medizinische Zweckbestimmung. Angezeigte Illustrationen sind schematisch; ohne verbundene Sensoren liegen keine Vitaldaten vor. Bei akuten oder schweren Beschwerden bitte medizinische Hilfe holen; in Deutschland im Notfall 112.</p>
 </div></section>
 
 <section id="chat" class="page">
@@ -1250,202 +1124,6 @@ $("plugBtn").addEventListener("click",()=>{
 
 $("systemStatus").textContent="WARVEX SYSTEMS V6 ist gestartet.";
 $("toolStatus").textContent="Web-App aktiv · KI über Cloudflare · Online-TTS mit automatischem Ersatzsystem.";
-</script>
-
-<script type="importmap">
-{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"}}
-</script>
-<script type="module">
-// Erst jsDelivr versuchen; wenn das CDN nicht erreichbar ist, automatisch esm.sh verwenden.
-const THREE = await import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js")
- .catch(() => import("https://esm.sh/three@0.170.0"));
-const { GLTFLoader } = await import("https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/loaders/GLTFLoader.js")
- .catch(() => import("https://esm.sh/three@0.170.0/examples/jsm/loaders/GLTFLoader.js"));
-
-/* WARVEX MEDICAL – leichtes, fest ausgerichtetes Hologramm mit echten GLB-Modellen. */
-(() => {
- const page=document.getElementById("medical");
- const host=document.getElementById("med3dCanvas");
- const status=document.getElementById("med3dStatus");
- if(!page||!host||!status)return;
-
- let started=false,renderer,scene,camera,modelRoot,heartGroup,lungsGroup;
- let heartBaseScale=1,lungsBaseScale=1;
- const loader=new GLTFLoader();
- const ASSETS={
-  // CC0 MakeHuman-Basiskörper, 4,3 MB, 163 Knochen, glatte menschliche Oberfläche.
-  body:"https://files.innerscene.com/library/male-base-mesh-3d-person-rigged-a-pose-380e6d89/038f3a526b2fc3efd012/male-base-mesh-base_male.glb",
-  // Herz mit großen Blutgefäßen (CC0), statt einer einfachen Herz-Silhouette.
-  heart:"https://files.innerscene.com/library/heart-with-major-blood-vessels-2b67da90/9016ef326096eff67c62/heart-with-major-blood-vessels.glb",
-  // Lunge mit Luftröhre (CC0).
-  lungs:"https://files.innerscene.com/library/lungs-with-trachea-respiratory-system-1d019b26/a2ad3d80d8f04b607c37/lungs-with-trachea-respiratory-system.glb"
- };
- const setStatus=t=>{status.textContent=t;};
- const hologram=new THREE.MeshPhysicalMaterial({
-  color:0x64dfff,
-  emissive:0x087ca8,
-  emissiveIntensity:1.05,
-  transparent:true,
-  opacity:.34,
-  roughness:.3,
-  metalness:.24,
-  side:THREE.DoubleSide,
-  depthWrite:false
- });
- function fitBody(root,targetHeight){
-  root.updateMatrixWorld(true);
-  const box=new THREE.Box3().setFromObject(root);
-  const size=box.getSize(new THREE.Vector3());
-  const scale=targetHeight/Math.max(size.y,.001);
-  root.scale.setScalar(scale);
-  root.position.set(-((box.min.x+box.max.x)/2)*scale,-box.min.y*scale,-((box.min.z+box.max.z)/2)*scale);
-  root.updateMatrixWorld(true);
- }
- function centerObject(root){
-  root.updateMatrixWorld(true);
-  const box=new THREE.Box3().setFromObject(root);
-  const center=box.getCenter(new THREE.Vector3());
-  root.position.sub(center);
-  root.updateMatrixWorld(true);
- }
- function applyHologram(root){
-  root.traverse(o=>{
-   if(!o.isMesh)return;
-   o.material=hologram;
-   o.renderOrder=1;
-   o.frustumCulled=true;
-  });
- }
- function loadGLB(url){
-  return new Promise((resolve,reject)=>{
-   let settled=false;
-   const timeout=setTimeout(()=>{
-    if(!settled){settled=true;reject(new Error("Zeitüberschreitung beim Laden des 3D-Modells"));}
-   },25000);
-   loader.load(url,g=>{
-    if(settled)return;
-    settled=true;clearTimeout(timeout);resolve(g.scene);
-   },undefined,error=>{
-    if(settled)return;
-    settled=true;clearTimeout(timeout);reject(error||new Error("3D-Datei nicht erreichbar"));
-   });
-  });
- }
- async function addOrgan(url,targetHeight,position,kind){
-  const root=await loadGLB(url);
-  centerObject(root);
-  const group=new THREE.Group();
-  group.add(root);
-  const box=new THREE.Box3().setFromObject(root);
-  const size=box.getSize(new THREE.Vector3());
-  const scale=targetHeight/Math.max(size.y,.001);
-  group.scale.setScalar(scale);
-  group.position.set(position[0],position[1],position[2]);
-  root.traverse(o=>{
-   if(!o.isMesh)return;
-   o.material=o.material.clone();
-   o.material.transparent=false;
-   o.material.roughness=.48;
-   o.material.metalness=.08;
-   o.material.emissive=new THREE.Color(kind==="heart"?0x3d0715:0x06384e);
-   o.material.emissiveIntensity=.2;
-   o.renderOrder=kind==="heart"?3:2;
-  });
-  return {group,scale};
- }
- async function buildScene(){
-  setStatus("REALISTISCHER 3D-KÖRPER WIRD GELADEN …");
-  const body=await loadGLB(ASSETS.body);
-  fitBody(body,3.25);
-  applyHologram(body);
-  modelRoot=new THREE.Group();
-  modelRoot.add(body);
-  scene.add(modelRoot);
-  setStatus("KÖRPER GELADEN · ORGANE WERDEN EINGEPASST …");
-
-  const [heartResult,lungsResult]=await Promise.allSettled([
-   addOrgan(ASSETS.heart,.29,[-.075,2.23,.16],"heart"),
-   addOrgan(ASSETS.lungs,.62,[0,2.36,.075],"lungs")
-  ]);
-  if(lungsResult.status==="fulfilled"){
-   lungsGroup=lungsResult.value.group;
-   lungsBaseScale=lungsResult.value.scale;
-   modelRoot.add(lungsGroup);
-  }else{
-   console.warn("WARVEX lung model:",lungsResult.reason);
-  }
-  if(heartResult.status==="fulfilled"){
-   heartGroup=heartResult.value.group;
-   heartBaseScale=heartResult.value.scale;
-   modelRoot.add(heartGroup);
-  }else{
-   console.warn("WARVEX heart model:",heartResult.reason);
-  }
-  if(heartResult.status==="rejected"||lungsResult.status==="rejected"){
-   setStatus("KÖRPER GELADEN · EIN ORGANMODELL KONNTE NICHT GELADEN WERDEN");
-  }else{
-   setStatus("3D-HOLOGRAMM BEREIT · FESTE ANSICHT · LIVE-DATEN NUR MIT VERBUNDENEM SENSOR");
-  }
- }
- function init(){
-  if(started)return;
-  started=true;
-  try{
-   scene=new THREE.Scene();
-   camera=new THREE.PerspectiveCamera(34,1,.1,30);
-   camera.position.set(0,1.64,6.35);
-   camera.lookAt(0,1.64,0);
-   renderer=new THREE.WebGLRenderer({alpha:true,antialias:false,powerPreference:"low-power"});
-   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.25));
-   renderer.outputColorSpace=THREE.SRGBColorSpace;
-   renderer.setClearColor(0x000000,0);
-   host.replaceChildren(renderer.domElement);
-   renderer.domElement.style.touchAction="pan-y";
-   scene.add(new THREE.HemisphereLight(0x9beaff,0x061629,2.0));
-   const key=new THREE.DirectionalLight(0x8beaff,2.2);
-   key.position.set(2,3,4);scene.add(key);
-   const rim=new THREE.PointLight(0x00aaff,12,8);
-   rim.position.set(-2,2,2);scene.add(rim);
-   const red=new THREE.PointLight(0xff315b,3.5,4);
-   red.position.set(0,2.3,1);scene.add(red);
-
-   // Absichtlich keine Pointer-, Touch-, Drag-, Zoom- oder Rotationssteuerung:
-   // Der Körperscan bleibt fest ausgerichtet und kann nicht versehentlich verschoben werden.
-   const resize=()=>{
-    const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);
-    renderer.setSize(w,h,false);
-    camera.aspect=w/h;
-    camera.updateProjectionMatrix();
-   };
-   resize();
-   if("ResizeObserver" in window)new ResizeObserver(resize).observe(host);
-   else window.addEventListener("resize",resize);
-
-   const clock=new THREE.Clock();
-   const animate=()=>{
-    requestAnimationFrame(animate);
-    if(document.hidden)return;
-    const t=clock.getElapsedTime();
-    if(lungsGroup)lungsGroup.scale.set(lungsBaseScale,lungsBaseScale*(1+Math.sin(t*1.5)*.012),lungsBaseScale);
-    if(heartGroup)heartGroup.scale.setScalar(heartBaseScale*(1+Math.max(0,Math.sin(t*4.2))*.025));
-    renderer.render(scene,camera);
-   };
-   animate();
-   buildScene().catch(error=>{
-    console.error("WARVEX medical GLB:",error);
-    setStatus("3D-MODELL NICHT GELADEN · CDN oder Modellserver nicht erreichbar. Bitte Internetverbindung prüfen.");
-   });
-  }catch(error){
-   console.error("WARVEX 3D medical:",error);
-   setStatus("3D-ANSICHT NICHT GESTARTET · WebGL oder Browser prüfen");
-  }
- }
- const observer=new MutationObserver(()=>{
-  if(page.classList.contains("active"))init();
- });
- observer.observe(page,{attributes:true,attributeFilter:["class"]});
- if(page.classList.contains("active"))init();
-})();
 </script>
 
 </body>
