@@ -221,6 +221,8 @@ main:has(#medical.active){max-width:1500px;padding:clamp(9px,2vw,24px)}
 @media(max-width:520px){.med-clinic-grid{grid-template-columns:1fr 1fr;gap:8px}.med-center-column{grid-column:1/-1;grid-row:1}.med-stage{min-height:410px}.med-human{height:400px}.med-column{gap:8px}.med-panel{padding:10px}.med-system{grid-template-columns:1fr}.med-test-area .actions button{min-width:100%;}}
 @media(max-width:360px){.med-clinic-grid{grid-template-columns:1fr}.med-center-column{grid-column:auto;grid-row:auto}.med-stage{min-height:370px}.med-human{height:360px}}
 .medical-page.heart-alarm-active .med-heart-core{animation:med-heartbeat .62s ease-in-out infinite;filter:drop-shadow(0 0 13px #ff294d)}
+.medical-page.medical-vibration-active .med-device-pill{animation:med-device-vibrate .16s linear infinite;box-shadow:0 0 16px #ff3048aa}
+@keyframes med-device-vibrate{0%,100%{transform:translateX(0)}25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}
 .medical-page.lung-alarm-active .med-lungs{animation:med-lungs .85s ease-in-out infinite alternate}
 
 
@@ -1095,6 +1097,7 @@ $("testVoiceBtn").addEventListener("click",()=>say("Hallo. Ich bin VEXARA, die O
 /* WARVEX MEDICAL ALARM-TEST – lokale Simulation, keine Sensorüberwachung */
 let medicalAlarmTimer=null, medicalEscalationTimer=null, medicalAudioContext=null;
 let medicalAlarmMode=null, medicalAlarmLevel=1, medicalElapsedSeconds=0;
+let medicalVibrationSupported=typeof navigator!=="undefined"&&typeof navigator.vibrate==="function";
 let medicalAwaitingConfirmation=false;
 
 function stopMedicalTest(silent=false){
@@ -1104,6 +1107,8 @@ function stopMedicalTest(silent=false){
  $("medical").classList.remove("heart-alarm-active","lung-alarm-active","critical-alarm-active");
  const seen=$("medAlarmSeen");if(seen)seen.hidden=true;
  if(medicalAudioContext){try{medicalAudioContext.close();}catch(error){}medicalAudioContext=null;}
+ if(medicalVibrationSupported){try{navigator.vibrate(0);}catch(error){}}
+ $("medical").classList.remove("medical-vibration-active");
  if(!silent&&$("medTestStatus")){
   $("medTestStatus").textContent="Test gestoppt. Keine echte Messung aktiv.";
   $("medTestStatus").classList.remove("med-alert");
@@ -1131,8 +1136,17 @@ function medicalBeep(){
   if(!medicalAudioContext||medicalAudioContext.state==="closed")medicalAudioContext=new AC();
   if(medicalAudioContext.state==="suspended")medicalAudioContext.resume();
   /* Zehn Stufen: schrittweise deutlicher, mit begrenztem Audio-Pegel. */
-  const volume=Math.min(.16,.035+(medicalAlarmLevel-1)*.0139);
-  const pitchShift=(medicalAlarmLevel-1)*16;
+  /* Etwas kräftigerer, aber begrenzter Pegel; die Geräte-Lautstärke bleibt maßgeblich. */
+  const volume=Math.min(.22,.045+(medicalAlarmLevel-1)*.0194);
+  const pitchShift=(medicalAlarmLevel-1)*18;
+  if(medicalVibrationSupported){
+   const pulses=Math.min(4,1+Math.floor((medicalAlarmLevel-1)/3));
+   const pulseOn=Math.min(220,110+medicalAlarmLevel*11);
+   const pulseOff=Math.max(55,105-medicalAlarmLevel*5);
+   const pattern=[];
+   for(let i=0;i<pulses;i++){pattern.push(pulseOn);if(i<pulses-1)pattern.push(pulseOff);}
+   try{navigator.vibrate(pattern);}catch(error){}
+  }
   if(medicalAlarmMode==="heart"){
     medicalTone(920+pitchShift,0,.16,volume);
     medicalTone(1180+pitchShift,.23,.16,volume);
@@ -1156,7 +1170,7 @@ function updateMedicalEscalation(){
  if(nextLevel>medicalAlarmLevel){
   medicalAlarmLevel=nextLevel;
   const status=$("medTestStatus");
-  if(status)status.textContent="SIMULATION · ESKALATIONSSTUFE "+medicalAlarmLevel+"/10 · seit "+medicalElapsedSeconds+" Sekunden unbeantwortet. Signal wird schrittweise deutlicher.";
+  if(status)status.textContent="SIMULATION · ESKALATIONSSTUFE "+medicalAlarmLevel+"/10 · seit "+medicalElapsedSeconds+" Sekunden unbeantwortet. Ton und Handy-Vibration werden intensiver.";
   const title=$("medAlarmTitle");
   if(title)title.textContent="⚠ "+(medicalAlarmMode==="heart"?"HERZ":medicalAlarmMode==="lungs"?"LUNGEN":"KRITISCHER")+" ALARM – STUFE "+medicalAlarmLevel+"/10 · TEST";
   if(medicalAlarmTimer){clearInterval(medicalAlarmTimer);medicalAlarmTimer=null;}
@@ -1170,12 +1184,12 @@ function startMedicalTest(mode){
  stopMedicalTest(true);
  medicalAlarmMode=mode;medicalAlarmLevel=1;medicalElapsedSeconds=0;
  const page=$("medical"),status=$("medTestStatus"),seen=$("medAlarmSeen");
- page.classList.add(mode==="heart"?"heart-alarm-active":mode==="lungs"?"lung-alarm-active":"critical-alarm-active");
+ page.classList.add(mode==="heart"?"heart-alarm-active":mode==="lungs"?"lung-alarm-active":"critical-alarm-active","medical-vibration-active");
  const label=mode==="heart"?"HERZ-ALARM":mode==="lungs"?"LUNGENALARM":"KRITISCHER ALARM";
  $("medAlarmTitle").textContent="⚠ "+label+" – TEST";
  $("medAlarmText").textContent="SIMULATION: Dieser Alarm wurde manuell gestartet. Es liegen keine echten Messdaten vor.";
  if(seen)seen.hidden=false;
- status.textContent="SIMULATION · "+label+" läuft. Ohne Bestätigung steigt die Alarmstufe alle 10 Sekunden bis Stufe 10.";
+ status.textContent="SIMULATION · "+label+" läuft. Ton und Handy-Vibration steigern sich alle 10 Sekunden bis Stufe 10. "+(medicalVibrationSupported?"Handy-Vibration verfügbar.":"Dieser Browser unterstützt keine Handy-Vibration.");
  status.classList.add("med-alert");
  medicalBeep();
  medicalAlarmTimer=setInterval(medicalBeep,1400);
