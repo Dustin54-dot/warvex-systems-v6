@@ -127,6 +127,64 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
 @keyframes med-spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
 @media(max-width:650px){.med-layout{grid-template-columns:1fr}.med-stage{min-height:410px}.med-human{height:400px}.med-system{grid-template-columns:1fr}}
 
+
+/* WARVEX MEDICAL – Klinikmonitor-Layout */
+.medical-page .med-shell{background:#020914;border:1px solid #07517b;border-radius:16px;padding:12px;box-shadow:inset 0 0 35px #00304c}
+.med-topline{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 4px 12px;border-bottom:1px solid #125078}
+.med-brand{font-size:clamp(18px,4vw,27px);font-weight:900;letter-spacing:2px;color:#61d9ff}
+.med-device-pill{font-size:11px;color:#ffc0c6;border:1px solid #77303b;background:#260c16;padding:7px 10px;border-radius:30px}
+.med-clinic-grid{display:grid;grid-template-columns:minmax(155px,.9fr) minmax(190px,1.15fr) minmax(155px,.9fr);gap:9px;margin-top:10px}
+.med-column{display:flex;flex-direction:column;gap:9px;min-width:0}
+.med-panel{background:linear-gradient(145deg,#061b2d,#030b15);border:1px solid #12618b;border-radius:9px;padding:10px;min-width:0;box-shadow:inset 0 0 16px #06213b}
+.med-panel h3{margin:0 0 8px;color:#65dfff;font-size:12px;letter-spacing:1px}
+.med-stage{position:relative;min-height:440px;display:flex;align-items:center;justify-content:center;border:1px solid #075b8d;border-radius:10px;background:radial-gradient(ellipse,#07385c 0%,#031629 55%,#020914 100%);overflow:hidden}
+.med-stage:before,.med-stage:after{content:"";position:absolute;left:50%;top:50%;width:88%;aspect-ratio:1;border:1px solid #1b9cdb55;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 28px #008edc33,inset 0 0 25px #008edc22}
+.med-stage:after{width:105%;border-style:dashed;animation:med-spin 28s linear infinite}
+.med-human{position:relative;z-index:1;width:min(100%,300px);height:420px;filter:drop-shadow(0 0 12px #18baff99)}
+.med-human .med-body-shape{fill:rgba(42,174,238,.12);stroke:#71d9ff;stroke-width:2.4;stroke-linejoin:round}
+.med-human .med-body-detail{fill:none;stroke:#6fdcff70;stroke-width:1.3}
+.med-heart-core{fill:#ff4058;stroke:#ff9aa5;stroke-width:1.8;transform-box:fill-box;transform-origin:center}
+.med-lungs path{fill:#37b9ef30;stroke:#7be0ff;stroke-width:2}
+.med-value-row{display:flex;justify-content:space-between;gap:5px;padding:9px 0;border-bottom:1px solid #5cacd022;font-size:12px}
+.med-value-row:last-child{border-bottom:0}
+.med-dash{color:#7fe4ff;font-weight:800;letter-spacing:1px;white-space:nowrap}
+.med-muted{color:#8eafc3;font-size:10px;line-height:1.5}
+.med-number{font-size:clamp(19px,3vw,25px);color:#76ddff;font-weight:800}
+.med-mini-ecg{width:100%;height:36px;display:block}
+.med-mini-ecg path{fill:none;stroke:#51d6ff;stroke-width:2;stroke-linecap:round}
+.med-organ-art{width:100%;height:105px;display:block}
+.med-organ-art path{fill:#ff526733;stroke:#ff8294;stroke-width:2}
+.med-organ-art.lungs path{fill:#38baff22;stroke:#65dcff}
+.med-system{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
+.med-system-box{background:#041526;border:1px solid #12547a;border-radius:9px;padding:10px}
+.med-system-box h3{margin:0 0 7px;color:#68dfff;font-size:12px}
+.med-missing{font-size:11px;color:#b5d8e9;line-height:1.8}
+.med-alert-banner{display:none;margin-top:10px;padding:14px 8px;text-align:center;border:2px solid #ff354e;border-radius:9px;background:linear-gradient(90deg,#350713,#8b1025,#350713);color:#fff;box-shadow:0 0 22px #ff1e3c88}
+.med-alert-banner strong{display:block;font-size:clamp(22px,5vw,34px);letter-spacing:2px;color:#ff8794}
+.med-alert-banner span{font-size:12px}
+.medical-page.heart-alarm-active .med-alert-banner,.medical-page.lung-alarm-active .med-alert-banner{display:block;animation:med-banner-flash .8s steps(2,end) infinite}
+.med-test-area{margin-top:10px;border:1px solid #735525;background:#211706;border-radius:9px;padding:11px}
+.med-test-area h3{margin:0 0 6px;color:#ffd58a;font-size:13px}
+.med-test-note{font-size:11px;color:#f3d5a4;margin:0 0 9px}
+.med-test-area .actions button{flex:1;min-width:115px}
+.med-test-status{font-size:11px;color:#b7d6e6;margin-top:8px;min-height:16px}
+.med-alert{color:#ff7885!important}
+.med-ai-bar{display:flex;align-items:center;gap:12px;margin-top:10px;padding:12px;border:1px solid #0874a7;border-radius:9px;background:#041b2c;color:#68dfff}
+.med-ai-bar strong{display:block;font-size:13px;letter-spacing:1px}
+.med-ai-bar small{display:block;color:#b5d9ed;font-size:11px;margin-top:4px}
+.medical-page.heart-alarm-active .med-heart-core{animation:med-heartbeat .72s ease-in-out infinite}
+.medical-page.heart-alarm-active .med-heart-panel-icon{animation:med-heartbeat .72s ease-in-out infinite}
+.medical-page.heart-alarm-active .med-pulse-row{color:#ff7182;animation:med-warning-blink .72s steps(2,end) infinite}
+.medical-page.lung-alarm-active .med-lung-row{color:#ff7182;animation:med-warning-blink .9s steps(2,end) infinite}
+.medical-page.lung-alarm-active .med-lungs{transform-box:fill-box;transform-origin:center;animation:med-lungs 1.35s ease-in-out infinite alternate}
+@keyframes med-warning-blink{50%{opacity:.25;filter:brightness(1.8)}}
+@keyframes med-banner-flash{50%{filter:brightness(1.8);box-shadow:0 0 32px #ff1e3c}}
+@keyframes med-heartbeat{0%,100%{transform:scale(1)}12%{transform:scale(1.18)}24%{transform:scale(.98)}38%{transform:scale(1.12)}52%{transform:scale(1)}}
+@keyframes med-lungs{from{transform:scale(.94)}to{transform:scale(1.08)}}
+@keyframes med-spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+@media(max-width:680px){.med-clinic-grid{grid-template-columns:1fr 1fr}.med-center-column{grid-column:1/-1;grid-row:1}.med-stage{min-height:360px}.med-human{height:350px}.med-system{grid-template-columns:1fr}.med-column{gap:7px}}
+@media(max-width:390px){.med-clinic-grid{grid-template-columns:1fr}.med-center-column{grid-column:auto;grid-row:auto}.med-stage{min-height:340px}}
+
 </style>
 </head>
 <body>
@@ -186,87 +244,47 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
 
 
 <section id="medical" class="page medical-page">
-  <div class="med-shell">
-    <div class="med-topline">
-      <div class="med-brand">✚ WARVEX MEDICAL</div>
-      <div class="med-device-pill">● KEINE GERÄTE VERBUNDEN</div>
-    </div>
-
-    <div class="med-layout">
-      <div class="med-stage" aria-label="Blaues medizinisches Hologramm eines menschlichen Körpers">
-        <svg class="med-human" viewBox="0 0 320 620" role="img" aria-label="Durchsichtiger menschlicher Hologramm-Körper mit Herz und Lungen">
-          <defs>
-            <linearGradient id="medBodyGradient" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stop-color="#8ceaff" stop-opacity=".28"/>
-              <stop offset=".55" stop-color="#28a9ed" stop-opacity=".08"/>
-              <stop offset="1" stop-color="#8ceaff" stop-opacity=".22"/>
-            </linearGradient>
-          </defs>
-          <circle cx="160" cy="70" r="36" fill="url(#medBodyGradient)" stroke="#80e2ff" stroke-width="2.4"/>
-          <path class="med-body-shape" fill="url(#medBodyGradient)" d="M139 110 L139 132 Q112 132 91 148 L65 245 Q58 270 72 279 Q84 285 91 265 L112 190 L102 322 Q100 348 121 365 L111 574 Q110 595 128 596 Q143 597 146 578 L160 411 L174 578 Q177 597 193 596 Q210 595 208 574 L199 365 Q220 348 218 322 L208 190 L229 265 Q236 285 248 279 Q262 270 255 245 L229 148 Q208 132 181 132 L181 110 Z"/>
-          <path class="med-body-detail" d="M160 132 L160 405 M112 190 Q160 215 208 190 M112 322 Q160 345 208 322 M121 365 Q160 380 199 365 M139 132 Q160 145 181 132"/>
-          <g class="med-lungs med-organ-glow" color="#68dfff">
-            <path d="M151 202 C133 183 117 197 116 222 L111 265 Q112 284 130 278 Q148 271 154 242 Z"/>
-            <path d="M169 202 C187 183 203 197 204 222 L209 265 Q208 284 190 278 Q172 271 166 242 Z"/>
-            <path d="M160 185 L160 250" fill="none" stroke="#9beaff" stroke-width="3"/>
-          </g>
-          <path class="med-heart-core med-organ-glow" d="M160 282 C148 268 128 274 130 292 C132 308 151 321 160 329 C169 321 188 308 190 292 C192 274 172 268 160 282 Z"/>
-          <path class="med-body-detail" d="M160 329 L160 354 M143 345 Q160 356 177 345"/>
-          <circle cx="160" cy="70" r="41" fill="none" stroke="rgba(115,220,255,.3)" stroke-dasharray="3 7"/>
-        </svg>
-      </div>
-
-      <div class="med-side">
-        <div class="med-panel">
-          <h3>VITALWERTE</h3>
-          <div class="med-value-row med-pulse-row"><span>♥ Puls</span><strong class="med-dash">— — BPM</strong></div>
-          <div class="med-value-row"><span>Blutsauerstoff</span><strong class="med-dash">— — %</strong></div>
-          <div class="med-value-row med-lung-row"><span>Atemfrequenz</span><strong class="med-dash">— — /min</strong></div>
-          <div class="med-value-row"><span>Körpertemperatur</span><strong class="med-dash">— — °C</strong></div>
-          <p class="med-muted">Keine Messdaten vorhanden. Es werden keine Werte simuliert.</p>
-        </div>
-
-        <div class="med-panel">
-          <h3><span class="med-heart-panel-icon">♥</span> HERZ / EKG</h3>
-          <svg class="med-ecg" viewBox="0 0 260 48" aria-label="EKG ohne Messsignal">
-            <path d="M0 25 L55 25 L68 25 L78 12 L88 39 L101 6 L113 25 L150 25 L165 25 L177 16 L188 33 L199 25 L260 25"/>
-          </svg>
-          <div class="med-muted">Kein EKG-Signal · Keine Daten</div>
-        </div>
-
-        <div class="med-panel">
-          <h3>ATMUNG / LUNGE</h3>
-          <svg class="med-lung-icon med-lungs" viewBox="0 0 48 48" aria-hidden="true">
-            <path d="M23 5 V24 M25 5 V24 M21 18 C14 12 9 20 7 34 C6 41 13 43 19 37 C22 33 23 26 23 21 M27 18 C34 12 39 20 41 34 C42 41 35 43 29 37 C26 33 25 26 25 21" fill="none" stroke="#7fe1ff" stroke-width="2.5" stroke-linecap="round"/>
-          </svg>
-          <div class="med-muted">Keine Atemmessung verbunden</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="med-system">
-      <div class="med-system-box">
-        <h3>SYSTEMSTATUS</h3>
-        <div class="med-missing">Smartwatch: <strong>Nicht verbunden</strong><br>Medizinische Geräte: <strong>Keine Daten</strong><br>Vitaldaten: <strong>Nicht verfügbar</strong></div>
-      </div>
-      <div class="med-system-box">
-        <h3>FEHLENDE VERBINDUNGEN</h3>
-        <div class="med-missing">○ Smartwatch / Health Connect<br>○ Herzfrequenzmessung<br>○ Blutsauerstoffmessung<br>○ Atemfrequenzmessung</div>
-      </div>
-    </div>
-
-    <div class="med-test-area">
-      <h3>⚠ TEMPORÄRER ALARM-TEST</h3>
-      <p class="med-test-note">Nur Animation und Signalton zum Ausprobieren. Keine echten Vitaldaten und kein medizinischer Alarm.</p>
-      <div class="actions">
-        <button class="primary" id="medHeartTest">HERZ-ALARM TEST</button>
-        <button class="primary" id="medLungTest">LUNGENALARM TEST</button>
-        <button id="medStopTest">TEST STOPPEN</button>
-      </div>
-      <div class="med-test-status" id="medTestStatus" aria-live="polite">Testmodus bereit. Es läuft kein Alarm.</div>
-    </div>
+<div class="med-shell">
+ <div class="med-topline"><div class="med-brand">✚ WARVEX MEDICAL</div><div class="med-device-pill">● KEINE GERÄTE VERBUNDEN</div></div>
+ <div class="med-clinic-grid">
+  <div class="med-column">
+   <div class="med-panel"><h3>⌁ VITALWERTE</h3>
+    <div class="med-value-row med-pulse-row"><span>♥ Puls</span><strong class="med-dash">— BPM</strong></div>
+    <div class="med-value-row"><span>◉ SpO₂</span><strong class="med-dash">— %</strong></div>
+    <div class="med-value-row med-lung-row"><span>Atmung</span><strong class="med-dash">— /min</strong></div>
+    <div class="med-value-row"><span>Temperatur</span><strong class="med-dash">— °C</strong></div>
+    <p class="med-muted">Keine Messdaten vorhanden.</p>
+   </div>
+   <div class="med-panel"><h3>EKG / HERZFREQUENZ</h3><svg class="med-mini-ecg" viewBox="0 0 220 36"><path d="M0 18 H220"/></svg><div class="med-muted">Kein EKG-Signal verbunden</div></div>
   </div>
-</section>
+  <div class="med-column med-center-column">
+   <div class="med-stage" aria-label="Blauer holografischer Körperscan">
+    <svg class="med-human" viewBox="0 0 320 620" role="img" aria-label="Menschlicher Hologramm-Körperscan mit Herz und Lunge">
+     <defs><linearGradient id="medBodyGradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8ceaff" stop-opacity=".3"/><stop offset=".55" stop-color="#28a9ed" stop-opacity=".08"/><stop offset="1" stop-color="#8ceaff" stop-opacity=".22"/></linearGradient></defs>
+     <circle cx="160" cy="70" r="36" fill="url(#medBodyGradient)" stroke="#80e2ff" stroke-width="2.4"/>
+     <path class="med-body-shape" fill="url(#medBodyGradient)" d="M139 110 L139 132 Q112 132 91 148 L65 245 Q58 270 72 279 Q84 285 91 265 L112 190 L102 322 Q100 348 121 365 L111 574 Q110 595 128 596 Q143 597 146 578 L160 411 L174 578 Q177 597 193 596 Q210 595 208 574 L199 365 Q220 348 218 322 L208 190 L229 265 Q236 285 248 279 Q262 270 255 245 L229 148 Q208 132 181 132 L181 110 Z"/>
+     <path class="med-body-detail" d="M160 132 L160 405 M112 190 Q160 215 208 190 M112 322 Q160 345 208 322 M121 365 Q160 380 199 365 M139 132 Q160 145 181 132 M125 220 L145 260 M195 220 L175 260 M130 390 L145 550 M190 390 L175 550"/>
+     <g class="med-lungs"><path d="M151 202 C133 183 117 197 116 222 L111 265 Q112 284 130 278 Q148 271 154 242 Z"/><path d="M169 202 C187 183 203 197 204 222 L209 265 Q208 284 190 278 Q172 271 166 242 Z"/></g>
+     <path d="M160 185 V250" fill="none" stroke="#9beaff" stroke-width="3"/>
+     <path class="med-heart-core" d="M160 282 C148 268 128 274 130 292 C132 308 151 321 160 329 C169 321 188 308 190 292 C192 274 172 268 160 282 Z"/>
+     <circle cx="160" cy="70" r="41" fill="none" stroke="#73dcff55" stroke-dasharray="3 7"/>
+    </svg>
+   </div>
+  </div>
+  <div class="med-column">
+   <div class="med-panel"><h3>◉ LUNGEN</h3><svg class="med-organ-art lungs" viewBox="0 0 150 105"><path d="M72 12 V43 M78 12 V43 M68 35 C48 16 29 35 25 72 C23 91 43 96 59 79 C68 69 71 52 72 42 M82 35 C102 16 121 35 125 72 C127 91 107 96 91 79 C82 69 79 52 78 42"/></svg><div class="med-muted">Keine Atemmessung · Status unbekannt</div></div>
+   <div class="med-panel"><h3><span class="med-heart-panel-icon">♥</span> HERZ</h3><svg class="med-organ-art" viewBox="0 0 150 105"><path d="M75 28 C57 8 30 20 36 48 C41 68 63 83 75 94 C87 83 109 68 114 48 C120 20 93 8 75 28 Z"/></svg><div class="med-muted">Kein Herzsensor verbunden</div></div>
+   <div class="med-panel"><h3>◉ KREISLAUF</h3><svg class="med-mini-ecg" viewBox="0 0 220 36"><path d="M0 18 H220"/></svg><div class="med-muted">Keine Kreislaufdaten vorhanden</div></div>
+  </div>
+ </div>
+ <div class="med-system">
+  <div class="med-system-box"><h3>⚙ SYSTEMSTATUS</h3><div class="med-missing">Smartwatch: <strong>Nicht verbunden</strong><br>Medizinische Geräte: <strong>Keine Daten</strong><br>Vitaldaten: <strong>Nicht verfügbar</strong></div></div>
+  <div class="med-system-box"><h3>VERBINDUNGEN</h3><div class="med-missing">○ Health Connect<br>○ Herzfrequenzsensor<br>○ SpO₂-Sensor<br>○ Atemmessung</div></div>
+ </div>
+ <div class="med-alert-banner" role="status"><strong id="medAlarmTitle">⚠ ALARM-SIMULATION</strong><span id="medAlarmText">Dies ist ein lokaler Funktionstest – kein medizinischer Alarm.</span></div>
+ <div class="med-test-area"><h3>⚠ TEMPORÄRER ALARM-TEST</h3><p class="med-test-note">Nur zum Prüfen von Animation und Ton. Keine echten Messwerte und keine medizinische Überwachung.</p><div class="actions"><button class="primary" id="medHeartTest">HERZ-ALARM TEST</button><button class="primary" id="medLungTest">LUNGENALARM TEST</button><button id="medStopTest">TEST STOPPEN</button></div><div class="med-test-status" id="medTestStatus" aria-live="polite">Testmodus bereit. Kein Alarm aktiv.</div></div>
+ <div class="med-ai-bar"><span style="font-size:25px">✚</span><div><strong>WARVEX MEDICAL AI</strong><small>Medizinische Informationen verständlich erklärt · ersetzt keine ärztliche Untersuchung.</small></div></div>
+</div></section>
 
 <section id="chat" class="page">
   <div class="card">
@@ -1004,74 +1022,38 @@ $("stopBtn").addEventListener("click",stopListening);
 $("testVoiceBtn").addEventListener("click",()=>say("Hallo. Ich bin VEXARA, die Online-Sprach-KI von WARVEX SYSTEMS."));
 
 
-/* TEMPORÄRER WARVEX MEDICAL ALARM-TEST – nur lokale Demo */
-let medicalAlarmTimer = null;
-let medicalAudioContext = null;
-let medicalAlarmMode = null;
-
+/* TEMPORÄRER WARVEX MEDICAL ALARM-TEST – reine Simulation */
+let medicalAlarmTimer=null, medicalAudioContext=null, medicalAlarmMode=null, medicalBeepStep=0;
 function stopMedicalTest(silent=false){
-  if(medicalAlarmTimer){clearInterval(medicalAlarmTimer);medicalAlarmTimer=null;}
-  medicalAlarmMode=null;
-  $("medical").classList.remove("heart-alarm-active","lung-alarm-active");
-  if(medicalAudioContext){
-    try{medicalAudioContext.close();}catch(error){}
-    medicalAudioContext=null;
-  }
-  if(!silent && $("medTestStatus")){
-    $("medTestStatus").textContent="Test gestoppt. Keine echte Messung aktiv.";
-    $("medTestStatus").classList.remove("med-alert");
-  }
+ if(medicalAlarmTimer){clearInterval(medicalAlarmTimer);medicalAlarmTimer=null;}
+ medicalAlarmMode=null;medicalBeepStep=0;
+ $("medical").classList.remove("heart-alarm-active","lung-alarm-active");
+ if(medicalAudioContext){try{medicalAudioContext.close();}catch(error){}medicalAudioContext=null;}
+ if(!silent&&$("medTestStatus")){$("medTestStatus").textContent="Test gestoppt. Keine echte Messung aktiv.";$("medTestStatus").classList.remove("med-alert");}
 }
-
-function medicalBeep(frequency){
-  try{
-    const AudioContextClass=window.AudioContext||window.webkitAudioContext;
-    if(!AudioContextClass)return;
-    if(!medicalAudioContext || medicalAudioContext.state==="closed"){
-      medicalAudioContext=new AudioContextClass();
-    }
-    if(medicalAudioContext.state==="suspended")medicalAudioContext.resume();
-    const oscillator=medicalAudioContext.createOscillator();
-    const gain=medicalAudioContext.createGain();
-    oscillator.type="sine";
-    oscillator.frequency.value=frequency;
-    gain.gain.setValueAtTime(0.0001,medicalAudioContext.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.045,medicalAudioContext.currentTime+0.015);
-    gain.gain.exponentialRampToValueAtTime(0.0001,medicalAudioContext.currentTime+0.16);
-    oscillator.connect(gain);
-    gain.connect(medicalAudioContext.destination);
-    oscillator.start();
-    oscillator.stop(medicalAudioContext.currentTime+0.17);
-  }catch(error){
-    $("medTestStatus").textContent="Animation aktiv. Signalton wird von diesem Browser nicht unterstützt.";
-  }
+function medicalBeep(){
+ try{
+  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+  if(!medicalAudioContext||medicalAudioContext.state==="closed")medicalAudioContext=new AC();
+  if(medicalAudioContext.state==="suspended")medicalAudioContext.resume();
+  const now=medicalAudioContext.currentTime, osc=medicalAudioContext.createOscillator(), gain=medicalAudioContext.createGain();
+  const freq=medicalBeepStep%2===0?980:1320;medicalBeepStep++;
+  osc.type="square";osc.frequency.setValueAtTime(freq,now);
+  gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.055,now+.012);gain.gain.setValueAtTime(.055,now+.085);gain.gain.exponentialRampToValueAtTime(.0001,now+.14);
+  osc.connect(gain);gain.connect(medicalAudioContext.destination);osc.start(now);osc.stop(now+.15);
+ }catch(error){$("medTestStatus").textContent="Animation aktiv; Audio wird vom Browser blockiert.";}
 }
-
 function startMedicalTest(mode){
-  stopMedicalTest(true);
-  medicalAlarmMode=mode;
-  const page=$("medical");
-  const status=$("medTestStatus");
-  if(mode==="heart"){
-    page.classList.add("heart-alarm-active");
-    status.textContent="SIMULATION: Herz-Alarm aktiv – Herz, EKG und Pulsanzeige blinken.";
-    medicalBeep(880);
-  }else{
-    page.classList.add("lung-alarm-active");
-    status.textContent="SIMULATION: Lungenalarm aktiv – Lungen und Atemanzeige bewegen sich.";
-    medicalBeep(660);
-  }
-  status.classList.add("med-alert");
-  medicalAlarmTimer=setInterval(()=>{
-    if(medicalAlarmMode==="heart")medicalBeep(880);
-    if(medicalAlarmMode==="lungs")medicalBeep(660);
-  },650);
+ stopMedicalTest(true);medicalAlarmMode=mode;medicalBeepStep=0;
+ const page=$("medical"),status=$("medTestStatus");
+ if(mode==="heart"){page.classList.add("heart-alarm-active");$("medAlarmTitle").textContent="⚠ HERZ-ALARM – TEST";$("medAlarmText").textContent="Simulierter Alarmton und Anzeige – keine Messung." ;status.textContent="SIMULATION: Herzalarm-Test läuft.";}
+ else{page.classList.add("lung-alarm-active");$("medAlarmTitle").textContent="⚠ LUNGENALARM – TEST";$("medAlarmText").textContent="Simulierter Alarmton und Anzeige – keine Messung.";status.textContent="SIMULATION: Lungentest läuft.";}
+ status.classList.add("med-alert");medicalBeep();
+ medicalAlarmTimer=setInterval(medicalBeep,520);
 }
-
 $("medHeartTest").addEventListener("click",()=>startMedicalTest("heart"));
 $("medLungTest").addEventListener("click",()=>startMedicalTest("lungs"));
 $("medStopTest").addEventListener("click",()=>stopMedicalTest());
-
 
 /* SYSTEM-TOOLS */
 $("timeBtn").addEventListener("click",()=>$("toolResult").textContent="Uhrzeit: "+new Date().toLocaleTimeString("de-DE"));
