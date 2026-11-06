@@ -128,6 +128,7 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
 .medical-page.lung-alarm-active #medLungPanel{border-color:#ff6679;box-shadow:0 0 0 2px #ff526733,0 0 22px #ff315f44;animation:med-warning-blink .9s steps(2,end) infinite}
 .medical-page.lung-alarm-active .med-lung-row{color:#ff9eaa;background:#52132366;animation:med-warning-blink .9s steps(2,end) infinite}
 .medical-page.critical-alarm-active .med-value-row{animation:med-warning-blink .8s steps(2,end) infinite}
+.medical-page.medical-warning-active .med-alert-banner{display:block}
 .medical-page.medical-vibration-active .med-device-pill{border-color:#ff788b;color:#ffd4da;box-shadow:0 0 14px #ff304855}
 @keyframes med-warning-blink{50%{opacity:.35;filter:brightness(1.6)}}
 @keyframes med-heartbeat{0%,100%{transform:scale(1)}12%{transform:scale(1.15)}24%{transform:scale(.98)}38%{transform:scale(1.1)}52%{transform:scale(1)}}
@@ -219,7 +220,7 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
   <div class="med-system-box"><h3>ERKANNTE DATENDIENSTE</h3><div class="med-missing" id="medServices">Noch keine Gerätedaten untersucht.</div><p class="med-muted">EKG-Rohdaten benötigen ein gerätespezifisches, bekanntes Protokoll. Ein normaler Pulssensor liefert keine EKG-Kurve.</p></div>
  </div>
  </div>
- <div class="med-alert-banner" role="status"><strong id="medAlarmTitle">⚠ ALARM-SIMULATION</strong><span id="medAlarmText">Dies ist ein lokaler Funktionstest – kein medizinischer Alarm.</span><button id="medAlarmSeen" class="med-ack-button" hidden>ALARM BESTÄTIGEN UND STOPPEN</button></div>
+ <div class="med-alert-banner" role="status"><strong id="medAlarmTitle">MEDIZINISCHE WARNUNGEN</strong><span id="medAlarmText">Kein Alarm aktiv. Warnungen entstehen nur aus tatsächlich empfangenen Sensorwerten.</span><button id="medAlarmSeen" class="med-ack-button" hidden>ALARM BESTÄTIGEN UND STOPPEN</button></div>
  <div class="med-ai-bar"><span style="font-size:25px">✚</span><div><strong>WARVEX MEDICAL AI</strong><small>Erklärt medizinische Begriffe und allgemeine Gesundheitsthemen verständlich. Keine Diagnose und kein Ersatz für medizinisches Fachpersonal.</small></div></div>
  <p class="med-disclaimer">Hinweis: WARVEX MEDICAL ist derzeit eine Informations- und Demonstrationsoberfläche. Es besteht keine zertifizierte medizinische Zweckbestimmung. Angezeigte Illustrationen sind schematisch; ohne verbundene Sensoren liegen keine Vitaldaten vor. Bei akuten oder schweren Beschwerden bitte medizinische Hilfe holen; in Deutschland im Notfall 112.</p>
 </div></section>
@@ -805,21 +806,6 @@ async function sendChat(){
   if(!prompt)return;
 
   addMessage("Du",prompt);
-    const normalized=prompt.toLocaleLowerCase("de-DE").replace(/[.!?]/g,"").trim();
-    if(normalized==="ich habe den alarm gesehen"){
-      medicalAwaitingConfirmation=false;
-      stopMedicalTest(true);
-      $("medTestStatus").textContent="Alarm im Test bestätigt. Die Simulation wurde beendet.";
-      $("medTestStatus").classList.remove("med-alert");
-      addMessage("WARVEX MEDICAL","Bestätigung erhalten: Du hast den Alarm gesehen. Der Testalarm wurde beendet. Das bestätigt nur deine Wahrnehmung und sagt nichts über deinen Gesundheitszustand aus.");
-      $("chatStatus").textContent="WARVEX MEDICAL: Testalarm bestätigt.";
-    }else{
-      addMessage("WARVEX MEDICAL","Zur Bestätigung schreibe bitte genau: Ich habe den Alarm gesehen.");
-      $("chatStatus").textContent="Bestätigung noch offen.";
-    }
-    return;
-  }
-  addMessage("Du",prompt);
   $("sendBtn").disabled=true;
   $("chatStatus").textContent="WARVEX fragt die KI …";
 
@@ -983,8 +969,8 @@ let medicalHeartCharacteristic=null, medicalTempCharacteristic=null;
 function setMedicalConnection(message){const el=$("medConnectionStatus");if(el)el.innerHTML="Status: <strong>"+message+"</strong>";}
 function medicalAudioReady(){try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return false;if(!medicalAudioContext||medicalAudioContext.state==="closed")medicalAudioContext=new AC();if(medicalAudioContext.state==="suspended")medicalAudioContext.resume();return true;}catch(error){return false;}}
 function medicalTone(freq,duration,volume){if(!medicalAudioReady())return;const now=medicalAudioContext.currentTime,osc=medicalAudioContext.createOscillator(),gain=medicalAudioContext.createGain();osc.type="sine";osc.frequency.setValueAtTime(freq,now);gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(Math.max(.001,volume),now+.025);gain.gain.setValueAtTime(Math.max(.001,volume),now+duration*.55);gain.gain.exponentialRampToValueAtTime(.0001,now+duration);osc.connect(gain);gain.connect(medicalAudioContext.destination);osc.start(now);osc.stop(now+duration+.02);}
-function stopMedicalAlert(){if(medicalAlarmTimer){clearInterval(medicalAlarmTimer);medicalAlarmTimer=null;}medicalAlarmMode=null;$("medical").classList.remove("critical-alarm-active","medical-vibration-active");$("medAlarmSeen").hidden=true;if(medicalVibrationSupported){try{navigator.vibrate(0);}catch(error){}}$("medAlarmTitle").textContent="✓ ALARM BESTÄTIGT";$("medAlarmText").textContent="Der Signalton wurde manuell bestätigt und gestoppt.";}
-function startMedicalAlert(level,message){if(medicalAlarmMode===level)return;if(medicalAlarmTimer)clearInterval(medicalAlarmTimer);medicalAlarmMode=level;const critical=level==="critical";$("medical").classList.toggle("critical-alarm-active",critical);$("medical").classList.add("medical-vibration-active");$("medAlarmTitle").textContent=critical?"⚠ KRITISCHER TEMPERATURALARM":"⚠ TEMPERATURWARNUNG";$("medAlarmText").textContent=message;$("medAlarmSeen").hidden=false;const beep=()=>{medicalTone(critical?1120:680,critical?.22:.12,critical?.11:.035);if(critical&&medicalVibrationSupported){try{navigator.vibrate([160,90,160]);}catch(error){}}};beep();medicalAlarmTimer=setInterval(beep,critical?1150:3000);}
+function stopMedicalAlert(){if(medicalAlarmTimer){clearInterval(medicalAlarmTimer);medicalAlarmTimer=null;}medicalAlarmMode=null;$("medical").classList.remove("critical-alarm-active","medical-warning-active","medical-vibration-active");$("medAlarmSeen").hidden=true;if(medicalVibrationSupported){try{navigator.vibrate(0);}catch(error){}}$("medAlarmTitle").textContent="✓ ALARM BESTÄTIGT";$("medAlarmText").textContent="Der Signalton wurde manuell bestätigt und gestoppt.";}
+function startMedicalAlert(level,message){if(medicalAlarmMode===level)return;if(medicalAlarmTimer)clearInterval(medicalAlarmTimer);medicalAlarmMode=level;const critical=level==="critical";$("medical").classList.toggle("critical-alarm-active",critical);$("medical").classList.add("medical-warning-active","medical-vibration-active");$("medAlarmTitle").textContent=critical?"⚠ KRITISCHER TEMPERATURALARM":"⚠ TEMPERATURWARNUNG";$("medAlarmText").textContent=message;$("medAlarmSeen").hidden=false;const beep=()=>{medicalTone(critical?1120:680,critical?.22:.12,critical?.11:.035);if(critical&&medicalVibrationSupported){try{navigator.vibrate([160,90,160]);}catch(error){}}};beep();medicalAlarmTimer=setInterval(beep,critical?1150:3000);}
 function handleMedicalTemperature(celsius){if(!Number.isFinite(celsius)||celsius<25||celsius>45)return;$("medTemperatureValue").textContent=celsius.toFixed(1).replace(".",",")+" °C";if(celsius>=40){startMedicalAlert("critical","Gemessene Temperatur: "+celsius.toFixed(1).replace(".",",")+" °C. Das ist ein ernstes Warnsignal. Bitte sofort eine erwachsene Vertrauensperson informieren und dringend medizinische Hilfe holen. Bei Notfall 112.");}else if(celsius>=38){startMedicalAlert("mild","Erhöhte Temperatur gemessen: "+celsius.toFixed(1).replace(".",",")+" °C. Bitte informiere eine erwachsene Vertrauensperson und prüfe den Wert mit einem geeigneten Thermometer.");}else if(medicalAlarmMode==="mild"){stopMedicalAlert();}}
 function parseIEEE11073Float(view,offset){const raw=view.getUint32(offset,true);let mantissa=raw&0x00ffffff;if(mantissa&0x00800000)mantissa-=0x01000000;let exponent=(raw>>>24)&0xff;if(exponent&0x80)exponent-=0x100;return mantissa*Math.pow(10,exponent);}
 function onHeartRateMeasurement(event){const v=event.target.value,flags=v.getUint8(0),wide=!!(flags&1),bpm=wide?v.getUint16(1,true):v.getUint8(1);if(!Number.isFinite(bpm)||bpm<20||bpm>250)return;$("medHeartRateValue").textContent=bpm+" BPM";}
