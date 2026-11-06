@@ -95,7 +95,8 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
 .med-organ-art path{fill:#ff52672b;stroke:#ff91a0;stroke-width:2}
 .med-organ-art.lungs path{fill:#38baff24;stroke:#83e4ff}
 .med-mini-ecg{width:100%;height:54px;display:block;overflow:hidden;background:linear-gradient(90deg,#031522aa,#082b43aa);border:1px solid #145477;border-radius:7px}
-.med-ecg-scroll{animation:med-ecg-scroll 3.4s linear infinite}
+.med-ecg-scroll{transform:translateX(0)}
+.medical-page.med-ecg-active .med-ecg-scroll{animation:med-ecg-scroll-once .85s linear 1 forwards}
 .med-ecg-trace{fill:none;stroke:#56d9ff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 3px #20baff88)}
 .med-ecg-grid{stroke:#2a7897;stroke-width:.5;opacity:.38}
 .med-system{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
@@ -131,7 +132,7 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
 .medical-page.medical-vibration-active .med-device-pill{border-color:#ff788b;color:#ffd4da;box-shadow:0 0 14px #ff304855}
 @keyframes med-warning-blink{50%{opacity:.35;filter:brightness(1.6)}}
 @keyframes med-heartbeat{0%,100%{transform:scale(1)}12%{transform:scale(1.15)}24%{transform:scale(.98)}38%{transform:scale(1.1)}52%{transform:scale(1)}}
-@keyframes med-ecg-scroll{to{transform:translateX(-220px)}}
+@keyframes med-ecg-scroll-once{to{transform:translateX(-220px)}}
 @keyframes med-ecg-bright{to{opacity:.55}}
 @media(max-width:620px){.med-clinic-grid{grid-template-columns:1fr}.med-system{grid-template-columns:1fr}.med-test-area .actions button{min-width:100%}}
 @media(prefers-reduced-motion:reduce){.medical-page *{animation:none!important;scroll-behavior:auto!important}}
@@ -204,10 +205,10 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
     <div class="med-value-row med-pulse-row"><span>♥ Herzfrequenz</span><strong class="med-dash">— BPM</strong></div>
     <div class="med-value-row"><span>◉ Sauerstoffsättigung (SpO₂)</span><strong class="med-dash">— %</strong></div>
     <div class="med-value-row med-lung-row"><span>Atmung</span><strong class="med-dash">— /min</strong></div>
-    <div class="med-value-row"><span>Temperatur</span><strong class="med-dash">— °C</strong></div>
+    <div class="med-value-row med-temp-row"><span>Temperatur</span><strong class="med-dash" id="medTemperatureValue">— °C</strong></div>
     <p class="med-muted">Noch keine Messdaten vorhanden. Es werden keine Werte geschätzt oder erfunden.</p>
    </div>
-   <div class="med-panel"><h3>EKG-ANZEIGE · VISUELLE SIMULATION</h3><svg class="med-mini-ecg" viewBox="0 0 220 54" role="img" aria-label="Animierte schematische EKG-Linie, kein echtes EKG-Signal"><path class="med-ecg-grid" d="M0 13.5H220 M0 27H220 M0 40.5H220 M55 0V54 M110 0V54 M165 0V54"/><g class="med-ecg-scroll"><path class="med-ecg-trace" d="M0 27 H12 L17 27 L22 24 L27 30 L32 7 L38 46 L44 18 L50 27 H68 L73 27 L78 24 L83 30 L88 7 L94 46 L100 18 L106 27 H124 L129 27 L134 24 L139 30 L144 7 L150 46 L156 18 L162 27 H180 L185 27 L190 24 L195 30 L200 7 L206 46 L212 18 L220 27 M220 27 H232 L237 27 L242 24 L247 30 L252 7 L258 46 L264 18 L270 27 H288 L293 27 L298 24 L303 30 L308 7 L314 46 L320 18 L326 27 H344 L349 27 L354 24 L359 30 L364 7 L370 46 L376 18 L382 27 H400 L405 27 L410 24 L415 30 L420 7 L426 46 L432 18 L440 27"/></g></svg><div class="med-muted">Nur eine animierte Monitor-Grafik. Kein echtes EKG und keine Herzmessung verbunden.</div></div>
+   <div class="med-panel"><h3>EKG-ANZEIGE · SIGNAL NUR BEI PULS</h3><svg class="med-mini-ecg" viewBox="0 0 220 54" role="img" aria-label="Schematische EKG-Linie; bewegt sich nur bei einem bestätigten Herzschlag oder im Test"><path class="med-ecg-grid" d="M0 13.5H220 M0 27H220 M0 40.5H220 M55 0V54 M110 0V54 M165 0V54"/><g class="med-ecg-scroll"><path class="med-ecg-trace" d="M0 27 H12 L17 27 L22 24 L27 30 L32 7 L38 46 L44 18 L50 27 H68 L73 27 L78 24 L83 30 L88 7 L94 46 L100 18 L106 27 H124 L129 27 L134 24 L139 30 L144 7 L150 46 L156 18 L162 27 H180 L185 27 L190 24 L195 30 L200 7 L206 46 L212 18 L220 27 M220 27 H232 L237 27 L242 24 L247 30 L252 7 L258 46 L264 18 L270 27 H288 L293 27 L298 24 L303 30 L308 7 L314 46 L320 18 L326 27 H344 L349 27 L354 24 L359 30 L364 7 L370 46 L376 18 L382 27 H400 L405 27 L410 24 L415 30 L420 7 L426 46 L432 18 L440 27"/></g></svg><div class="med-muted" id="medEcgStatus">Keine bestätigten EKG-Signale · Anzeige ruht. Noch kein EKG-Gerät verbunden.</div><div class="actions"><button class="primary" id="medEcgBeatTest">PULS-TEST</button></div></div>
   </div>
   <div class="med-column">
    <div class="med-panel" id="medLungPanel"><h3>ATMUNGSSYSTEM</h3><svg class="med-organ-art lungs" viewBox="0 0 150 105" role="img" aria-label="Schematische Darstellung der Lunge"><path d="M72 12 V43 M78 12 V43 M68 35 C48 16 29 35 25 72 C23 91 43 96 59 79 C68 69 71 52 72 42 M82 35 C102 16 121 35 125 72 C127 91 107 96 91 79 C82 69 79 52 78 42"/></svg><div class="med-muted">Schematische Illustration · keine Atemmessung verfügbar</div></div>
@@ -220,7 +221,7 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
   <div class="med-system-box"><h3>UNTERSTÜTZTE DATENARTEN</h3><div class="med-missing">○ Herzfrequenz<br>○ Sauerstoffsättigung (SpO₂)<br>○ Atemfrequenz<br>○ Körpertemperatur</div><p class="med-muted">Die tatsächliche Verfügbarkeit hängt vom Gerät, dessen Sensoren und einer späteren Schnittstellen-Anbindung ab.</p></div>
  </div>
  <div class="med-alert-banner" role="status"><strong id="medAlarmTitle">⚠ ALARM-SIMULATION</strong><span id="medAlarmText">Dies ist ein lokaler Funktionstest – kein medizinischer Alarm.</span><button id="medAlarmSeen" class="med-ack-button" hidden>ALARM GESEHEN</button></div>
- <div class="med-test-area"><h3>ALARMSYSTEM – FUNKTIONSTEST</h3><p class="med-test-note">Die folgenden Tests prüfen nur die lokale Anzeige, den Signalton und – falls vom Browser unterstützt – die Vibration. Sie überwachen keine Gesundheit und erkennen keine medizinischen Notfälle.</p><div class="actions"><button class="primary" id="medHeartTest">HERZ-ALARM TEST</button><button class="primary" id="medLungTest">ATEM-ALARM TEST</button><button class="primary" id="medCriticalTest">KRITISCHEN TEST STARTEN</button><button id="medStopTest">TEST STOPPEN</button></div><div class="med-test-status" id="medTestStatus" aria-live="polite">Testmodus bereit. Kein Alarm aktiv.</div></div>
+ <div class="med-test-area"><h3>ALARMSYSTEM – FUNKTIONSTEST</h3><p class="med-test-note">Die folgenden Tests prüfen nur die lokale Anzeige, den Signalton und – falls vom Browser unterstützt – die Vibration. Sie überwachen keine Gesundheit und erkennen keine medizinischen Notfälle.</p><div class="actions"><button class="primary" id="medHeartTest">HERZ-ALARM TEST</button><button class="primary" id="medLungTest">ATEM-ALARM TEST</button><button class="primary" id="medCriticalTest">KRITISCHEN TEST STARTEN</button></div><div class="med-section-title">TEMPERATUR- & EKG-WARNTESTS</div><p class="med-test-note">Diese Zusatztests geben nur Pieptöne aus – ohne Vibration und ohne Bewegungsalarm.</p><div class="actions"><button id="medTempMildTest">FIEBER-PIEPTON TEST</button><button id="medTempHighTest">40 °C TEST</button><button id="medEcgHighTest">EKG-WARNUNG TEST</button><button id="medStopTest">ALLE TESTS STOPPEN</button></div><div class="med-test-status" id="medTestStatus" aria-live="polite">Testmodus bereit. Kein Alarm aktiv.</div></div>
  <div class="med-ai-bar"><span style="font-size:25px">✚</span><div><strong>WARVEX MEDICAL AI</strong><small>Erklärt medizinische Begriffe und allgemeine Gesundheitsthemen verständlich. Keine Diagnose und kein Ersatz für medizinisches Fachpersonal.</small></div></div>
  <p class="med-disclaimer">Hinweis: WARVEX MEDICAL ist derzeit eine Informations- und Demonstrationsoberfläche. Es besteht keine zertifizierte medizinische Zweckbestimmung. Angezeigte Illustrationen sind schematisch; ohne verbundene Sensoren liegen keine Vitaldaten vor. Bei akuten oder schweren Beschwerden bitte medizinische Hilfe holen; in Deutschland im Notfall 112.</p>
 </div></section>
@@ -978,12 +979,15 @@ $("testVoiceBtn").addEventListener("click",()=>say("Hallo. Ich bin VEXARA, die O
 
 
 /* WARVEX MEDICAL ALARM-TEST – lokale Simulation, keine Sensorüberwachung */
+let medicalSignalTimer=null, medicalSignalMode=null;
 let medicalAlarmTimer=null, medicalEscalationTimer=null, medicalAudioContext=null;
 let medicalAlarmMode=null, medicalAlarmLevel=1, medicalElapsedSeconds=0;
 let medicalVibrationSupported=typeof navigator!=="undefined"&&typeof navigator.vibrate==="function";
 let medicalAwaitingConfirmation=false;
 
 function stopMedicalTest(silent=false){
+ if(medicalSignalTimer){clearInterval(medicalSignalTimer);medicalSignalTimer=null;}
+ medicalSignalMode=null;
  if(medicalAlarmTimer){clearInterval(medicalAlarmTimer);medicalAlarmTimer=null;}
  if(medicalEscalationTimer){clearInterval(medicalEscalationTimer);medicalEscalationTimer=null;}
  medicalAlarmMode=null;medicalAlarmLevel=1;medicalElapsedSeconds=0;
@@ -1010,6 +1014,37 @@ function medicalTone(freq, startAt, duration, volume){
  gain.gain.exponentialRampToValueAtTime(.0001,now+duration);
  osc.connect(gain);gain.connect(medicalAudioContext.destination);
  osc.start(now);osc.stop(now+duration+.015);
+}
+
+/* EKG bewegt sich nur bei einem Pulsereignis. Aktuell ist kein Sensor angebunden. */
+let ecgBeatResetTimer=null;
+function triggerEcgBeat(){
+ const page=$("medical"),status=$("medEcgStatus");
+ page.classList.remove("med-ecg-active");void page.offsetWidth;page.classList.add("med-ecg-active");
+ if(ecgBeatResetTimer)clearTimeout(ecgBeatResetTimer);
+ ecgBeatResetTimer=setTimeout(()=>page.classList.remove("med-ecg-active"),900);
+ if(status)status.textContent="EKG-Pulsereignis · Signalvisualisierung aktiv.";
+}
+function acceptVerifiedEcgBeat(event){
+ if(!event||event.verified!==true||event.source!=="approved-device")return false;
+ triggerEcgBeat();return true;
+}
+/* Temperatur-/EKG-Warnungen: nur Piepton, niemals Vibration oder Bewegungsalarm. */
+function playMedicalWarningBeep(severity){
+ try{
+  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+  if(!medicalAudioContext||medicalAudioContext.state==="closed")medicalAudioContext=new AC();
+  if(medicalAudioContext.state==="suspended")medicalAudioContext.resume();
+  const high=severity==="high";
+  medicalTone(high?1120:760,0,high?.18:.10,high?.12:.065);
+ }catch(error){$("medTestStatus").textContent="Piepton vom Browser blockiert; Testanzeige bleibt aktiv.";}
+}
+function startMedicalBeepTest(mode,severity,label){
+ stopMedicalTest(true);medicalSignalMode=mode;
+ $("medTestStatus").classList.add("med-alert");
+ $("medTestStatus").textContent="TEST · "+label+" · Nur Piepton, keine Vibration. Keine echten Messdaten.";
+ playMedicalWarningBeep(severity);
+ medicalSignalTimer=setInterval(()=>playMedicalWarningBeep(severity),severity==="high"?1350:2600);
 }
 
 function medicalBeep(){
@@ -1079,6 +1114,13 @@ function startMedicalTest(mode){
  medicalEscalationTimer=setInterval(updateMedicalEscalation,1000);
 }
 
+$("medEcgBeatTest").addEventListener("click",()=>{
+ triggerEcgBeat();
+ $("medEcgStatus").textContent="PULS-TEST · Ein Herzschlag wurde nur zu Testzwecken simuliert.";
+});
+$("medTempMildTest").addEventListener("click",()=>startMedicalBeepTest("temperature-mild","mild","Beispiel-Fieberwert 38,0 °C"));
+$("medTempHighTest").addEventListener("click",()=>startMedicalBeepTest("temperature-high","high","Beispielwert 40,0 °C · sehr hohe Temperatur"));
+$("medEcgHighTest").addEventListener("click",()=>startMedicalBeepTest("ecg-high","high","Auffälliger EKG-Beispielwert"));
 $("medHeartTest").addEventListener("click",()=>startMedicalTest("heart"));
 $("medLungTest").addEventListener("click",()=>startMedicalTest("lungs"));
 $("medCriticalTest").addEventListener("click",()=>startMedicalTest("critical"));
