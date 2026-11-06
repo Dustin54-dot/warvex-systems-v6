@@ -678,18 +678,28 @@ function addMessage(who,text){
 function warvexOriginAnswer(prompt){
   const q=String(prompt||"").toLocaleLowerCase("de-DE")
     .replace(/[ä]/g,"ae").replace(/[ö]/g,"oe").replace(/[ü]/g,"ue");
-  const asksCreator=
-    /\bwer\b.{0,70}\b(hat|hast|ist|war|steckt|entwickelt|programmiert|erfunden|gebaut|erstellt|gemacht)\b/i.test(q)
-    && /\b(dich|du|dein|deine|warvex|warfax|warface|ki|kuenstliche intelligenz|entwickler|entwicklerin|schoepfer|erfinder|programmierer)\b/i.test(q);
-  const directQuestion=
-    /\b(wer hat dich|wer bist du|wer steckt hinter dir|wer ist dein)\b/i.test(q)
-    || /\b(wer hat|wer ist|wer steckt hinter)\b.{0,60}\b(warvex|warfax|warface)\b/i.test(q)
-    || /\b(warvex|warfax|warface)\b.{0,60}\b(erfinder|entwickler|programmierer|schoepfer)\b/i.test(q);
+
   const asksAboutGame=/\b(spiel|game|videospiel|shooter)\b/i.test(q)
     && !/\b(dich|deine ki|dein system)\b/i.test(q);
-  if(asksAboutGame || !(asksCreator || directQuestion)) return null;
+  if(asksAboutGame) return null;
 
-  return "Ich wurde gemeinsam von Dustin_Kawasaki und ChatGPT entwickelt. Dustin_Kawasaki ist der Erfinder und Entwickler von WARVEX SYSTEMS; ChatGPT hat bei der Programmierung und Umsetzung unterstützt. 🚀";
+  const asksIdentity=
+    /\b(wer bist du|was bist du|stell dich vor|wie stellst du dich vor)\b/i.test(q)
+    || /\b(was ist deine aufgabe|was sind deine aufgaben|was kannst du|wofuer bist du da|welche funktion hast du)\b/i.test(q);
+
+  if(asksIdentity){
+    return "Ich bin WARVEX – ein digitaler KI-Assistent von WARVEX SYSTEMS. Ich unterstütze dich bei Fragen, Ideen, Recherche, Planung und technischen Aufgaben. Je nach aktivierten Funktionen kann ich auch Sprache verarbeiten und weitere Systemfunktionen nutzen. WARVEX SYSTEMS ist ein kleines, technologieorientiertes Unternehmen, das digitale Lösungen und KI-gestützte Anwendungen entwickelt. Mein Ziel ist es, Informationen verständlich aufzubereiten und dich zuverlässig bei deinen Aufgaben zu unterstützen. 🚀";
+  }
+
+  const asksCreator=
+    /\bwer\b.{0,70}\b(hat|hast|ist|war|steckt|entwickelt|programmiert|erfunden|gebaut|erstellt|gemacht)\b/i.test(q)
+    && /\b(dich|du|dein|deine|warvex|warfax|entwickler|entwicklerin|schoepfer|erfinder|programmierer)\b/i.test(q);
+  const asksCreatorDirect=
+    /\b(wer hat dich erfunden|wer hat dich entwickelt|wer hat dich programmiert|wer steckt hinter warvex)\b/i.test(q)
+    || /\b(warvex)\b.{0,60}\b(erfinder|entwickler|programmierer|schoepfer)\b/i.test(q);
+
+  if(!(asksCreator || asksCreatorDirect)) return null;
+  return "WARVEX SYSTEMS wurde von Dustin_Kawasaki gegründet und entwickelt. ChatGPT hat bei der technischen Umsetzung und Programmierung unterstützt. 🚀";
 }
 
 async function sendChat(){
