@@ -148,7 +148,7 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
   <div class="card">
     <h2>Sprachsteuerung</h2>
     <p class="muted">
-      Online-Stimme: VEXARA · WARVEX Sprach-KI. Ersatz: deutsche Browser-Stimme.
+      Online-Stimme: VEXARA · WARVEX Sprach-KI. Ersatzstimme: NOVA.
     </p>
     <div class="actions">
       <button class="primary" id="directBtn">SPRACHBEFEHL</button>
@@ -437,6 +437,13 @@ if("speechSynthesis" in window){
 
 /* BROWSER-TTS ALS ERSATZ */
 
+function prepareSpeechText(text){
+  return String(text||"")
+    .replace(/\\bWARVEX\\b/gi,"Warwex")
+    .replace(/\\bWARFAX\\b/gi,"Warwex")
+    .replace(/\\bVEXARA\\b/gi,"Vexara");
+}
+
 function speakWithBrowser(text){
   return new Promise((resolve,reject)=>{
     if(!("speechSynthesis" in window) ||
@@ -447,9 +454,9 @@ function speakWithBrowser(text){
 
     chooseGermanVoice();
 
-    const utterance=new SpeechSynthesisUtterance(String(text));
+    const utterance=new SpeechSynthesisUtterance(prepareSpeechText(text));
     utterance.lang="de-DE";
-    utterance.rate=0.94;
+    utterance.rate=0.82;
     utterance.pitch=1;
     utterance.volume=1;
 
@@ -474,7 +481,7 @@ async function requestVexara(text){
     const response=await fetch(TTS_URL,{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({text}),
+      body:JSON.stringify({text:prepareSpeechText(text)}),
       signal:controller.signal
     });
 
@@ -552,12 +559,10 @@ async function playAudioBlob(blob){
 /* DREI TTS-ZUSTÄNDE */
 
 const OUTAGE_MESSAGE =
-  "Das Sprach-Online-System ist nicht verfügbar. " +
-  "Ein schwächeres System hat übernommen.";
+  "VEXARA antwortet gerade nicht. Hi, ich bin NOVA, das schwächere Ersatzsystem von WARVEX.";
 
 const RECOVERY_MESSAGE =
-  "Das Sprach-Online-System ist wieder online. " +
-  "VEXARA ist wieder aktiv.";
+  "VEXARA ist wieder online und wieder aktiv.";
 
 function updateTtsStatus(message){
   $("ttsStatus").textContent=message;
@@ -626,7 +631,7 @@ async function say(text){
     await speakWithBrowser(spokenText);
     ttsState="fallback";
     updateTtsStatus(
-      "Deutsche Ersatzstimme aktiv. VEXARA-Fehler: "+
+      "NOVA-Ersatzstimme aktiv. VEXARA-Fehler: "+
       (lastVexaraError||"Online-Sprachdienst antwortet nicht.")
     );
   }catch(error){
@@ -924,7 +929,7 @@ function stopListening(){
 $("directBtn").addEventListener("click",()=>startListening("direct"));
 $("wakeBtn").addEventListener("click",()=>startListening("wake"));
 $("stopBtn").addEventListener("click",stopListening);
-$("testVoiceBtn").addEventListener("click",()=>say("Hallo. Ich bin VEXARA, die Sprach-KI von WARVEX SYSTEMS."));
+$("testVoiceBtn").addEventListener("click",()=>say("Hallo. Ich bin VEXARA, die Online-Sprach-KI von WARVEX SYSTEMS."));
 
 /* SYSTEM-TOOLS */
 $("timeBtn").addEventListener("click",()=>$("toolResult").textContent="Uhrzeit: "+new Date().toLocaleTimeString("de-DE"));
