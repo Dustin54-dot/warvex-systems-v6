@@ -1000,8 +1000,26 @@ let medicalHeartCharacteristic=null, medicalTempCharacteristic=null;
 function setMedicalConnection(message){const el=$("medConnectionStatus");if(el)el.textContent="Status: "+message;}
 function medicalAudioReady(){try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return false;if(!medicalAudioContext||medicalAudioContext.state==="closed")medicalAudioContext=new AC();if(medicalAudioContext.state==="suspended")medicalAudioContext.resume();return true;}catch(error){return false;}}
 function medicalTone(freq,duration,volume){if(!medicalAudioReady())return;const now=medicalAudioContext.currentTime,osc=medicalAudioContext.createOscillator(),gain=medicalAudioContext.createGain();osc.type="sine";osc.frequency.setValueAtTime(freq,now);gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(Math.max(.001,volume),now+.018);gain.gain.setValueAtTime(Math.max(.001,volume),now+duration*.55);gain.gain.exponentialRampToValueAtTime(.0001,now+duration);osc.connect(gain);gain.connect(medicalAudioContext.destination);osc.start(now);osc.stop(now+duration+.02);}
+function medicalAlarmPattern(type){
+ if(!medicalAudioReady())return;
+ const patterns={
+  heart:[[1120,.13],[0,.08],[1540,.16],[0,.12],[1120,.13]],
+  lung:[[760,.24],[0,.12],[1040,.24],[0,.12],[760,.24]],
+  fever:[[980,.17],[0,.10],[1320,.17]],
+  critical:[[1480,.18],[0,.07],[1120,.18],[0,.07],[1480,.18],[0,.07],[1120,.18]],
+  ecg:[[1180,.15],[0,.12],[1180,.15]]
+ };
+ const notes=patterns[type]||patterns.fever,ctx=medicalAudioContext,osc=ctx.createOscillator(),gain=ctx.createGain();
+ const start=ctx.currentTime+.01;let cursor=start;
+ osc.type="square";gain.gain.setValueAtTime(.0001,start);
+ for(const [freq,duration] of notes){
+  if(freq>0){osc.frequency.setValueAtTime(freq,cursor);gain.gain.setValueAtTime(.0001,cursor);gain.gain.linearRampToValueAtTime(type==="critical"?.20:.16,cursor+.012);gain.gain.setValueAtTime(type==="critical"?.20:.16,cursor+duration*.65);gain.gain.linearRampToValueAtTime(.0001,cursor+duration);}
+  cursor+=duration;
+ }
+ osc.connect(gain);gain.connect(ctx.destination);osc.start(start);osc.stop(cursor+.02);
+}
 function stopMedicalAlert(){if(medicalAlarmTimer){clearInterval(medicalAlarmTimer);medicalAlarmTimer=null;}medicalAlarmMode=null;$("medical").classList.remove("critical-alarm-active","medical-warning-active","medical-vibration-active","ecg-alarm-active");$("medAlarmSeen").hidden=true;if(medicalVibrationSupported){try{navigator.vibrate(0);}catch(error){}}$("medAlarmTitle").textContent="ALARM BESTÄTIGT";$("medAlarmText").textContent="";}
-function startMedicalAlert(level,message){if(medicalAlarmMode===level)return;if(medicalAlarmTimer)clearInterval(medicalAlarmTimer);medicalAlarmMode=level;const critical=level==="critical";$("medical").classList.toggle("critical-alarm-active",critical);$("medical").classList.add("medical-warning-active","medical-vibration-active");$("medAlarmTitle").textContent=critical?"⚠ KRITISCHER ALARM · MEDIZINISCHE HILFE ERFORDERLICH":"⚠ FIEBERWARNUNG";$("medAlarmText").textContent=message;$("medAlarmSeen").hidden=false;const beep=()=>{medicalTone(critical?1240:960,critical?.24:.16,critical?.12:.045);if(critical&&medicalVibrationSupported){try{navigator.vibrate([160,90,160]);}catch(error){}}};beep();medicalAlarmTimer=setInterval(beep,critical?1150:3000);}
+function startMedicalAlert(level,message){if(medicalAlarmMode===level)return;if(medicalAlarmTimer)clearInterval(medicalAlarmTimer);medicalAlarmMode=level;const critical=level==="critical";$("medical").classList.toggle("critical-alarm-active",critical);$("medical").classList.add("medical-warning-active","medical-vibration-active");$("medAlarmTitle").textContent=critical?"⚠ KRITISCHER ALARM · MEDIZINISCHE HILFE ERFORDERLICH":"⚠ FIEBERWARNUNG";$("medAlarmText").textContent=message;$("medAlarmSeen").hidden=false;const beep=()=>{medicalAlarmPattern(critical?"critical":"fever");if(critical&&medicalVibrationSupported){try{navigator.vibrate([180,70,180,70,180]);}catch(error){}}};beep();medicalAlarmTimer=setInterval(beep,critical?1050:2600);}
 function handleMedicalTemperature(celsius){if(!Number.isFinite(celsius)||celsius<25||celsius>45)return;$("medTemperatureValue").textContent=celsius.toFixed(1).replace(".",",")+" °C";if(celsius<38){medicalAlertAcknowledged=false;if(medicalAlarmMode)stopMedicalAlert();return;}if(celsius>=40&&medicalAlarmMode!=="critical"){medicalAlertAcknowledged=false;}if(medicalAlertAcknowledged)return;if(celsius>=40){startMedicalAlert("critical","Gemessene Temperatur: "+celsius.toFixed(1).replace(".",",")+" °C. Das ist ein ernstes Warnsignal. Bitte sofort eine erwachsene Vertrauensperson informieren und dringend medizinische Hilfe holen. Bei Notfall 112.");}else if(medicalAlarmMode!=="critical"){startMedicalAlert("mild","Erhöhte Temperatur gemessen: "+celsius.toFixed(1).replace(".",",")+" °C. Bitte informiere eine erwachsene Vertrauensperson und prüfe den Wert mit einem geeigneten Thermometer.");}}
 function parseIEEE11073Float(view,offset){const raw=view.getUint32(offset,true);let mantissa=raw&0x00ffffff;if(mantissa&0x00800000)mantissa-=0x01000000;let exponent=(raw>>>24)&0xff;if(exponent&0x80)exponent-=0x100;return mantissa*Math.pow(10,exponent);}
 function onHeartRateMeasurement(event){const v=event.target.value,flags=v.getUint8(0),wide=!!(flags&1),bpm=wide?v.getUint16(1,true):v.getUint8(1);if(!Number.isFinite(bpm)||bpm<20||bpm>250)return;$("medHeartRateValue").textContent=bpm+" BPM";$("medHeartRateValue").classList.add("med-live-value");$("medical").classList.add("pulse-live");}
@@ -1037,20 +1055,20 @@ function playSingleMedicalTest(type){
  const root=$("medical");root.classList.add("med-test-active",t.cls);
  $("medAlarmTitle").textContent=t.title;$("medAlarmText").textContent=t.text;$("medAlarmSeen").hidden=true;
  $("medMenuStatus").textContent=t.title+" · 5-Sekunden-Simulation";
- const beep=()=>{medicalTone(t.freq,.18,type==="critical"?.12:.05);if(type==="critical"&&medicalVibrationSupported){try{navigator.vibrate([150,80,150]);}catch(error){}}};
+ const beep=()=>{medicalAlarmPattern(type);if(type==="critical"&&medicalVibrationSupported){try{navigator.vibrate([180,70,180,70,180]);}catch(error){}}};
  beep();medicalTestTimer=setInterval(beep,t.interval);
  medicalTestTimeout=setTimeout(()=>finishMedicalAlarmTest("Einzelner Alarmtest abgeschlossen. Keine echten Messwerte wurden verändert."),5000);
 }
 function runMedicalAlarmTestStep(){
  const steps=[
-  {title:"TEST 1/3 · FIEBERWARNUNG",text:"Simulation einer Fieberwarnung · 10 Sekunden",cls:"medical-warning-active",freq:960,interval:2200},
-  {title:"TEST 2/3 · KRITISCHER ALARM",text:"Simulation eines kritischen Alarms · 10 Sekunden",cls:"critical-alarm-active",freq:1240,interval:850},
-  {title:"TEST 3/3 · EKG-ANZEIGE",text:"Nur Alarmanzeige. Es wird keine EKG-Kurve erzeugt.",cls:"ecg-alarm-active",freq:880,interval:1300}
+  {title:"TEST 1/3 · FIEBERWARNUNG",text:"Simulation einer Fieberwarnung · 10 Sekunden",cls:"medical-warning-active",sound:"fever",interval:2600},
+  {title:"TEST 2/3 · KRITISCHER ALARM",text:"Simulation eines kritischen Alarms · 10 Sekunden",cls:"critical-alarm-active",sound:"critical",interval:1050},
+  {title:"TEST 3/3 · EKG-ANZEIGE",text:"Nur Alarmanzeige. Es wird keine EKG-Kurve erzeugt.",cls:"ecg-alarm-active",sound:"ecg",interval:1300}
  ];
  if(medicalTestStep>=steps.length){finishMedicalAlarmTest("Alle Alarmtests wurden nacheinander abgeschlossen.");return;}
  const step=steps[medicalTestStep++],root=$("medical");root.classList.remove("medical-warning-active","critical-alarm-active","ecg-alarm-active");root.classList.add("med-test-active",step.cls);
  $("medAlarmTitle").textContent=step.title;$("medAlarmText").textContent=step.text;$("medAlarmSeen").hidden=true;$("medMenuStatus").textContent=step.title+" · läuft 10 Sekunden";
- const beep=()=>{medicalTone(step.freq,.18,step.cls==="critical-alarm-active"?.12:.05);if(step.cls==="critical-alarm-active"&&medicalVibrationSupported){try{navigator.vibrate([150,80,150]);}catch(error){}}};
+ const beep=()=>{medicalAlarmPattern(step.sound);if(step.cls==="critical-alarm-active"&&medicalVibrationSupported){try{navigator.vibrate([180,70,180,70,180]);}catch(error){}}};
  beep();medicalTestTimer=setInterval(beep,step.interval);
  medicalTestTimeout=setTimeout(()=>{if(!medicalTestRunning)return;clearInterval(medicalTestTimer);medicalTestTimer=null;medicalTestTimeout=null;if(medicalVibrationSupported){try{navigator.vibrate(0);}catch(error){}}root.classList.remove(step.cls);runMedicalAlarmTestStep();},10000);
 }
