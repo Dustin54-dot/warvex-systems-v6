@@ -1265,7 +1265,7 @@ import { GLTFLoader } from "https://esm.sh/three@0.170.0/examples/jsm/loaders/GL
  const host=document.getElementById("med3dCanvas");
  const status=document.getElementById("med3dStatus");
  if(!page||!host||!status)return;
- let started=false,renderer,scene,camera,modelRoot,heartGroup,lungsGroup,raf=0;
+ let started=false,renderer,scene,camera,modelRoot,heartGroup,lungsGroup,heartBaseScale=1,lungsBaseScale=1,raf=0;
  const loader=new GLTFLoader();
  const ASSETS={
   body:"https://files.innerscene.com/library/human-base-mesh-with-editable-53-bone-rig-8e7c8ab1/329f39cef2f95a0f0a24/human-base-rigged.glb",
@@ -1312,7 +1312,7 @@ import { GLTFLoader } from "https://esm.sh/three@0.170.0/examples/jsm/loaders/GL
   const heartBox=new THREE.Box3().setFromObject(heart);
   const heartSize=heartBox.getSize(new THREE.Vector3());
   const heartScale=.27/Math.max(heartSize.y,.001);
-  heartGroup.scale.setScalar(heartScale);
+  heartGroup.scale.setScalar(heartScale);\n  heartBaseScale=heartScale;
   heartGroup.position.set(-.075,2.27,.12);
   heartGroup.traverse(o=>{
    if(!o.isMesh)return;
@@ -1328,7 +1328,7 @@ import { GLTFLoader } from "https://esm.sh/three@0.170.0/examples/jsm/loaders/GL
   const lungBox=new THREE.Box3().setFromObject(lungs);
   const lungSize=lungBox.getSize(new THREE.Vector3());
   const lungScale=.67/Math.max(lungSize.y,.001);
-  lungsGroup.scale.setScalar(lungScale);
+  lungsGroup.scale.setScalar(lungScale);\n  lungsBaseScale=lungScale;
   lungsGroup.position.set(0,2.34,.075);
   lungsGroup.traverse(o=>{
    if(!o.isMesh)return;
