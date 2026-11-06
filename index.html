@@ -151,6 +151,14 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
 @keyframes med-ecg-bright{to{opacity:.55}}
 @media(max-width:620px){.med-clinic-grid{grid-template-columns:1fr}.med-system{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.medical-page *{animation:none!important;scroll-behavior:auto!important}}
+
+/* WARVEX LIVE VISION */
+.vision-shell{background:linear-gradient(145deg,#151d2b,#090e17);border:1px solid #35445a;border-radius:16px;padding:16px}
+.vision-camera{width:100%;max-height:55vh;aspect-ratio:4/3;object-fit:cover;background:#05080d;border:1px solid #39485c;border-radius:12px;display:block}
+.vision-preview{width:100%;max-height:260px;object-fit:contain;background:#05080d;border:1px solid #39485c;border-radius:10px;margin-top:10px}
+.vision-status{padding:11px;border-radius:9px;background:#0b1420;border:1px solid #2a3a50;color:#c7d5e8;font-size:13px;line-height:1.5}
+.vision-live-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#ff3048;margin-right:7px;box-shadow:0 0 10px #ff3048}
+.vision-note{font-size:12px;color:#aab5c4;line-height:1.55}
 </style>
 </head>
 <body>
@@ -164,6 +172,7 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
   <button class="active" data-page="start">START</button>
   <button data-page="medical">MEDICAL</button>
   <button data-page="chat">KI CHAT</button>
+  <button data-page="vision">LIVE VISION</button>
   <button data-page="voice">SPRACHE</button>
   <button data-page="code">PROGRAMMIEREN</button>
   <button data-page="tools">TOOLS</button>
@@ -268,6 +277,29 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
     </div>
     <p class="muted" id="chatStatus">Bereit.</p>
   </div>
+</section>
+
+
+<section id="vision" class="page">
+ <div class="vision-shell">
+  <h2>🔴 WARVEX LIVE VISION</h2>
+  <p class="muted">Kamera- und Mikrofonbereich für deinen Live-Modus.</p>
+  <div class="vision-status" id="visionStatus">Kamera ist ausgeschaltet. Starte sie bewusst über den Button.</div>
+  <video id="visionVideo" class="vision-camera" autoplay muted playsinline aria-label="Live-Kamerabild"></video>
+  <div class="actions">
+   <button class="primary" id="visionStart">KAMERA STARTEN</button>
+   <button id="visionCapture" disabled>FOTO AUFNEHMEN</button>
+   <button id="visionMic">FRAGE EINSPRECHEN</button>
+   <button id="visionStop" disabled>KAMERA STOPPEN</button>
+  </div>
+  <canvas id="visionCanvas" hidden></canvas>
+  <img id="visionSnapshot" class="vision-preview" alt="Aufgenommenes Kamerabild" hidden>
+  <label for="visionQuestion">Deine Frage zu dem Bild</label>
+  <textarea id="visionQuestion" placeholder="Zum Beispiel: Was ist auf dem Bild zu sehen?"></textarea>
+  <div class="actions"><button class="primary" id="visionAsk">BILDFRAGE PRÜFEN</button></div>
+  <div class="vision-status" id="visionAnswer" aria-live="polite">Noch kein Foto aufgenommen.</div>
+  <p class="vision-note">Wichtig: Die Kamera-Vorschau und Fotoaufnahme laufen lokal im Browser. Die aktuelle WARVEX-KI-Schnittstelle verarbeitet bisher nur Text. Deshalb wird das Foto hier noch nicht an eine Bild-KI übertragen und WARVEX kann es noch nicht zuverlässig erkennen. Dafür muss später der Worker um einen sicheren Bildanalyse-Endpunkt erweitert werden. Kamera und Mikrofon werden nur nach deinem Tastendruck aktiviert.</p>
+ </div>
 </section>
 
 <section id="voice" class="page">
@@ -1086,6 +1118,58 @@ $("medStopAlarmTest").addEventListener("click",()=>finishMedicalAlarmTest("Alarm
 $("medDisconnectButton").addEventListener("click",disconnectMedicalDevice);
 $("medAlarmSeen").addEventListener("click",()=>{medicalAlertAcknowledged=true;stopMedicalAlert();});
 
+
+
+/* WARVEX LIVE VISION · lokale Kameraaufnahme; Bild-KI benötigt Worker-Endpunkt */
+let visionStream=null,visionRecognition=null,visionHasSnapshot=false;
+const visionStatus=(message)=>{const el=$("visionStatus");if(el)el.textContent=message;};
+async function startVisionCamera(){
+ if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){visionStatus("Kamera nicht verfügbar. Bitte WARVEX über HTTPS in einem aktuellen Browser öffnen.");return;}
+ try{
+  visionStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
+  $("visionVideo").srcObject=visionStream;
+  $("visionCapture").disabled=false;$("visionStop").disabled=false;$("visionStart").disabled=true;
+  visionStatus("Kamera aktiv. Das Bild bleibt zunächst auf deinem Gerät.");
+ }catch(error){visionStatus("Kamera konnte nicht gestartet werden: "+(error.message||String(error))+". Prüfe die Browser-Berechtigung.");}
+}
+function stopVisionCamera(){
+ if(visionStream){visionStream.getTracks().forEach(track=>track.stop());visionStream=null;}
+ $("visionVideo").srcObject=null;$("visionCapture").disabled=true;$("visionStop").disabled=true;$("visionStart").disabled=false;
+ visionStatus("Kamera gestoppt. Die letzte Fotoaufnahme bleibt bis zum Schließen dieser Seite sichtbar.");
+}
+function captureVisionPhoto(){
+ const video=$("visionVideo"),canvas=$("visionCanvas");
+ if(!visionStream||!video.videoWidth){visionStatus("Noch kein Kamerabild verfügbar. Starte zuerst die Kamera.");return;}
+ const maxWidth=1280,scale=Math.min(1,maxWidth/video.videoWidth);
+ canvas.width=Math.round(video.videoWidth*scale);canvas.height=Math.round(video.videoHeight*scale);
+ const context=canvas.getContext("2d");context.drawImage(video,0,0,canvas.width,canvas.height);
+ $("visionSnapshot").src=canvas.toDataURL("image/jpeg",.78);$("visionSnapshot").hidden=false;visionHasSnapshot=true;
+ $("visionAnswer").textContent="Foto aufgenommen. Du kannst jetzt deine Frage eintippen oder einsprechen. Die automatische Bildanalyse ist noch nicht mit dem Worker verbunden.";
+}
+function speakVisionQuestion(){
+ const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!Recognition){visionStatus("Spracheingabe wird in diesem Browser nicht unterstützt. Du kannst deine Frage eintippen.");return;}
+ if(visionRecognition){try{visionRecognition.stop();}catch(error){}visionRecognition=null;}
+ try{
+  const rec=new Recognition();visionRecognition=rec;rec.lang="de-DE";rec.interimResults=false;rec.maxAlternatives=1;
+  rec.onstart=()=>visionStatus("Ich höre zu. Sprich deine Frage zum aufgenommenen Bild.");
+  rec.onresult=event=>{$("visionQuestion").value=event.results[0][0].transcript;visionStatus("Frage erkannt. Du kannst sie noch bearbeiten.");};
+  rec.onerror=event=>visionStatus("Spracheingabe fehlgeschlagen: "+event.error+". Du kannst die Frage eintippen.");
+  rec.onend=()=>{visionRecognition=null;};rec.start();
+ }catch(error){visionStatus("Mikrofon konnte nicht gestartet werden: "+error.message);}
+}
+$("visionStart").addEventListener("click",startVisionCamera);
+$("visionCapture").addEventListener("click",captureVisionPhoto);
+$("visionStop").addEventListener("click",stopVisionCamera);
+$("visionMic").addEventListener("click",speakVisionQuestion);
+$("visionAsk").addEventListener("click",()=>{
+ const question=$("visionQuestion").value.trim();
+ if(!visionHasSnapshot){$("visionAnswer").textContent="Bitte zuerst ein Foto aufnehmen.";return;}
+ if(!question){$("visionAnswer").textContent="Bitte schreibe oder sprich zuerst eine Frage zum Foto ein.";return;}
+ $("visionAnswer").textContent="Deine Frage ist bereit. Die Bild-KI kann noch nicht antworten, weil /api/ai derzeit nur Text annimmt. Das Foto wird bewusst nicht an die Text-KI gesendet, damit WARVEX nichts über das Bild erfindet.";
+});
+document.querySelectorAll('[data-page]').forEach(button=>button.addEventListener('click',()=>{if(button.dataset.page!=="vision"&&visionRecognition){try{visionRecognition.stop();}catch(error){}}}));
+window.addEventListener("pagehide",stopVisionCamera);
 
 /* SYSTEM-TOOLS */
 $("timeBtn").addEventListener("click",()=>$("toolResult").textContent="Uhrzeit: "+new Date().toLocaleTimeString("de-DE"));
