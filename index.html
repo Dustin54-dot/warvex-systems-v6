@@ -113,10 +113,14 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
 .medical-page.heart-alarm-active .med-heart-core,
 .medical-page.heart-alarm-active .med-heart-panel-icon{animation:med-heartbeat .72s ease-in-out infinite}
 .medical-page.heart-alarm-active .med-ecg path{stroke:#ff5268;stroke-dasharray:18 7;animation:med-ecg 1.05s linear infinite}
-.medical-page.heart-alarm-active .med-pulse-row{color:#ff7182}
+.medical-page.heart-alarm-active .med-pulse-row{color:#ff7182;animation:med-warning-blink .72s steps(2,end) infinite}
+.medical-page.heart-alarm-active .med-pulse-row .med-dash{animation:med-warning-blink .72s steps(2,end) infinite}
+.medical-page.lung-alarm-active .med-lung-row{animation:med-warning-blink .9s steps(2,end) infinite}
+.medical-page.lung-alarm-active .med-lung-row .med-dash{animation:med-warning-blink .9s steps(2,end) infinite}
 .medical-page.lung-alarm-active .med-lungs{transform-box:fill-box;transform-origin:center;animation:med-lungs 1.35s ease-in-out infinite alternate}
 .medical-page.lung-alarm-active .med-lung-icon{animation:med-lungs 1.35s ease-in-out infinite alternate}
 .medical-page.lung-alarm-active .med-lung-row{color:#ff7182}
+@keyframes med-warning-blink{50%{opacity:.22;filter:brightness(1.8)}}
 @keyframes med-heartbeat{0%,100%{transform:scale(1)}12%{transform:scale(1.18)}24%{transform:scale(.98)}38%{transform:scale(1.12)}52%{transform:scale(1)}}
 @keyframes med-ecg{to{stroke-dashoffset:-100}}
 @keyframes med-lungs{from{transform:scale(.94)}to{transform:scale(1.08)}}
