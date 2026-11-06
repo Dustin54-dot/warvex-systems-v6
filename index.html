@@ -722,8 +722,9 @@ async function sendChat(){
     addMessage("WARVEX",answer);
     $("chatStatus").textContent=originAnswer?"WARVEX-Herkunftsinformation.":"KI verbunden.";
   }catch(error){
-    addMessage("WARVEX","KI-Fehler: "+error.message);
-    $("chatStatus").textContent="KI nicht verfügbar.";
+    const detail=error && error.message ? error.message : String(error);
+    addMessage("WARVEX","Die KI-Verbindung ist gerade nicht erreichbar. ("+detail+")");
+    $("chatStatus").textContent="KI-Verbindung fehlgeschlagen. Internet/Worker prüfen.";
   }finally{
     $("sendBtn").disabled=false;
   }
@@ -857,13 +858,24 @@ function localCommand(text){
 async function processVoice(text){
   const local=localCommand(text);
   if(local){$("voiceStatus").textContent=local;await say(local);return;}
+
+  /* Identitätsfragen lokal beantworten, damit sie auch bei einem
+     vorübergehenden KI-/Netzwerkfehler funktionieren. */
+  const identityAnswer=warvexOriginAnswer(text);
+  if(identityAnswer){
+    $("voiceStatus").textContent=identityAnswer;
+    await say(identityAnswer);
+    return;
+  }
+
   $("voiceStatus").textContent="WARVEX verarbeitet deinen Befehl …";
   try{
     const answer=await askAI(text);
     $("voiceStatus").textContent=answer;
     await say(answer);
   }catch(error){
-    const message="Ich kann zurzeit wegen eines Fehlers keine Befehle verstehen. "+error.message;
+    const detail=error && error.message ? error.message : String(error);
+    const message="Die KI-Verbindung ist gerade nicht erreichbar. Bitte prüfe die Internetverbindung und versuche es erneut. ("+detail+")";
     $("voiceStatus").textContent=message;
     await say(message);
   }
