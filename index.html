@@ -85,6 +85,7 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
   <button class="active" data-page="start">START</button>
   <button data-page="chat">KI CHAT</button>
   <button data-page="voice">SPRACHE</button>
+  <button data-page="code">PROGRAMMIEREN</button>
   <button data-page="tools">TOOLS</button>
   <button data-page="notes">NOTIZEN</button>
   <button data-page="home">SMART HOME</button>
@@ -121,6 +122,7 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
     <div class="actions">
       <button class="primary" data-open="chat">KI CHAT</button>
       <button data-open="voice">SPRACHE</button>
+      <button data-open="code">PROGRAMMIEREN</button>
       <button data-open="tools">TOOLS</button>
     </div>
   </div>
@@ -157,6 +159,28 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
     <div class="status" id="voiceStatus">Sprachsteuerung ausgeschaltet.</div>
     <p class="muted" id="ttsStatus">Sprachsystem wird geprüft …</p>
     <p class="muted" id="diagnosticStatus">Diagnose noch nicht gestartet.</p>
+  </div>
+</section>
+
+<section id="code" class="page">
+  <div class="card">
+    <h2>WARVEX CODE STUDIO</h2>
+    <p class="muted">Erstelle und erkläre eigenständige Code-Beispiele mit WARVEX. Die KI erhält hier keinen Inhalt deiner Website-Dateien.</p>
+    <h3>Deine Programmierfrage</h3>
+    <textarea id="codePrompt" placeholder="Beispiel: Erstelle eine einfache digitale Uhr in HTML, CSS und JavaScript."></textarea>
+    <div class="actions">
+      <button class="primary" id="codeAskBtn">CODE ERSTELLEN</button>
+      <button id="codeExplainBtn">CODE ERKLÄREN</button>
+    </div>
+    <p class="muted" id="codeStatus">Programmier-KI bereit.</p>
+    <h3>Dein Code-Ergebnis</h3>
+    <pre class="status" id="codeAnswer" style="white-space:pre-wrap;overflow-wrap:anywhere">Hier erscheint dein erzeugter Code.</pre>
+    <div class="actions"><button class="primary" id="copyAnswerBtn">CODE KOPIEREN</button></div>
+  </div>
+  <div class="card">
+    <h2>GitHub-Verbindung</h2>
+    <p class="muted">Automatische Übertragung wird erst nach einer sicheren GitHub-OAuth-Verbindung aktiviert. Es wird kein GitHub-Token auf dieser Website gespeichert und die KI erhält keinen Zugriff auf deine Website-Dateien.</p>
+    <div class="status">GitHub-OAuth ist noch nicht eingerichtet. Bis dahin kannst du den erzeugten Code kopieren und selbst in ein dafür vorgesehenes GitHub-Projekt einfügen.</div>
   </div>
 </section>
 
@@ -717,6 +741,27 @@ $("clearChat").addEventListener("click",()=>{
   addMessage("WARVEX","Chat wurde geleert.");
 });
 
+/* ISOLIERTES CODE STUDIO: keine Website-Dateien werden geladen oder an die KI gesendet. */
+let lastCodeAnswer="";
+async function codeAsk(mode){
+ const prompt=$("codePrompt").value.trim();
+ if(!prompt){$("codeStatus").textContent="Bitte schreibe zuerst deine Programmierfrage.";return;}
+ const instruction=mode==="explain"
+  ?"Du bist WARVEX CODE ASSISTANT. Erkläre die Nutzerfrage oder ausdrücklich eingefügten Code auf Deutsch. Erfinde keine Testergebnisse.\n"
+  :"Du bist WARVEX CODE ASSISTANT. Erstelle auf Deutsch einen vollständigen, eigenständigen Code passend zur Aufgabe. Verwende Codeblöcke. Behaupte nicht, Dateien bearbeitet oder getestet zu haben.\n";
+ $("codeAskBtn").disabled=true;$("codeExplainBtn").disabled=true;
+ $("codeStatus").textContent="WARVEX erstellt die Antwort …";$("codeAnswer").textContent="Bitte warten …";
+ try{lastCodeAnswer=await askAI(instruction+"\nAufgabe:\n"+prompt);$("codeAnswer").textContent=lastCodeAnswer;$("codeStatus").textContent="Code-Ergebnis bereit. Noch nicht auf GitHub übertragen.";}
+ catch(error){lastCodeAnswer="";$("codeAnswer").textContent="KI-Fehler: "+error.message;$("codeStatus").textContent="Erstellung fehlgeschlagen.";}
+ finally{$("codeAskBtn").disabled=false;$("codeExplainBtn").disabled=false;}
+}
+$("codeAskBtn").addEventListener("click",()=>codeAsk("create"));
+$("codeExplainBtn").addEventListener("click",()=>codeAsk("explain"));
+$("copyAnswerBtn").addEventListener("click",async()=>{
+ if(!lastCodeAnswer){$("codeStatus").textContent="Es gibt noch keinen Code zum Kopieren.";return;}
+ try{await navigator.clipboard.writeText(lastCodeAnswer);$("codeStatus").textContent="Ergebnis kopiert.";}
+ catch(error){$("codeStatus").textContent="Kopieren nicht möglich. Bitte Ergebnis markieren.";}
+});
 /* SPRACHSTEUERUNG */
 function localCommand(text){
   const q=String(text||"").toLowerCase().trim();
