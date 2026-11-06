@@ -1212,7 +1212,7 @@ window.addEventListener("pagehide",stopVisionCamera);
 
 
 /* WARVEX VIDEOANRUF · Kamera/Mikrofonfreigabe, Klingelton und Sprachdialog */
-let warvexCallStream=null,warvexCallRecognition=null,warvexCallActive=false,warvexCallBusy=false,warvexCallMicEnabled=true,warvexCallStartedAt=0,warvexCallClock=null,warvexRingContext=null,warvexRingNodes=[];
+let warvexCallStream=null,warvexCallRecognition=null,warvexCallRestartTimer=null,warvexCallActive=false,warvexCallBusy=false,warvexCallMicEnabled=true,warvexCallStartedAt=0,warvexCallClock=null,warvexRingContext=null,warvexRingNodes=[];
 function callLog(who,message){const log=$("callLog");if(!log)return;log.textContent+=(log.textContent?"\n":"")+who+": "+message;log.scrollTop=log.scrollHeight;}
 function callState(message){$("callState").textContent=message;$("callCaption").textContent=message;}
 function stopWarvexRingtone(){warvexRingNodes.forEach(node=>{try{node.stop();}catch(error){}});warvexRingNodes=[];if(warvexRingContext){try{warvexRingContext.close();}catch(error){}warvexRingContext=null;}}
@@ -1232,19 +1232,74 @@ async function playWarvexRingtone(){
  }catch(error){await new Promise(resolve=>setTimeout(resolve,2500));}
  stopWarvexRingtone();
 }
-function stopCallRecognition(){if(warvexCallRecognition){const r=warvexCallRecognition;warvexCallRecognition=null;try{r.onend=null;r.stop();}catch(error){}}}
+function scheduleCallRecognition(delay=500){
+ if(warvexCallRestartTimer)clearTimeout(warvexCallRestartTimer);
+ warvexCallRestartTimer=setTimeout(()=>{
+  warvexCallRestartTimer=null;
+  startCallRecognition();
+ },delay);
+}
+function stopCallRecognition(){
+ if(warvexCallRestartTimer){clearTimeout(warvexCallRestartTimer);warvexCallRestartTimer=null;}
+ if(warvexCallRecognition){
+  const r=warvexCallRecognition;warvexCallRecognition=null;
+  try{r.onend=null;r.onerror=null;r.stop();}catch(error){}
+ }
+}
 function startCallRecognition(){
  if(!warvexCallActive||!warvexCallMicEnabled||warvexCallBusy||warvexCallRecognition)return;
+ if(warvexCallRestartTimer){clearTimeout(warvexCallRestartTimer);warvexCallRestartTimer=null;}
  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!SR){callState("Spracherkennung wird in diesem Browser nicht unterstützt. Nutze alternativ den KI-Chat.");$("callMic").disabled=true;return;}
+ if(!SR){callState("Spracherkennung wird in diesem Browser nicht unterstützt. Bitte Chrome verwenden.");$("callAiState").textContent="Nicht unterstützt";return;}
  try{
-  const r=new SR();warvexCallRecognition=r;r.lang="de-DE";r.continuous=false;r.interimResults=false;r.maxAlternatives=1;
-  r.onstart=()=>{$("callAiState").textContent="Hört dir zu";callState("Ich höre dir zu … Sprich einfach los.");};
-  r.onresult=async event=>{const heard=event.results[0][0].transcript.trim();if(!heard)return;stopCallRecognition();warvexCallBusy=true;$("callAiState").textContent="Denkt nach";callLog("DU",heard);callState("WARVEX verarbeitet deine Frage …");try{const answer=await askAI(heard);if(!warvexCallActive)return;callLog("WARVEX",answer);$("callAiState").textContent="Antwortet";callState(answer);await say(answer);}catch(error){const msg="Die KI-Verbindung ist gerade nicht erreichbar: "+(error.message||String(error));if(warvexCallActive){callLog("WARVEX",msg);callState(msg);await say("Die KI-Verbindung ist gerade nicht erreichbar.");}}finally{warvexCallBusy=false;if(warvexCallActive){$("callAiState").textContent="Hört gleich wieder zu";setTimeout(startCallRecognition,500);}}};
-  r.onerror=event=>{warvexCallRecognition=null;if(warvexCallActive&&event.error!=="no-speech"){callState("Mikrofon/Spracherkennung: "+event.error+". Prüfe die Mikrofonfreigabe in Chrome.");$("callAiState").textContent="Mikro prüfen";}else if(warvexCallActive){setTimeout(startCallRecognition,700);}};
-  r.onend=()=>{if(warvexCallRecognition===r)warvexCallRecognition=null;if(warvexCallActive&&warvexCallMicEnabled&&!warvexCallBusy)setTimeout(startCallRecognition,350);};
+  const r=new SR();warvexCallRecognition=r;r.lang="de-DE";r.continuous=true;r.interimResults=false;r.maxAlternatives=1;
+  r.onstart=()=>{if(warvexCallRecognition===r){$("callAiState").textContent="Hört dir zu";callState("Ich höre dir zu. Sprich einfach los.");}};
+  r.onresult=async event=>{
+   if(warvexCallRecognition!==r||warvexCallBusy)return;
+   let heard="";
+   for(let i=event.resultIndex;i<event.results.length;i++){
+    if(event.results[i].isFinal)heard+=event.results[i][0].transcript+" ";
+   }
+   heard=heard.trim();
+   if(!heard)return;
+   warvexCallBusy=true;
+   stopCallRecognition();
+   $("callAiState").textContent="Denkt nach";callLog("DU",heard);callState("WARVEX verarbeitet deine Frage …");
+   try{
+    const answer=await askAI(heard);
+    if(!warvexCallActive)return;
+    callLog("WARVEX",answer);$("callAiState").textContent="Antwortet";callState(answer);
+    await say(answer);
+   }catch(error){
+    const msg="Die KI-Verbindung ist gerade nicht erreichbar: "+(error.message||String(error));
+    if(warvexCallActive){callLog("WARVEX",msg);callState(msg);await say("Die KI-Verbindung ist gerade nicht erreichbar.");}
+   }finally{
+    warvexCallBusy=false;
+    if(warvexCallActive&&warvexCallMicEnabled){$("callAiState").textContent="Hört dir wieder zu";scheduleCallRecognition(650);}
+   }
+  };
+  r.onerror=event=>{
+   if(warvexCallRecognition!==r)return;
+   if(event.error==="not-allowed"||event.error==="service-not-allowed"){
+    warvexCallRecognition=null;
+    callState("Chrome blockiert die Spracherkennung. Prüfe die Mikrofonfreigabe für diese Website.");
+    $("callAiState").textContent="Mikrofonfreigabe prüfen";
+    return;
+   }
+   if(event.error!=="no-speech"&&event.error!=="aborted"){
+    callState("Spracherkennung: "+event.error+". WARVEX versucht es erneut.");
+   }
+  };
+  r.onend=()=>{
+   if(warvexCallRecognition===r)warvexCallRecognition=null;
+   if(warvexCallActive&&warvexCallMicEnabled&&!warvexCallBusy)scheduleCallRecognition(700);
+  };
   r.start();
- }catch(error){warvexCallRecognition=null;callState("Spracherkennung konnte nicht starten: "+error.message);}
+ }catch(error){
+  warvexCallRecognition=null;
+  callState("Spracherkennung konnte nicht starten: "+error.message);
+  if(warvexCallActive&&warvexCallMicEnabled)scheduleCallRecognition(1500);
+ }
 }
 async function beginWarvexCall(){
  if(warvexCallActive)return;
