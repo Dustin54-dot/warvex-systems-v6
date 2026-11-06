@@ -760,3 +760,143 @@ $("copyEditorBtn").addEventListener("click",async()=>{
   }catch(error){
     $("editorStatus").textContent=
       "Kopieren nicht möglich. Bitte Code manuell markieren.
+";
+  }
+});
+
+$("clearEditorBtn").addEventListener("click",()=>{
+  $("codeEditor").value="";
+  $("editorStatus").textContent="Editor geleert.";
+});
+
+/* SPRACHSTEUERUNG */
+function localCommand(text){
+  const q=String(text||"").toLowerCase().trim();
+  if(q.includes("uhrzeit")||q==="uhr") return "Es ist "+new Date().toLocaleTimeString("de-DE")+".";
+  if(q.includes("datum")) return "Heute ist "+new Date().toLocaleDateString("de-DE")+".";
+  if(q.includes("öffne chat")||q==="chat"){showPage("chat");return "KI-Chat geöffnet.";}
+  if(q.includes("öffne start")||q==="start"){showPage("start");return "Startseite geöffnet.";}
+  if(q.includes("öffne tools")||q==="tools"){showPage("tools");return "System-Tools geöffnet.";}
+  if(q.includes("öffne notizen")||q==="notizen"){showPage("notes");return "Notizen geöffnet.";}
+  if(q.includes("smart home")||q.includes("öffne home")){showPage("home");return "Smart-Home-Demo geöffnet.";}
+  return null;
+}
+
+async function processVoice(text){
+  const local=localCommand(text);
+  if(local){$("voiceStatus").textContent=local;await say(local);return;}
+  $("voiceStatus").textContent="WARVEX verarbeitet deinen Befehl …";
+  try{
+    const answer=await askAI(text);
+    $("voiceStatus").textContent=answer;
+    await say(answer);
+  }catch(error){
+    const message="Ich kann zurzeit wegen eines Fehlers keine Befehle verstehen. "+error.message;
+    $("voiceStatus").textContent=message;
+    await say(message);
+  }
+}
+
+function startListening(mode){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){
+    const message="Dieser Browser unterstützt keine Spracherkennung. Bitte Chrome verwenden.";
+    $("voiceStatus").textContent=message;
+    $("diagnosticStatus").textContent=message;
+    return;
+  }
+  if(recognition){$("voiceStatus").textContent="Die Spracherkennung läuft bereits. Drücke zuerst STOP.";return;}
+  try{
+    const r=new SR();
+    recognition=r;
+    r.lang="de-DE";
+    r.continuous=mode==="wake";
+    r.interimResults=false;
+    r.maxAlternatives=1;
+    r.onstart=()=>{
+      $("voiceStatus").textContent=mode==="wake"?"Hey WARVEX aktiv. Sage Hey WARVEX und deinen Befehl.":"Ich höre zu. Sprich jetzt.";
+      $("diagnosticStatus").textContent="Mikrofon gestartet.";
+    };
+    r.onresult=event=>{
+      for(let i=event.resultIndex;i<event.results.length;i++){
+        if(!event.results[i].isFinal)continue;
+        const spoken=event.results[i][0].transcript.trim();
+        if(!spoken)continue;
+        if(mode==="direct"){processVoice(spoken);r.stop();return;}
+        const lower=spoken.toLowerCase();
+        const at=lower.indexOf("hey warvex");
+        if(at!==-1){
+          const command=spoken.slice(at+11).trim();
+          if(command)processVoice(command);else say("Ich höre.");
+        }
+      }
+    };
+    r.onerror=event=>{
+      const reason="Sprachfehler: "+(event.error||"unbekannt");
+      $("voiceStatus").textContent=reason;
+      $("diagnosticStatus").textContent=reason;
+    };
+    r.onend=()=>{
+      if(recognition===r)recognition=null;
+      $("voiceStatus").textContent="Spracherkennung beendet.";
+    };
+    r.start();
+  }catch(error){
+    recognition=null;
+    $("voiceStatus").textContent="Sprachstart fehlgeschlagen: "+error.message;
+  }
+}
+
+function stopListening(){
+  if(recognition){try{recognition.stop();}catch(error){}recognition=null;}
+  if(currentAudio){currentAudio.pause();currentAudio=null;}
+  if("speechSynthesis" in window)speechSynthesis.cancel();
+  $("voiceStatus").textContent="Sprachsteuerung gestoppt.";
+  $("diagnosticStatus").textContent="Manuell gestoppt.";
+}
+$("directBtn").addEventListener("click",()=>startListening("direct"));
+$("wakeBtn").addEventListener("click",()=>startListening("wake"));
+$("stopBtn").addEventListener("click",stopListening);
+$("testVoiceBtn").addEventListener("click",()=>say("Hallo Dustin. Seraphina ist bereit. Wenn die Online-Stimme nicht antwortet, übernimmt automatisch die Ersatzstimme."));
+
+/* SYSTEM-TOOLS */
+$("timeBtn").addEventListener("click",()=>$("toolResult").textContent="Uhrzeit: "+new Date().toLocaleTimeString("de-DE"));
+$("dateBtn").addEventListener("click",()=>$("toolResult").textContent="Datum: "+new Date().toLocaleDateString("de-DE"));
+$("batteryBtn").addEventListener("click",()=>$("toolResult").textContent="Akku: "+$("battery").textContent);
+$("internetBtn").addEventListener("click",()=>{updateInternet();$("toolResult").textContent="Internet: "+$("internet").textContent;});
+$("diagnoseBtn").addEventListener("click",()=>{
+  $("toolResult").textContent="Web-App aktiv. Internet: "+(navigator.onLine?"verbunden":"offline")+
+    ". Spracherkennung: "+(window.SpeechRecognition||window.webkitSpeechRecognition?"unterstützt":"nicht unterstützt")+
+    ". Online-TTS: "+TTS_URL;
+  $("diagnosticStatus").textContent="Diagnose abgeschlossen.";
+});
+
+/* NOTIZEN */
+try{$("noteInput").value=localStorage.getItem("warvex_note")||"";}catch(error){}
+$("saveNote").addEventListener("click",()=>{
+  try{localStorage.setItem("warvex_note",$("noteInput").value);$("noteStatus").textContent="Notiz gespeichert.";}
+  catch(error){$("noteStatus").textContent="Speichern nicht möglich: "+error.message;}
+});
+$("deleteNote").addEventListener("click",()=>{
+  $("noteInput").value="";
+  try{localStorage.removeItem("warvex_note");}catch(error){}
+  $("noteStatus").textContent="Notiz gelöscht.";
+});
+
+/* SMART-HOME-DEMO */
+$("lightBtn").addEventListener("click",()=>{
+  lightOn=!lightOn;
+  $("lightBtn").textContent="LICHT: "+(lightOn?"AN":"AUS");
+  $("homeStatus").textContent="Demo-Licht "+(lightOn?"eingeschaltet.":"ausgeschaltet.");
+});
+$("plugBtn").addEventListener("click",()=>{
+  plugOn=!plugOn;
+  $("plugBtn").textContent="STECKDOSE: "+(plugOn?"AN":"AUS");
+  $("homeStatus").textContent="Demo-Steckdose "+(plugOn?"eingeschaltet.":"ausgeschaltet.");
+});
+
+$("systemStatus").textContent="WARVEX SYSTEMS V6 ist gestartet.";
+$("toolStatus").textContent="Web-App aktiv · KI über Cloudflare · Online-TTS mit automatischem Ersatzsystem.";
+</script>
+</body>
+</html>
