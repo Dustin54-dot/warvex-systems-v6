@@ -679,14 +679,14 @@ function warvexOriginAnswer(prompt){
   const q=String(prompt||"").toLocaleLowerCase("de-DE")
     .replace(/[ä]/g,"ae").replace(/[ö]/g,"oe").replace(/[ü]/g,"ue");
   const asksCreator=
-    /\\bwer\\b.{0,70}\\b(hat|hast|ist|war|steckt|entwickelt|programmiert|erfunden|gebaut|erstellt|gemacht)\\b/i.test(q)
-    && /\\b(dich|du|dein|deine|warvex|warfax|warface|ki|kuenstliche intelligenz|entwickler|entwicklerin|schoepfer|erfinder|programmierer)\\b/i.test(q);
+    /\bwer\b.{0,70}\b(hat|hast|ist|war|steckt|entwickelt|programmiert|erfunden|gebaut|erstellt|gemacht)\b/i.test(q)
+    && /\b(dich|du|dein|deine|warvex|warfax|warface|ki|kuenstliche intelligenz|entwickler|entwicklerin|schoepfer|erfinder|programmierer)\b/i.test(q);
   const directQuestion=
-    /\\b(wer hat dich|wer bist du|wer steckt hinter dir|wer ist dein)\\b/i.test(q)
-    || /\\b(wer hat|wer ist|wer steckt hinter)\\b.{0,60}\\b(warvex|warfax|warface)\\b/i.test(q)
-    || /\\b(warvex|warfax|warface)\\b.{0,60}\\b(erfinder|entwickler|programmierer|schoepfer)\\b/i.test(q);
-  const asksAboutGame=/\\b(spiel|game|videospiel|shooter)\\b/i.test(q)
-    && !/\\b(dich|deine ki|dein system)\\b/i.test(q);
+    /\b(wer hat dich|wer bist du|wer steckt hinter dir|wer ist dein)\b/i.test(q)
+    || /\b(wer hat|wer ist|wer steckt hinter)\b.{0,60}\b(warvex|warfax|warface)\b/i.test(q)
+    || /\b(warvex|warfax|warface)\b.{0,60}\b(erfinder|entwickler|programmierer|schoepfer)\b/i.test(q);
+  const asksAboutGame=/\b(spiel|game|videospiel|shooter)\b/i.test(q)
+    && !/\b(dich|deine ki|dein system)\b/i.test(q);
   if(asksAboutGame || !(asksCreator || directQuestion)) return null;
 
   return "Ich wurde gemeinsam von Dustin_Kawasaki und ChatGPT entwickelt. Dustin_Kawasaki ist der Erfinder und Entwickler von WARVEX SYSTEMS; ChatGPT hat bei der Programmierung und Umsetzung unterstützt. 🚀";
