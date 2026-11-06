@@ -1,0 +1,1243 @@
+
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090b10">
+<title>WARVEX SYSTEMS V6</title>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#090b10;
+  --panel:#141b27;
+  --red:#ff3048;
+  --line:#2a3546;
+  --muted:#aab5c4;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:#f4f6fa;
+  font:16px system-ui,Arial,sans-serif
+}
+header{
+  padding:18px;background:#0e131d;
+  border-bottom:1px solid var(--line)
+}
+h1{margin:0;color:var(--red);font-size:25px;letter-spacing:2px}
+header small{color:var(--muted)}
+nav{
+  display:flex;gap:8px;overflow:auto;padding:10px;
+  background:#0e131d;position:sticky;top:0;z-index:5
+}
+button{
+  border:1px solid var(--line);border-radius:10px;
+  background:#202b3b;color:white;padding:12px;
+  cursor:pointer;font-weight:600
+}
+button:disabled{opacity:.5;cursor:wait}
+button.active,.primary{background:var(--red);border-color:var(--red)}
+nav button{white-space:nowrap}
+main{padding:14px;max-width:900px;margin:auto}
+.page{display:none}
+.page.active{display:block}
+.card{
+  background:var(--panel);border:1px solid var(--line);
+  border-radius:15px;padding:16px;margin-bottom:13px
+}
+h2{margin:0 0 12px;font-size:20px}
+h3{margin:8px 0}
+.muted{color:var(--muted);font-size:13px}
+.big{font-size:34px;font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+input,textarea{
+  width:100%;padding:13px;border-radius:10px;
+  border:1px solid var(--line);background:#0c121c;
+  color:white;font:inherit;margin:5px 0 10px
+}
+textarea{min-height:110px;resize:vertical}
+#codeEditor{min-height:330px;font:13px monospace;tab-size:2}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.status{
+  padding:10px;border-radius:9px;background:#0c121c;
+  color:var(--muted);overflow-wrap:anywhere
+}
+.message{
+  padding:12px;margin:9px 0;border-radius:10px;
+  background:#202b3b;white-space:pre-wrap;overflow-wrap:anywhere
+}
+.user{border:1px solid #73404a}
+a{color:#ff7182}
+footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
+@media(max-width:520px){
+  .grid{grid-template-columns:1fr}
+}
+
+/* WARVEX MEDICAL – futuristische, rein visuelle Demo */
+.medical-page{color:#eaf8ff}
+.medical-page .med-shell{background:radial-gradient(ellipse at 50% 35%,#0d3150 0%,#071521 48%,#060b13 100%);border:1px solid #164768;border-radius:18px;padding:14px;overflow:hidden}
+.med-topline{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.med-brand{font-weight:800;letter-spacing:2px;color:#74dcff}
+.med-device-pill{font-size:12px;color:#ffb9c0;border:1px solid #743743;background:#351720;padding:7px 10px;border-radius:99px}
+.med-layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(220px,.9fr);gap:12px}
+.med-stage{position:relative;min-height:450px;display:flex;align-items:center;justify-content:center;border:1px solid #174967;border-radius:15px;background:linear-gradient(180deg,rgba(13,53,82,.55),rgba(2,12,23,.82));overflow:hidden}
+.med-stage:before,.med-stage:after{content:"";position:absolute;left:50%;top:50%;width:78%;aspect-ratio:1;border:1px solid rgba(65,197,255,.35);border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 30px rgba(0,174,255,.13),inset 0 0 30px rgba(0,174,255,.08)}
+.med-stage:after{width:94%;border-style:dashed;animation:med-spin 28s linear infinite}
+.med-human{position:relative;z-index:1;width:min(100%,330px);height:440px;filter:drop-shadow(0 0 12px rgba(53,190,255,.65))}
+.med-human .med-body-shape{fill:rgba(42,174,238,.12);stroke:#71d9ff;stroke-width:2.4;stroke-linejoin:round}
+.med-human .med-body-detail{fill:none;stroke:rgba(111,220,255,.42);stroke-width:1.3}
+.med-heart-core{fill:#ff465b;stroke:#ff9aa5;stroke-width:1.8;transform-box:fill-box;transform-origin:center}
+.med-lungs path{fill:rgba(77,195,255,.18);stroke:#7be0ff;stroke-width:2}
+.med-organ-glow{filter:drop-shadow(0 0 8px currentColor)}
+.med-side{display:flex;flex-direction:column;gap:10px}
+.med-panel{background:rgba(6,21,35,.88);border:1px solid #185071;border-radius:13px;padding:12px;min-width:0}
+.med-panel h3{margin:0 0 9px;color:#82ddff;font-size:14px;letter-spacing:1px}
+.med-value-row{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid rgba(92,173,210,.16);font-size:13px}
+.med-value-row:last-child{border-bottom:0}
+.med-dash{color:#82dfff;font-weight:800;letter-spacing:2px}
+.med-muted{color:#8eafc3;font-size:11px}
+.med-heart-panel-icon{color:#ff6577;font-size:29px;display:inline-block;line-height:1}
+.med-ecg{width:100%;height:48px;display:block}
+.med-ecg path{fill:none;stroke:#63d8ff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:220;stroke-dashoffset:0}
+.med-lung-icon{width:38px;height:38px;vertical-align:middle}
+.med-system{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.med-system-box{background:rgba(6,21,35,.9);border:1px solid #185071;border-radius:12px;padding:12px}
+.med-system-box h3{margin:0 0 8px;color:#8bdfff;font-size:13px}
+.med-missing{font-size:12px;color:#a9c6d8;line-height:1.8}
+.med-test-area{margin-top:12px;border:1px solid #6c4d20;background:rgba(47,31,8,.45);border-radius:13px;padding:13px}
+.med-test-area h3{margin:0 0 6px;color:#ffd58a}
+.med-test-note{font-size:12px;color:#f3d5a4;margin:0 0 10px}
+.med-test-area .actions button{flex:1;min-width:130px}
+.med-test-status{font-size:12px;color:#b7d6e6;margin-top:10px;min-height:18px}
+.med-alert{color:#ff7885!important}
+.medical-page.heart-alarm-active .med-heart-core,
+.medical-page.heart-alarm-active .med-heart-panel-icon{animation:med-heartbeat .72s ease-in-out infinite}
+.medical-page.heart-alarm-active .med-ecg path{stroke:#ff5268;stroke-dasharray:18 7;animation:med-ecg 1.05s linear infinite}
+.medical-page.heart-alarm-active .med-pulse-row{color:#ff7182;animation:med-warning-blink .72s steps(2,end) infinite}
+.medical-page.heart-alarm-active .med-pulse-row .med-dash{animation:med-warning-blink .72s steps(2,end) infinite}
+.medical-page.lung-alarm-active .med-lung-row{animation:med-warning-blink .9s steps(2,end) infinite}
+.medical-page.lung-alarm-active .med-lung-row .med-dash{animation:med-warning-blink .9s steps(2,end) infinite}
+.medical-page.lung-alarm-active .med-lungs{transform-box:fill-box;transform-origin:center;animation:med-lungs 1.35s ease-in-out infinite alternate}
+.medical-page.lung-alarm-active .med-lung-icon{animation:med-lungs 1.35s ease-in-out infinite alternate}
+.medical-page.lung-alarm-active .med-lung-row{color:#ff7182}
+@keyframes med-warning-blink{50%{opacity:.22;filter:brightness(1.8)}}
+@keyframes med-heartbeat{0%,100%{transform:scale(1)}12%{transform:scale(1.18)}24%{transform:scale(.98)}38%{transform:scale(1.12)}52%{transform:scale(1)}}
+@keyframes med-ecg{to{stroke-dashoffset:-100}}
+@keyframes med-lungs{from{transform:scale(.94)}to{transform:scale(1.08)}}
+@keyframes med-spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+@media(max-width:650px){.med-layout{grid-template-columns:1fr}.med-stage{min-height:410px}.med-human{height:400px}.med-system{grid-template-columns:1fr}}
+
+
+/* WARVEX MEDICAL – Klinikmonitor-Layout */
+.medical-page .med-shell{background:#020914;border:1px solid #07517b;border-radius:16px;padding:12px;box-shadow:inset 0 0 35px #00304c}
+.med-topline{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 4px 12px;border-bottom:1px solid #125078}
+.med-brand{font-size:clamp(18px,4vw,27px);font-weight:900;letter-spacing:2px;color:#61d9ff}
+.med-device-pill{font-size:11px;color:#ffc0c6;border:1px solid #77303b;background:#260c16;padding:7px 10px;border-radius:30px}
+.med-clinic-grid{display:grid;grid-template-columns:minmax(155px,.9fr) minmax(190px,1.15fr) minmax(155px,.9fr);gap:9px;margin-top:10px}
+.med-column{display:flex;flex-direction:column;gap:9px;min-width:0}
+.med-panel{background:linear-gradient(145deg,#061b2d,#030b15);border:1px solid #12618b;border-radius:9px;padding:10px;min-width:0;box-shadow:inset 0 0 16px #06213b}
+.med-panel h3{margin:0 0 8px;color:#65dfff;font-size:12px;letter-spacing:1px}
+.med-stage{position:relative;min-height:440px;display:flex;align-items:center;justify-content:center;border:1px solid #075b8d;border-radius:10px;background:radial-gradient(ellipse,#07385c 0%,#031629 55%,#020914 100%);overflow:hidden}
+.med-stage:before,.med-stage:after{content:"";position:absolute;left:50%;top:50%;width:88%;aspect-ratio:1;border:1px solid #1b9cdb55;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 28px #008edc33,inset 0 0 25px #008edc22}
+.med-stage:after{width:105%;border-style:dashed;animation:med-spin 28s linear infinite}
+.med-human{position:relative;z-index:1;width:min(100%,300px);height:420px;filter:drop-shadow(0 0 12px #18baff99)}
+.med-human .med-body-shape{fill:rgba(42,174,238,.12);stroke:#71d9ff;stroke-width:2.4;stroke-linejoin:round}
+.med-human .med-body-detail{fill:none;stroke:#6fdcff70;stroke-width:1.3}
+.med-heart-core{fill:#ff4058;stroke:#ff9aa5;stroke-width:1.8;transform-box:fill-box;transform-origin:center}
+.med-lungs path{fill:#37b9ef30;stroke:#7be0ff;stroke-width:2}
+.med-value-row{display:flex;justify-content:space-between;gap:5px;padding:9px 0;border-bottom:1px solid #5cacd022;font-size:12px}
+.med-value-row:last-child{border-bottom:0}
+.med-dash{color:#7fe4ff;font-weight:800;letter-spacing:1px;white-space:nowrap}
+.med-muted{color:#8eafc3;font-size:10px;line-height:1.5}
+.med-number{font-size:clamp(19px,3vw,25px);color:#76ddff;font-weight:800}
+.med-mini-ecg{width:100%;height:36px;display:block}
+.med-mini-ecg path{fill:none;stroke:#51d6ff;stroke-width:2;stroke-linecap:round}
+.med-organ-art{width:100%;height:105px;display:block}
+.med-organ-art path{fill:#ff526733;stroke:#ff8294;stroke-width:2}
+.med-organ-art.lungs path{fill:#38baff22;stroke:#65dcff}
+.med-system{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
+.med-system-box{background:#041526;border:1px solid #12547a;border-radius:9px;padding:10px}
+.med-system-box h3{margin:0 0 7px;color:#68dfff;font-size:12px}
+.med-missing{font-size:11px;color:#b5d8e9;line-height:1.8}
+.med-alert-banner{display:none;margin-top:10px;padding:14px 8px;text-align:center;border:2px solid #ff354e;border-radius:9px;background:linear-gradient(90deg,#350713,#8b1025,#350713);color:#fff;box-shadow:0 0 22px #ff1e3c88}
+.med-alert-banner strong{display:block;font-size:clamp(22px,5vw,34px);letter-spacing:2px;color:#ff8794}
+.med-alert-banner span{font-size:12px}
+.med-ack-button{display:block;width:100%;margin-top:12px;padding:15px;background:#ff3048;border:2px solid #ffd4d9;color:#fff;font-size:16px;font-weight:900;letter-spacing:1px;box-shadow:0 0 18px #ff304888}.med-ack-button[hidden]{display:none}
+.medical-page.heart-alarm-active .med-alert-banner,.medical-page.lung-alarm-active .med-alert-banner{display:block;animation:med-banner-flash .8s steps(2,end) infinite}
+.medical-page.critical-alarm-active .med-alert-banner{display:block;animation:med-banner-flash .55s steps(2,end) infinite}
+.med-test-area{margin-top:10px;border:1px solid #735525;background:#211706;border-radius:9px;padding:11px}
+.med-test-area h3{margin:0 0 6px;color:#ffd58a;font-size:13px}
+.med-test-note{font-size:11px;color:#f3d5a4;margin:0 0 9px}
+.med-test-area .actions button{flex:1;min-width:115px}
+.med-test-status{font-size:11px;color:#b7d6e6;margin-top:8px;min-height:16px}
+.med-alert{color:#ff7885!important}
+.med-ai-bar{display:flex;align-items:center;gap:12px;margin-top:10px;padding:12px;border:1px solid #0874a7;border-radius:9px;background:#041b2c;color:#68dfff}
+.med-ai-bar strong{display:block;font-size:13px;letter-spacing:1px}
+.med-ai-bar small{display:block;color:#b5d9ed;font-size:11px;margin-top:4px}
+.medical-page.heart-alarm-active .med-heart-core{animation:med-heartbeat .72s ease-in-out infinite}
+.medical-page.heart-alarm-active .med-heart-panel-icon{animation:med-heartbeat .72s ease-in-out infinite}
+.medical-page.heart-alarm-active .med-pulse-row{color:#ff7182;animation:med-warning-blink .72s steps(2,end) infinite}
+.medical-page.lung-alarm-active .med-lung-row{color:#ff7182;animation:med-warning-blink .9s steps(2,end) infinite}
+.medical-page.lung-alarm-active .med-lungs{transform-box:fill-box;transform-origin:center;animation:med-lungs 1.35s ease-in-out infinite alternate}
+@keyframes med-warning-blink{50%{opacity:.25;filter:brightness(1.8)}}
+@keyframes med-banner-flash{50%{filter:brightness(1.8);box-shadow:0 0 32px #ff1e3c}}
+@keyframes med-heartbeat{0%,100%{transform:scale(1)}12%{transform:scale(1.18)}24%{transform:scale(.98)}38%{transform:scale(1.12)}52%{transform:scale(1)}}
+@keyframes med-lungs{from{transform:scale(.94)}to{transform:scale(1.08)}}
+@keyframes med-spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+@media(max-width:680px){.med-clinic-grid{grid-template-columns:1fr 1fr}.med-center-column{grid-column:1/-1;grid-row:1}.med-stage{min-height:360px}.med-human{height:350px}.med-system{grid-template-columns:1fr}.med-column{gap:7px}}
+@media(max-width:390px){.med-clinic-grid{grid-template-columns:1fr}.med-center-column{grid-column:auto;grid-row:auto}.med-stage{min-height:340px}}
+
+
+/* MEDICAL REDESIGN V2 – anatomischer Scan und klinische Monitoroberfläche */
+main:has(#medical.active){max-width:1500px;padding:clamp(9px,2vw,24px)}
+.medical-page .med-shell{background:radial-gradient(ellipse at 50% 32%,#092c45 0%,#041321 42%,#02070d 100%);border:1px solid #17658b;border-radius:16px;padding:clamp(10px,1.5vw,18px);box-shadow:0 18px 55px #0009,inset 0 0 48px #0077aa20}
+.med-topline{padding:7px 5px 14px;border-bottom:1px solid #1b5877}
+.med-brand{font-size:clamp(19px,2.3vw,29px);letter-spacing:2.5px;text-shadow:0 0 18px #30caff66}
+.med-device-pill{font-weight:700;letter-spacing:.6px;background:#250d15;border-color:#a43b4a}
+.med-clinic-grid{grid-template-columns:minmax(210px,.9fr) minmax(300px,1.2fr) minmax(210px,.9fr);gap:12px;margin-top:14px}
+.med-column{gap:12px}
+.med-panel{background:linear-gradient(145deg,#071e30ed,#020b15f5);border:1px solid #1a6388;border-radius:10px;padding:13px;box-shadow:0 8px 20px #0004,inset 0 0 22px #0b5c8020}
+.med-panel h3{font-size:12px;letter-spacing:1.35px;color:#8ae7ff}
+.med-stage{min-height:565px;border:1px solid #1674a0;border-radius:12px;background:radial-gradient(ellipse at 50% 43%,#0a4267 0%,#05243b 42%,#020b16 100%);box-shadow:inset 0 0 45px #00aaff25,0 0 26px #009de51c}
+.med-stage:before{width:74%;border-color:#48c9f866;box-shadow:0 0 50px #00baff20,inset 0 0 35px #00baff18}
+.med-stage:after{width:88%;border-color:#48c9f844}
+.med-human{width:min(100%,340px);height:550px;filter:drop-shadow(0 0 17px #2cc8ff88)}
+.med-human .med-body-shape{fill:rgba(50,179,235,.12);stroke:#8ceaff;stroke-width:1.65;stroke-linejoin:round}
+.med-human .med-body-detail{fill:none;stroke:#9beaff55;stroke-width:1.2;stroke-linecap:round}
+.med-vessels path{stroke:#54cfff;stroke-linecap:round;stroke-linejoin:round}
+.med-lungs path{fill:#39b8ef28;stroke:#8deaff;stroke-width:2.1}
+.med-heart-core{fill:#ed304e;stroke:#ff9eae;stroke-width:1.8;transform-box:fill-box;transform-origin:center}
+.med-value-row{padding:11px 0;font-size:13px}
+.med-number{font-size:clamp(22px,2.2vw,30px);text-shadow:0 0 12px #37caff45}
+.med-organ-art{height:116px;filter:drop-shadow(0 0 8px #25baff44)}
+.med-organ-art path{stroke-width:1.8}
+.med-system{margin-top:12px;gap:12px}
+.med-system-box{border:1px solid #17638a;border-radius:10px;background:linear-gradient(145deg,#061b2c,#020a13);padding:13px}
+.med-alert-banner{border-width:2px;box-shadow:0 0 28px #ff1e3c99,inset 0 0 18px #ff1e3c33}
+.med-alert-banner strong{font-size:clamp(24px,4vw,38px);text-shadow:0 0 15px #ff334f}
+.med-test-area{border-color:#8a672c;background:linear-gradient(110deg,#241706,#130d05);box-shadow:inset 0 0 18px #f6b74412}
+.med-ai-bar{background:linear-gradient(100deg,#041b2b,#06263a);border-color:#167aa7;box-shadow:0 0 20px #009ed51c}
+@media(max-width:850px){.med-clinic-grid{grid-template-columns:1fr 1fr}.med-center-column{grid-column:1/-1;grid-row:1}.med-stage{min-height:460px}.med-human{height:450px}.med-system{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.med-clinic-grid{grid-template-columns:1fr 1fr;gap:8px}.med-center-column{grid-column:1/-1;grid-row:1}.med-stage{min-height:410px}.med-human{height:400px}.med-column{gap:8px}.med-panel{padding:10px}.med-system{grid-template-columns:1fr}.med-test-area .actions button{min-width:100%;}}
+@media(max-width:360px){.med-clinic-grid{grid-template-columns:1fr}.med-center-column{grid-column:auto;grid-row:auto}.med-stage{min-height:370px}.med-human{height:360px}}
+.medical-page.heart-alarm-active .med-heart-core{animation:med-heartbeat .62s ease-in-out infinite;filter:drop-shadow(0 0 13px #ff294d)}
+.medical-page.lung-alarm-active .med-lungs{animation:med-lungs .85s ease-in-out infinite alternate}
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>WARVEX SYSTEMS</h1>
+  <small>V6 · KI-Assistent · Sprachsystem · Code Studio</small>
+</header>
+
+<nav>
+  <button class="active" data-page="start">START</button>
+  <button data-page="medical">MEDICAL</button>
+  <button data-page="chat">KI CHAT</button>
+  <button data-page="voice">SPRACHE</button>
+  <button data-page="code">PROGRAMMIEREN</button>
+  <button data-page="tools">TOOLS</button>
+  <button data-page="notes">NOTIZEN</button>
+  <button data-page="home">SMART HOME</button>
+</nav>
+
+<main>
+
+<section id="start" class="page active">
+  <div class="card">
+    <h2>Systemübersicht</h2>
+    <div class="big" id="clock">--:--:--</div>
+    <div id="date">Datum wird geladen …</div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="muted">AKKU</div>
+      <h3 id="battery">Wird geladen …</h3>
+    </div>
+    <div class="card">
+      <div class="muted">INTERNET</div>
+      <h3 id="internet">Prüfe Verbindung …</h3>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Systemstatus</h2>
+    <div class="status" id="systemStatus">WARVEX startet …</div>
+    <p class="muted" id="toolStatus">Initialisierung …</p>
+  </div>
+
+  <div class="card">
+    <h2>Schnellzugriff</h2>
+    <div class="actions">
+      <button class="primary" data-open="chat">KI CHAT</button>
+      <button data-open="voice">SPRACHE</button>
+      <button data-open="code">PROGRAMMIEREN</button>
+      <button data-open="tools">TOOLS</button>
+    </div>
+  </div>
+</section>
+
+
+<section id="medical" class="page medical-page">
+<div class="med-shell">
+ <div class="med-topline"><div class="med-brand">✚ WARVEX MEDICAL</div><div class="med-device-pill">● KEINE GERÄTE VERBUNDEN</div></div>
+ <div class="med-clinic-grid">
+  <div class="med-column">
+   <div class="med-panel"><h3>⌁ VITALWERTE</h3>
+    <div class="med-value-row med-pulse-row"><span>♥ Puls</span><strong class="med-dash">— BPM</strong></div>
+    <div class="med-value-row"><span>◉ SpO₂</span><strong class="med-dash">— %</strong></div>
+    <div class="med-value-row med-lung-row"><span>Atmung</span><strong class="med-dash">— /min</strong></div>
+    <div class="med-value-row"><span>Temperatur</span><strong class="med-dash">— °C</strong></div>
+    <p class="med-muted">Keine Messdaten vorhanden.</p>
+   </div>
+   <div class="med-panel"><h3>EKG / HERZFREQUENZ</h3><svg class="med-mini-ecg" viewBox="0 0 220 36"><path d="M0 18 H220"/></svg><div class="med-muted">Kein EKG-Signal verbunden</div></div>
+  </div>
+  <div class="med-column med-center-column">
+   <div class="med-stage" aria-label="Blauer holografischer Körperscan">
+    <svg class="med-human" viewBox="0 0 360 700" role="img" aria-label="Anatomischer Körperscan von vorn mit Herz, Lunge und Gefäßsystem">
+ <defs>
+  <linearGradient id="medBodyGradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c4f6ff" stop-opacity=".26"/><stop offset=".45" stop-color="#31baf2" stop-opacity=".09"/><stop offset="1" stop-color="#6bdcff" stop-opacity=".2"/></linearGradient>
+  <linearGradient id="medBodyEdge" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b8f3ff"/><stop offset="1" stop-color="#168ac7"/></linearGradient>
+  <filter id="medGlow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <clipPath id="medTorsoClip"><path d="M126 155 Q105 160 83 181 Q66 201 72 254 L93 345 Q99 374 124 386 L113 475 Q108 500 121 519 L132 673 Q134 691 151 691 Q166 691 168 674 L180 510 L192 674 Q194 691 210 691 Q227 691 228 673 L237 519 Q250 500 245 475 L234 386 Q259 374 267 345 L288 254 Q294 201 277 181 Q255 160 234 155 L211 145 L149 145 Z"/></clipPath>
+ </defs>
+ <!-- Ganzkörper-Silhouette -->
+ <g filter="url(#medGlow)">
+  <path class="med-body-shape" fill="url(#medBodyGradient)" stroke="url(#medBodyEdge)" d="M151 28 Q180 12 209 28 Q232 43 229 78 Q226 112 204 132 L204 147 Q221 150 234 155 Q255 160 277 181 Q294 201 288 254 L267 345 Q259 374 237 386 L245 475 Q250 500 237 519 L228 673 Q227 691 210 691 Q194 691 192 674 L180 510 L168 674 Q166 691 151 691 Q134 691 132 673 L121 519 Q108 500 113 475 L124 386 Q99 374 93 345 L72 254 Q66 201 83 181 Q105 160 126 155 Q139 150 156 147 L156 132 Q134 112 131 78 Q128 43 151 28 Z"/>
+  <path class="med-body-detail" d="M156 147 Q180 162 204 147 M126 155 Q180 184 234 155 M111 190 Q180 224 249 190 M105 263 Q180 284 255 263 M124 386 Q180 405 237 386 M123 476 Q180 492 238 476 M151 132 Q180 143 209 132 M180 163 V505 M126 188 Q111 264 130 342 M234 188 Q249 264 230 342 M145 410 L151 665 M215 410 L209 665 M92 225 L56 328 Q51 344 64 350 Q76 355 83 339 L113 263 M268 225 L304 328 Q309 344 296 350 Q284 355 277 339 L247 263"/>
+  <path class="med-body-detail" d="M146 153 Q128 190 138 226 M214 153 Q232 190 222 226 M138 226 Q180 244 222 226 M128 355 Q180 371 232 355 M140 393 Q180 414 220 393"/>
+ </g>
+ <!-- Gefäßbahnen und Rippen -->
+ <g clip-path="url(#medTorsoClip)" class="med-vessels">
+  <path d="M180 170 V320 M180 235 C160 245 151 264 145 290 M180 235 C200 245 209 264 215 290 M180 300 C157 321 150 346 145 370 M180 300 C203 321 210 346 215 370 M180 320 V470 M180 390 C157 408 151 434 147 462 M180 390 C203 408 209 434 213 462" fill="none" stroke="#64dfff" stroke-width="2" opacity=".62"/>
+  <path d="M180 205 Q147 190 123 211 M180 205 Q213 190 237 211 M180 230 Q146 216 119 241 M180 230 Q214 216 241 241 M180 256 Q147 244 118 270 M180 256 Q213 244 242 270 M180 282 Q150 272 120 299 M180 282 Q210 272 240 299" fill="none" stroke="#9beaff" stroke-width="1.2" opacity=".25"/>
+ </g>
+ <!-- Lunge -->
+ <g class="med-lungs" filter="url(#medGlow)">
+  <path d="M174 213 C157 190 137 190 126 213 C112 240 113 294 127 315 C139 333 160 319 169 295 Q177 272 176 238 Z"/>
+  <path d="M186 213 C203 190 223 190 234 213 C248 240 247 294 233 315 C221 333 200 319 191 295 Q183 272 184 238 Z"/>
+ </g>
+ <path d="M180 164 V250 M180 211 C169 218 164 230 160 242 M180 211 C191 218 196 230 200 242" fill="none" stroke="#b8f4ff" stroke-width="4" stroke-linecap="round"/>
+ <!-- Herz und Aorta -->
+ <path d="M180 278 C165 260 139 270 142 294 C145 317 168 336 180 346 C192 336 215 317 218 294 C221 270 195 260 180 278 Z" class="med-heart-core" filter="url(#medGlow)"/>
+ <path d="M180 275 V252 M180 300 C164 298 159 286 154 278 M180 300 C196 298 201 286 206 278" fill="none" stroke="#ff9eae" stroke-width="3" stroke-linecap="round"/>
+ <!-- Kopf-/Gesichtskontur -->
+ <path d="M153 53 Q180 34 207 53 M147 79 Q180 96 213 79 M160 110 Q180 118 200 110" fill="none" stroke="#8ceaff" stroke-width="1.4" opacity=".48"/>
+ <circle cx="180" cy="72" r="48" fill="none" stroke="#8ceaff" stroke-dasharray="2 8" opacity=".45"/>
+</svg>
+   </div>
+  </div>
+  <div class="med-column">
+   <div class="med-panel"><h3>◉ LUNGEN</h3><svg class="med-organ-art lungs" viewBox="0 0 150 105"><path d="M72 12 V43 M78 12 V43 M68 35 C48 16 29 35 25 72 C23 91 43 96 59 79 C68 69 71 52 72 42 M82 35 C102 16 121 35 125 72 C127 91 107 96 91 79 C82 69 79 52 78 42"/></svg><div class="med-muted">Keine Atemmessung · Status unbekannt</div></div>
+   <div class="med-panel"><h3><span class="med-heart-panel-icon">♥</span> HERZ</h3><svg class="med-organ-art" viewBox="0 0 150 105"><path d="M75 28 C57 8 30 20 36 48 C41 68 63 83 75 94 C87 83 109 68 114 48 C120 20 93 8 75 28 Z"/></svg><div class="med-muted">Kein Herzsensor verbunden</div></div>
+   <div class="med-panel"><h3>◉ KREISLAUF</h3><svg class="med-mini-ecg" viewBox="0 0 220 36"><path d="M0 18 H220"/></svg><div class="med-muted">Keine Kreislaufdaten vorhanden</div></div>
+  </div>
+ </div>
+ <div class="med-system">
+  <div class="med-system-box"><h3>⚙ SYSTEMSTATUS</h3><div class="med-missing">Smartwatch: <strong>Nicht verbunden</strong><br>Medizinische Geräte: <strong>Keine Daten</strong><br>Vitaldaten: <strong>Nicht verfügbar</strong></div></div>
+  <div class="med-system-box"><h3>VERBINDUNGEN</h3><div class="med-missing">○ Health Connect<br>○ Herzfrequenzsensor<br>○ SpO₂-Sensor<br>○ Atemmessung</div></div>
+ </div>
+ <div class="med-alert-banner" role="status"><strong id="medAlarmTitle">⚠ ALARM-SIMULATION</strong><span id="medAlarmText">Dies ist ein lokaler Funktionstest – kein medizinischer Alarm.</span><button id="medAlarmSeen" class="med-ack-button" hidden>ALARM GESEHEN</button></div>
+ <div class="med-test-area"><h3>⚠ MEDICAL ALARM-TESTS</h3><p class="med-test-note">Alle Alarme sind Simulationen. Keine echten Messwerte, keine medizinische Überwachung und keine automatische Notruf-Funktion.</p><div class="actions"><button class="primary" id="medHeartTest">HERZ-ALARM TEST</button><button class="primary" id="medLungTest">LUNGENALARM TEST</button><button class="primary" id="medCriticalTest">KRITISCHEN ALARM TESTEN</button><button id="medStopTest">TEST STOPPEN</button></div><div class="med-test-status" id="medTestStatus" aria-live="polite">Testmodus bereit. Kein Alarm aktiv.</div></div>
+ <div class="med-ai-bar"><span style="font-size:25px">✚</span><div><strong>WARVEX MEDICAL AI</strong><small>Medizinische Informationen verständlich erklärt · ersetzt keine ärztliche Untersuchung.</small></div></div>
+</div></section>
+
+<section id="chat" class="page">
+  <div class="card">
+    <h2>WARVEX KI</h2>
+    <p class="muted">Direkt mit der Cloudflare-KI verbunden.</p>
+    <div id="chatMessages" aria-live="polite">
+      <div class="message">WARVEX: Hallo! Was möchtest du wissen?</div>
+    </div>
+    <textarea id="chatInput" placeholder="Schreibe deine Nachricht …"></textarea>
+    <div class="actions">
+      <button class="primary" id="sendBtn">SENDEN</button>
+      <button id="clearChat">CHAT LÖSCHEN</button>
+    </div>
+    <p class="muted" id="chatStatus">Bereit.</p>
+  </div>
+</section>
+
+<section id="voice" class="page">
+  <div class="card">
+    <h2>Sprachsteuerung</h2>
+    <p class="muted">
+      Online-Stimme: VEXARA · WARVEX Sprach-KI. Ersatzstimme: NOVA.
+    </p>
+    <div class="actions">
+      <button class="primary" id="directBtn">SPRACHBEFEHL</button>
+      <button id="wakeBtn">HEY WARVEX</button>
+      <button id="stopBtn">STOP</button>
+      <button id="testVoiceBtn">STIMME TESTEN</button>
+    </div>
+    <div class="status" id="voiceStatus">Sprachsteuerung ausgeschaltet.</div>
+    <p class="muted" id="ttsStatus">Sprachsystem wird geprüft …</p>
+    <p class="muted" id="diagnosticStatus">Diagnose noch nicht gestartet.</p>
+  </div>
+</section>
+
+<section id="code" class="page">
+  <div class="card">
+    <h2>WARVEX CODE STUDIO</h2>
+    <p class="muted">Erstelle und erkläre eigenständige Code-Beispiele mit WARVEX. Die KI erhält hier keinen Inhalt deiner Website-Dateien.</p>
+    <h3>Deine Programmierfrage</h3>
+    <textarea id="codePrompt" placeholder="Beispiel: Erstelle eine einfache digitale Uhr in HTML, CSS und JavaScript."></textarea>
+    <div class="actions">
+      <button class="primary" id="codeAskBtn">CODE ERSTELLEN</button>
+      <button id="codeExplainBtn">CODE ERKLÄREN</button>
+    </div>
+    <p class="muted" id="codeStatus">Programmier-KI bereit.</p>
+    <h3>Dein Code-Ergebnis</h3>
+    <pre class="status" id="codeAnswer" style="white-space:pre-wrap;overflow-wrap:anywhere">Hier erscheint dein erzeugter Code.</pre>
+    <div class="actions"><button class="primary" id="copyAnswerBtn">CODE KOPIEREN</button></div>
+  </div>
+  <div class="card">
+    <h2>GitHub-Verbindung</h2>
+    <p class="muted">Automatische Übertragung wird erst nach einer sicheren GitHub-OAuth-Verbindung aktiviert. Es wird kein GitHub-Token auf dieser Website gespeichert und die KI erhält keinen Zugriff auf deine Website-Dateien.</p>
+    <div class="status">GitHub-OAuth ist noch nicht eingerichtet. Bis dahin kannst du den erzeugten Code kopieren und selbst in ein dafür vorgesehenes GitHub-Projekt einfügen.</div>
+  </div>
+</section>
+
+<section id="tools" class="page">
+  <div class="card">
+    <h2>System-Tools</h2>
+    <div class="actions">
+      <button id="timeBtn">UHRZEIT</button>
+      <button id="dateBtn">DATUM</button>
+      <button id="batteryBtn">AKKU</button>
+      <button id="internetBtn">INTERNET</button>
+      <button id="diagnoseBtn">DIAGNOSE</button>
+    </div>
+    <div class="status" id="toolResult">Wähle ein Tool aus.</div>
+  </div>
+</section>
+
+<section id="notes" class="page">
+  <div class="card">
+    <h2>Notizen</h2>
+    <textarea id="noteInput" placeholder="Deine Notiz …"></textarea>
+    <div class="actions">
+      <button class="primary" id="saveNote">SPEICHERN</button>
+      <button id="deleteNote">LÖSCHEN</button>
+    </div>
+    <div class="status" id="noteStatus">
+      Notizen werden lokal in diesem Browser gespeichert.
+    </div>
+  </div>
+</section>
+
+<section id="home" class="page">
+  <div class="card">
+    <h2>Smart Home Demo</h2>
+    <p class="muted">
+      Diese Demo-Schalter steuern noch keine echten Geräte.
+    </p>
+    <div class="actions">
+      <button id="lightBtn">LICHT: AUS</button>
+      <button id="plugBtn">STECKDOSE: AUS</button>
+    </div>
+    <div class="status" id="homeStatus">Demo bereit.</div>
+  </div>
+</section>
+
+</main>
+
+<footer>WARVEX SYSTEMS V6 · Web-App</footer>
+
+<script>
+/* FRÜHDIAGNOSE: fängt Fehler im nachfolgenden Hauptscript ab */
+window.addEventListener("error", function(event) {
+  const message = "JavaScript-Startfehler: " + (event.message || "Unbekannter Fehler") +
+    (event.lineno ? " · Zeile " + event.lineno : "");
+  const status = document.getElementById("systemStatus");
+  const clock = document.getElementById("clock");
+  if (status) status.textContent = message;
+  if (clock) clock.textContent = "JS-FEHLER";
+  console.error(message, event.error || "");
+});
+window.addEventListener("unhandledrejection", function(event) {
+  const message = "Nicht behandelter Fehler: " +
+    (event.reason && event.reason.message ? event.reason.message : String(event.reason));
+  const status = document.getElementById("systemStatus");
+  if (status) status.textContent = message;
+  console.error(message);
+});
+</script>
+<script>
+"use strict";
+
+const $ = id => document.getElementById(id);
+
+const WORKER =
+  "https://warvex-systems-v6.dustina952.workers.dev";
+
+const AI_URL = WORKER + "/api/ai";
+const TTS_URL = WORKER + "/api/tts";
+
+let recognition = null;
+let lightOn = false;
+let plugOn = false;
+let germanVoice = null;
+
+let ttsState = "unknown";
+let outageAnnounced = false;
+let currentAudio = null;
+
+function showPage(name){
+  document.querySelectorAll(".page").forEach(p =>
+    p.classList.toggle("active",p.id===name)
+  );
+
+  document.querySelectorAll("nav button").forEach(b =>
+    b.classList.toggle("active",b.dataset.page===name)
+  );
+}
+
+document.querySelectorAll("[data-page]").forEach(button => {
+  button.addEventListener("click",() =>
+    showPage(button.dataset.page)
+  );
+});
+
+document.querySelectorAll("[data-open]").forEach(button => {
+  button.addEventListener("click",() =>
+    showPage(button.dataset.open)
+  );
+});
+
+/* UHR UND DATUM */
+
+function updateClock(){
+  const now = new Date();
+  $("clock").textContent = now.toLocaleTimeString("de-DE");
+  $("date").textContent = now.toLocaleDateString("de-DE",{
+    weekday:"long",
+    day:"2-digit",
+    month:"long",
+    year:"numeric"
+  });
+}
+
+updateClock();
+setInterval(updateClock,1000);
+
+/* INTERNET */
+
+function updateInternet(){
+  $("internet").textContent =
+    navigator.onLine ? "Verbunden" : "Offline";
+}
+
+window.addEventListener("online",updateInternet);
+window.addEventListener("offline",updateInternet);
+updateInternet();
+
+/* AKKU */
+
+async function updateBattery(){
+  if(!navigator.getBattery){
+    $("battery").textContent="Nicht verfügbar";
+    return;
+  }
+
+  try{
+    const battery=await navigator.getBattery();
+
+    const update=()=>{
+      $("battery").textContent =
+        Math.round(battery.level*100)+"%"+
+        (battery.charging?" · Lädt":"");
+    };
+
+    update();
+    battery.addEventListener("levelchange",update);
+    battery.addEventListener("chargingchange",update);
+  }catch(error){
+    $("battery").textContent="Nicht verfügbar";
+  }
+}
+
+updateBattery();
+
+/* DEUTSCHE ERSATZSTIMME */
+
+function chooseGermanVoice(){
+  if(!("speechSynthesis" in window)) return;
+
+  const voices=window.speechSynthesis.getVoices()||[];
+
+  const list=voices.filter(v =>
+    /^de([_-]|$)/i.test(v.lang||"")
+  );
+
+  list.sort((a,b)=>{
+    const score=v=>{
+      let n=0;
+      const name=(v.name||"").toLowerCase();
+
+      if(/^de[-_]de/i.test(v.lang)) n+=8;
+      if(name.includes("google")) n+=6;
+      if(name.includes("german")||name.includes("deutsch")) n+=4;
+      if(v.localService) n+=2;
+
+      return n;
+    };
+
+    return score(b)-score(a);
+  });
+
+  germanVoice=list[0]||null;
+}
+
+if("speechSynthesis" in window){
+  chooseGermanVoice();
+  speechSynthesis.addEventListener(
+    "voiceschanged",chooseGermanVoice
+  );
+}
+
+/* BROWSER-TTS ALS ERSATZ */
+
+function prepareSpeechText(text){
+  return String(text||"")
+    .replace(/\bWARVEX\b/gi,"Warwex")
+    .replace(/\bWARFAX\b/gi,"Warwex")
+    .replace(/\bVEXARA\b/gi,"Vexara");
+}
+
+function speakWithBrowser(text){
+  return new Promise((resolve,reject)=>{
+    if(!("speechSynthesis" in window) ||
+       typeof SpeechSynthesisUtterance==="undefined"){
+      reject(new Error("Browser-Sprachausgabe nicht verfügbar."));
+      return;
+    }
+
+    chooseGermanVoice();
+
+    const utterance=new SpeechSynthesisUtterance(prepareSpeechText(text));
+    utterance.lang="de-DE";
+    utterance.rate=0.82;
+    utterance.pitch=1;
+    utterance.volume=1;
+
+    if(germanVoice) utterance.voice=germanVoice;
+
+    utterance.onend=()=>resolve();
+    utterance.onerror=e=>
+      reject(new Error(e.error||"Browser-TTS-Fehler"));
+
+    speechSynthesis.cancel();
+    speechSynthesis.speak(utterance);
+  });
+}
+
+/* ONLINE-TTS */
+
+async function requestVexara(text){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),20000);
+
+  try{
+    const response=await fetch(TTS_URL,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({text:prepareSpeechText(text)}),
+      signal:controller.signal
+    });
+
+    if(!response.ok){
+      let detail="";
+      try{
+        detail=await response.text();
+      }catch(e){}
+
+      throw new Error(
+        "Online-TTS HTTP "+response.status+" "+detail.slice(0,150)
+      );
+    }
+
+    const contentType=(response.headers.get("content-type")||"").toLowerCase();
+
+    if(contentType.includes("application/json") || contentType.includes("text/")){
+      const detail=await response.text();
+      let message=detail.slice(0,220);
+      try{
+        const data=JSON.parse(detail);
+        message=data.error||data.message||data.details||message;
+      }catch(e){}
+      throw new Error("VEXARA lieferte statt Audio eine Meldung: "+message);
+    }
+
+    const blob=await response.blob();
+
+    if(!blob.size){
+      throw new Error("VEXARA lieferte eine leere Audiodatei.");
+    }
+
+    if(!contentType.startsWith("audio/") && contentType!=="application/octet-stream"){
+      throw new Error("Unerwarteter Audio-Typ: "+(contentType||"unbekannt"));
+    }
+
+    return blob;
+  }finally{
+    clearTimeout(timer);
+  }
+}
+
+/* AUDIO ABSPIELEN */
+
+async function playAudioBlob(blob){
+  if(currentAudio){
+    currentAudio.pause();
+    currentAudio=null;
+  }
+
+  if("speechSynthesis" in window){
+    speechSynthesis.cancel();
+  }
+
+  const url=URL.createObjectURL(blob);
+  const audio=new Audio(url);
+  currentAudio=audio;
+
+  try{
+    await audio.play();
+
+    await new Promise((resolve,reject)=>{
+      audio.onended=resolve;
+      audio.onerror=()=>reject(
+        new Error("Audiodatei konnte nicht abgespielt werden.")
+      );
+    });
+  }finally{
+    audio.pause();
+    URL.revokeObjectURL(url);
+    if(currentAudio===audio) currentAudio=null;
+  }
+}
+
+/* DREI TTS-ZUSTÄNDE */
+
+const OUTAGE_MESSAGE =
+  "VEXARA antwortet gerade nicht. Hi, ich bin NOVA, das schwächere Ersatzsystem von WARVEX.";
+
+const RECOVERY_MESSAGE =
+  "VEXARA ist wieder online und wieder aktiv.";
+
+function updateTtsStatus(message){
+  $("ttsStatus").textContent=message;
+}
+
+let lastVexaraError="";
+
+async function say(text){
+  const spokenText=String(text||"").trim();
+  if(!spokenText) return;
+
+  updateTtsStatus("Online-Sprachsystem wird verwendet …");
+
+  try{
+    const audio=await requestVexara(spokenText);
+
+    /* War das System vorher ausgefallen? */
+    if(ttsState==="fallback"||ttsState==="none"){
+      updateTtsStatus("Online-Sprachsystem wieder verfügbar.");
+
+      try{
+        const recoveryAudio=await requestVexara(RECOVERY_MESSAGE);
+        await playAudioBlob(recoveryAudio);
+      }catch(error){
+        try{
+          await speakWithBrowser(RECOVERY_MESSAGE);
+        }catch(browserError){
+          updateTtsStatus(
+            "Online-TTS wieder da. Wiederherstellungsmeldung " +
+            "konnte nicht gesprochen werden."
+          );
+        }
+      }
+
+      ttsState="online";
+      outageAnnounced=false;
+    }else{
+      ttsState="online";
+    }
+
+    updateTtsStatus("VEXARA Online-TTS: aktiv.");
+    await playAudioBlob(audio);
+    return;
+
+  }catch(error){
+    lastVexaraError=error && error.message ? error.message : String(error);
+    console.warn("VEXARA Online-TTS nicht verfügbar:",error);
+  }
+
+  /* Online-System ist ausgefallen */
+  if(!outageAnnounced){
+    outageAnnounced=true;
+
+    try{
+      await speakWithBrowser(OUTAGE_MESSAGE);
+    }catch(error){
+      updateTtsStatus(
+        "Keine Sprachausgabe verfügbar. Online-TTS und Ersatz-TTS " +
+        "funktionieren nicht."
+      );
+    }
+  }
+
+  /* Ersatzsystem versuchen */
+  try{
+    await speakWithBrowser(spokenText);
+    ttsState="fallback";
+    updateTtsStatus(
+      "NOVA-Ersatzstimme aktiv. VEXARA-Fehler: "+
+      (lastVexaraError||"Online-Sprachdienst antwortet nicht.")
+    );
+  }catch(error){
+    ttsState="none";
+    updateTtsStatus(
+      "Keine Sprachausgabe verfügbar. Bitte Browser und TTS prüfen."
+    );
+    $("voiceStatus").textContent=
+      "Keine Sprachausgabe verfügbar. "+error.message;
+  }
+}
+
+/* KI-VERBINDUNG */
+
+let lastAIDiagnostic = "Noch keine KI-Diagnose vorhanden.";
+
+function setAIDiagnostic(message){
+  lastAIDiagnostic=String(message||"Unbekannter Fehler");
+  const el=$("diagnosticStatus");
+  if(el) el.textContent="KI-Diagnose: "+lastAIDiagnostic;
+  console.warn("[WARVEX KI-Diagnose]",lastAIDiagnostic);
+}
+
+function describeAIStatus(status){
+  if(status===400) return "HTTP 400: Anfrage wurde vom Worker/API abgelehnt (Eingabe prüfen).";
+  if(status===401) return "HTTP 401: Authentifizierung fehlt oder ist ungültig.";
+  if(status===403) return "HTTP 403: Zugriff verweigert; Berechtigung oder Worker-Regel prüfen.";
+  if(status===404) return "HTTP 404: /api/ai wurde nicht gefunden; Worker-Route prüfen.";
+  if(status===408) return "HTTP 408: Zeitüberschreitung bei der Anfrage.";
+  if(status===413) return "HTTP 413: Anfrage ist zu groß.";
+  if(status===429) return "HTTP 429: Limit oder Rate-Limit erreicht.";
+  if(status>=500) return "HTTP "+status+": Server-/Worker-Fehler.";
+  return "HTTP "+status+": Anfrage fehlgeschlagen.";
+}
+
+async function askAI(prompt){
+  let response;
+  try{
+    response=await fetch(AI_URL,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({prompt}),
+      cache:"no-store"
+    });
+  }catch(error){
+    const detail=error&&error.message?error.message:String(error);
+    const diagnosis=!navigator.onLine
+      ? "Gerät ist offline. Internetverbindung fehlt."
+      : "Netzwerkfehler beim Aufruf von /api/ai. Browser meldet '"+detail+"'. Mögliche Ursachen: Worker nicht erreichbar, CORS-Preflight blockiert oder Netzwerk/DNS-Problem. Der Browser kann diese Ursachen nicht allein sicher unterscheiden.";
+    setAIDiagnostic(diagnosis);
+    throw new Error(diagnosis);
+  }
+
+  const raw=await response.text().catch(()=> "");
+  let data=null;
+  try{data=raw?JSON.parse(raw):null;}catch(_){}
+
+  if(!response.ok){
+    const detail=data&&(data.error||data.message)
+      ? String(data.error||data.message).slice(0,350)
+      : raw.slice(0,350);
+    const diagnosis=describeAIStatus(response.status)
+      +(detail?" Servermeldung: "+detail:"");
+    setAIDiagnostic(diagnosis);
+    throw new Error(diagnosis);
+  }
+
+  if(!data||data.success!==true){
+    const detail=data&&(data.error||data.message)
+      ? String(data.error||data.message).slice(0,350)
+      : raw.slice(0,350);
+    const diagnosis="HTTP "+response.status+": Worker antwortet, aber das erwartete JSON-Format fehlt oder success ist nicht true."
+      +(detail?" Antwort: "+detail:"");
+    setAIDiagnostic(diagnosis);
+    throw new Error(diagnosis);
+  }
+
+  const answer=data.response||data.result||data.text;
+  if(typeof answer!=="string"||!answer.trim()){
+    const diagnosis="Worker erreichbar, aber die KI-Antwort ist leer. Prüfe die OpenAI-/Workers-AI-Antwort im Worker.";
+    setAIDiagnostic(diagnosis);
+    throw new Error(diagnosis);
+  }
+
+  setAIDiagnostic("Erfolgreich: /api/ai antwortet mit HTTP "+response.status+".");
+  return answer.trim();
+}
+
+/* CHAT */
+
+function addMessage(who,text){
+  const el=document.createElement("div");
+  el.className="message"+(who==="Du"?" user":"");
+  el.textContent=who+": "+text;
+  $("chatMessages").appendChild(el);
+  el.scrollIntoView({behavior:"smooth",block:"end"});
+}
+
+function warvexOriginAnswer(prompt){
+  const q=String(prompt||"").toLocaleLowerCase("de-DE")
+    .replace(/[ä]/g,"ae").replace(/[ö]/g,"oe").replace(/[ü]/g,"ue");
+
+  const asksAboutGame=/\b(spiel|game|videospiel|shooter)\b/i.test(q)
+    && !/\b(dich|deine ki|dein system)\b/i.test(q);
+  if(asksAboutGame) return null;
+
+  const asksIdentity=
+    /\b(wer bist du|was bist du|stell dich vor|wie stellst du dich vor)\b/i.test(q)
+    || /\b(was ist deine aufgabe|was sind deine aufgaben|was kannst du|wofuer bist du da|welche funktion hast du)\b/i.test(q);
+
+  if(asksIdentity){
+    return "Ich bin WARVEX – ein digitaler KI-Assistent von WARVEX SYSTEMS. Ich unterstütze dich bei Fragen, Ideen, Recherche, Planung und technischen Aufgaben. Je nach aktivierten Funktionen kann ich auch Sprache verarbeiten und weitere Systemfunktionen nutzen. WARVEX SYSTEMS ist ein kleines, technologieorientiertes Unternehmen, das digitale Lösungen und KI-gestützte Anwendungen entwickelt. Mein Ziel ist es, Informationen verständlich aufzubereiten und dich zuverlässig bei deinen Aufgaben zu unterstützen. 🚀";
+  }
+
+  const asksCreator=
+    /\bwer\b.{0,70}\b(hat|hast|ist|war|steckt|entwickelt|programmiert|erfunden|gebaut|erstellt|gemacht)\b/i.test(q)
+    && /\b(dich|du|dein|deine|warvex|warfax|entwickler|entwicklerin|schoepfer|erfinder|programmierer)\b/i.test(q);
+  const asksCreatorDirect=
+    /\b(wer hat dich erfunden|wer hat dich entwickelt|wer hat dich programmiert|wer steckt hinter warvex)\b/i.test(q)
+    || /\b(warvex)\b.{0,60}\b(erfinder|entwickler|programmierer|schoepfer)\b/i.test(q);
+
+  if(!(asksCreator || asksCreatorDirect)) return null;
+  return "WARVEX SYSTEMS wurde von Dustin_Kawasaki gegründet und entwickelt. ChatGPT hat bei der technischen Umsetzung und Programmierung unterstützt. 🚀";
+}
+
+async function sendChat(){
+  const prompt=$("chatInput").value.trim();
+  if(!prompt)return;
+
+  if(medicalAwaitingConfirmation){
+    $("chatInput").value="";
+    addMessage("Du",prompt);
+    const normalized=prompt.toLocaleLowerCase("de-DE").replace(/[.!?]/g,"").trim();
+    if(normalized==="ich habe den alarm gesehen"){
+      medicalAwaitingConfirmation=false;
+      stopMedicalTest(true);
+      $("medTestStatus").textContent="Alarm im Test bestätigt. Die Simulation wurde beendet.";
+      $("medTestStatus").classList.remove("med-alert");
+      addMessage("WARVEX MEDICAL","Bestätigung erhalten: Du hast den Alarm gesehen. Der Testalarm wurde beendet. Das bestätigt nur deine Wahrnehmung und sagt nichts über deinen Gesundheitszustand aus.");
+      $("chatStatus").textContent="WARVEX MEDICAL: Testalarm bestätigt.";
+    }else{
+      addMessage("WARVEX MEDICAL","Zur Bestätigung schreibe bitte genau: Ich habe den Alarm gesehen.");
+      $("chatStatus").textContent="Bestätigung noch offen.";
+    }
+    return;
+  }
+  addMessage("Du",prompt);
+  $("sendBtn").disabled=true;
+  $("chatStatus").textContent="WARVEX fragt die KI …";
+
+  try{
+    const originAnswer=warvexOriginAnswer(prompt);
+    const answer=originAnswer || await askAI(prompt);
+    addMessage("WARVEX",answer);
+    $("chatStatus").textContent=originAnswer?"WARVEX-Herkunftsinformation.":"KI verbunden.";
+  }catch(error){
+    const detail=error && error.message ? error.message : String(error);
+    addMessage("WARVEX","Die KI-Verbindung ist gerade nicht erreichbar. ("+detail+")");
+    $("chatStatus").textContent="KI-Verbindung fehlgeschlagen. Internet/Worker prüfen.";
+  }finally{
+    $("sendBtn").disabled=false;
+  }
+}
+
+$("sendBtn").addEventListener("click",sendChat);
+
+$("chatInput").addEventListener("keydown",e=>{
+  if(e.key==="Enter"&&!e.shiftKey){
+    e.preventDefault();
+    sendChat();
+  }
+});
+
+$("clearChat").addEventListener("click",()=>{
+  $("chatMessages").replaceChildren();
+  addMessage("WARVEX","Chat wurde geleert.");
+});
+
+/* ISOLIERTES CODE STUDIO: keine Website-Dateien werden geladen oder an die KI gesendet. */
+let lastCodeAnswer="";
+async function codeAsk(mode){
+ const prompt=$("codePrompt").value.trim();
+ if(!prompt){$("codeStatus").textContent="Bitte schreibe zuerst deine Programmierfrage.";return;}
+ const instruction=mode==="explain"
+  ?"Du bist WARVEX CODE ASSISTANT. Erkläre die Nutzerfrage oder ausdrücklich eingefügten Code auf Deutsch. Erfinde keine Testergebnisse.\n"
+  :"Du bist WARVEX CODE ASSISTANT. Erstelle auf Deutsch einen vollständigen, eigenständigen Code passend zur Aufgabe. Verwende Codeblöcke. Behaupte nicht, Dateien bearbeitet oder getestet zu haben.\n";
+ $("codeAskBtn").disabled=true;$("codeExplainBtn").disabled=true;
+ $("codeStatus").textContent="WARVEX erstellt die Antwort …";$("codeAnswer").textContent="Bitte warten …";
+ try{lastCodeAnswer=await askAI(instruction+"\nAufgabe:\n"+prompt);$("codeAnswer").textContent=lastCodeAnswer;$("codeStatus").textContent="Code-Ergebnis bereit. Noch nicht auf GitHub übertragen.";}
+ catch(error){lastCodeAnswer="";$("codeAnswer").textContent="KI-Fehler: "+error.message;$("codeStatus").textContent="Erstellung fehlgeschlagen.";}
+ finally{$("codeAskBtn").disabled=false;$("codeExplainBtn").disabled=false;}
+}
+$("codeAskBtn").addEventListener("click",()=>codeAsk("create"));
+$("codeExplainBtn").addEventListener("click",()=>codeAsk("explain"));
+$("copyAnswerBtn").addEventListener("click",async()=>{
+ if(!lastCodeAnswer){$("codeStatus").textContent="Es gibt noch keinen Code zum Kopieren.";return;}
+ try{await navigator.clipboard.writeText(lastCodeAnswer);$("codeStatus").textContent="Ergebnis kopiert.";}
+ catch(error){$("codeStatus").textContent="Kopieren nicht möglich. Bitte Ergebnis markieren.";}
+});
+/* SPRACHSTEUERUNG */
+function localCommand(text){
+  const q=String(text||"").toLowerCase().trim();
+  if(q.includes("uhrzeit")||q==="uhr") return "Es ist "+new Date().toLocaleTimeString("de-DE")+".";
+  if(q.includes("datum")) return "Heute ist "+new Date().toLocaleDateString("de-DE")+".";
+  if(q.includes("öffne chat")||q==="chat"){showPage("chat");return "KI-Chat geöffnet.";}
+  if(q.includes("öffne start")||q==="start"){showPage("start");return "Startseite geöffnet.";}
+  if(q.includes("öffne tools")||q==="tools"){showPage("tools");return "System-Tools geöffnet.";}
+  if(q.includes("öffne notizen")||q==="notizen"){showPage("notes");return "Notizen geöffnet.";}
+  if(q.includes("smart home")||q.includes("öffne home")){showPage("home");return "Smart-Home-Demo geöffnet.";}
+  return null;
+}
+
+async function processVoice(text){
+  const local=localCommand(text);
+  if(local){$("voiceStatus").textContent=local;await say(local);return;}
+
+  /* Identitätsfragen lokal beantworten, damit sie auch bei einem
+     vorübergehenden KI-/Netzwerkfehler funktionieren. */
+  const identityAnswer=warvexOriginAnswer(text);
+  if(identityAnswer){
+    $("voiceStatus").textContent=identityAnswer;
+    await say(identityAnswer);
+    return;
+  }
+
+  $("voiceStatus").textContent="WARVEX verarbeitet deinen Befehl …";
+  try{
+    const answer=await askAI(text);
+    $("voiceStatus").textContent=answer;
+    await say(answer);
+  }catch(error){
+    const detail=error && error.message ? error.message : String(error);
+    const message="Die KI-Verbindung ist gerade nicht erreichbar. Bitte prüfe die Internetverbindung und versuche es erneut. ("+detail+")";
+    $("voiceStatus").textContent=message;
+    await say(message);
+  }
+}
+
+function startListening(mode){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){
+    const message="Dieser Browser unterstützt keine Spracherkennung. Bitte Chrome verwenden.";
+    $("voiceStatus").textContent=message;
+    $("diagnosticStatus").textContent=message;
+    return;
+  }
+  if(recognition){$("voiceStatus").textContent="Die Spracherkennung läuft bereits. Drücke zuerst STOP.";return;}
+  try{
+    const r=new SR();
+    recognition=r;
+    r.lang="de-DE";
+    r.continuous=mode==="wake";
+    r.interimResults=false;
+    r.maxAlternatives=1;
+    r.onstart=()=>{
+      $("voiceStatus").textContent=mode==="wake"?"Hey WARVEX aktiv. Sage Hey WARVEX und deinen Befehl.":"Ich höre zu. Sprich jetzt.";
+      $("diagnosticStatus").textContent="Mikrofon gestartet.";
+    };
+    r.onresult=event=>{
+      for(let i=event.resultIndex;i<event.results.length;i++){
+        if(!event.results[i].isFinal)continue;
+        const spoken=event.results[i][0].transcript.trim();
+        if(!spoken)continue;
+        if(mode==="direct"){processVoice(spoken);r.stop();return;}
+        const lower=spoken.toLowerCase();
+        const at=lower.indexOf("hey warvex");
+        if(at!==-1){
+          const command=spoken.slice(at+11).trim();
+          if(command)processVoice(command);else say("Ich höre.");
+        }
+      }
+    };
+    r.onerror=event=>{
+      const reason="Sprachfehler: "+(event.error||"unbekannt");
+      $("voiceStatus").textContent=reason;
+      $("diagnosticStatus").textContent=reason;
+    };
+    r.onend=()=>{
+      if(recognition===r)recognition=null;
+      $("voiceStatus").textContent="Spracherkennung beendet.";
+    };
+    r.start();
+  }catch(error){
+    recognition=null;
+    $("voiceStatus").textContent="Sprachstart fehlgeschlagen: "+error.message;
+  }
+}
+
+function stopListening(){
+  if(recognition){try{recognition.stop();}catch(error){}recognition=null;}
+  if(currentAudio){currentAudio.pause();currentAudio=null;}
+  if("speechSynthesis" in window)speechSynthesis.cancel();
+  $("voiceStatus").textContent="Sprachsteuerung gestoppt.";
+  $("diagnosticStatus").textContent="Manuell gestoppt.";
+}
+$("directBtn").addEventListener("click",()=>startListening("direct"));
+$("wakeBtn").addEventListener("click",()=>startListening("wake"));
+$("stopBtn").addEventListener("click",stopListening);
+$("testVoiceBtn").addEventListener("click",()=>say("Hallo. Ich bin VEXARA, die Online-Sprach-KI von WARVEX SYSTEMS."));
+
+
+/* WARVEX MEDICAL ALARM-TEST – lokale Simulation, keine Sensorüberwachung */
+let medicalAlarmTimer=null, medicalEscalationTimer=null, medicalAudioContext=null;
+let medicalAlarmMode=null, medicalAlarmLevel=1, medicalElapsedSeconds=0;
+let medicalAwaitingConfirmation=false;
+
+function stopMedicalTest(silent=false){
+ if(medicalAlarmTimer){clearInterval(medicalAlarmTimer);medicalAlarmTimer=null;}
+ if(medicalEscalationTimer){clearInterval(medicalEscalationTimer);medicalEscalationTimer=null;}
+ medicalAlarmMode=null;medicalAlarmLevel=1;medicalElapsedSeconds=0;
+ $("medical").classList.remove("heart-alarm-active","lung-alarm-active","critical-alarm-active");
+ const seen=$("medAlarmSeen");if(seen)seen.hidden=true;
+ if(medicalAudioContext){try{medicalAudioContext.close();}catch(error){}medicalAudioContext=null;}
+ if(!silent&&$("medTestStatus")){
+  $("medTestStatus").textContent="Test gestoppt. Keine echte Messung aktiv.";
+  $("medTestStatus").classList.remove("med-alert");
+ }
+}
+
+function medicalTone(freq, startAt, duration, volume){
+ const now=medicalAudioContext.currentTime+startAt;
+ const osc=medicalAudioContext.createOscillator();
+ const gain=medicalAudioContext.createGain();
+ osc.type="square";
+ osc.frequency.setValueAtTime(freq,now);
+ gain.gain.setValueAtTime(.0001,now);
+ gain.gain.exponentialRampToValueAtTime(volume,now+.012);
+ gain.gain.setValueAtTime(volume,now+duration*.65);
+ gain.gain.exponentialRampToValueAtTime(.0001,now+duration);
+ osc.connect(gain);gain.connect(medicalAudioContext.destination);
+ osc.start(now);osc.stop(now+duration+.015);
+}
+
+function medicalBeep(){
+ try{
+  const AC=window.AudioContext||window.webkitAudioContext;
+  if(!AC)return;
+  if(!medicalAudioContext||medicalAudioContext.state==="closed")medicalAudioContext=new AC();
+  if(medicalAudioContext.state==="suspended")medicalAudioContext.resume();
+  const volume=[.075,.095,.12][medicalAlarmLevel-1];
+  const pitchShift=[0,120,240][medicalAlarmLevel-1];
+  if(medicalAlarmMode==="heart"){
+    medicalTone(920+pitchShift,0,.16,volume);
+    medicalTone(1180+pitchShift,.23,.16,volume);
+  }else if(medicalAlarmMode==="lungs"){
+    medicalTone(620+pitchShift,0,.34,volume);
+    medicalTone(760+pitchShift,.48,.34,volume);
+  }else{
+    medicalTone(1120+pitchShift,0,.13,volume);
+    medicalTone(1420+pitchShift,.19,.13,volume);
+    medicalTone(1120+pitchShift,.38,.13,volume);
+  }
+ }catch(error){
+  const status=$("medTestStatus");
+  if(status)status.textContent="Alarmanzeige aktiv; Audiowiedergabe wird vom Browser blockiert.";
+ }
+}
+
+function updateMedicalEscalation(){
+ medicalElapsedSeconds++;
+ const nextLevel=Math.min(3,1+Math.floor(medicalElapsedSeconds/10));
+ if(nextLevel>medicalAlarmLevel){
+  medicalAlarmLevel=nextLevel;
+  const status=$("medTestStatus");
+  if(status)status.textContent="SIMULATION · Eskalationsstufe "+medicalAlarmLevel+"/3 · seit "+medicalElapsedSeconds+" Sekunden unbeantwortet. Tonmuster und Lautstärke steigen kontrolliert.";
+  const title=$("medAlarmTitle");
+  if(title)title.textContent="⚠ "+(medicalAlarmMode==="heart"?"HERZ":medicalAlarmMode==="lungs"?"LUNGEN":"KRITISCHER")+" ALARM – STUFE "+medicalAlarmLevel+"/3 · TEST";
+  medicalBeep();
+ }
+}
+
+function startMedicalTest(mode){
+ medicalAwaitingConfirmation=false;
+ stopMedicalTest(true);
+ medicalAlarmMode=mode;medicalAlarmLevel=1;medicalElapsedSeconds=0;
+ const page=$("medical"),status=$("medTestStatus"),seen=$("medAlarmSeen");
+ page.classList.add(mode==="heart"?"heart-alarm-active":mode==="lungs"?"lung-alarm-active":"critical-alarm-active");
+ const label=mode==="heart"?"HERZ-ALARM":mode==="lungs"?"LUNGENALARM":"KRITISCHER ALARM";
+ $("medAlarmTitle").textContent="⚠ "+label+" – TEST";
+ $("medAlarmText").textContent="SIMULATION: Dieser Alarm wurde manuell gestartet. Es liegen keine echten Messdaten vor.";
+ if(seen)seen.hidden=false;
+ status.textContent="SIMULATION · "+label+" läuft. Ohne Bestätigung steigt die Alarmstufe alle 10 Sekunden bis Stufe 3.";
+ status.classList.add("med-alert");
+ medicalBeep();
+ medicalAlarmTimer=setInterval(medicalBeep,1400);
+ medicalEscalationTimer=setInterval(updateMedicalEscalation,1000);
+}
+
+$("medHeartTest").addEventListener("click",()=>startMedicalTest("heart"));
+$("medLungTest").addEventListener("click",()=>startMedicalTest("lungs"));
+$("medCriticalTest").addEventListener("click",()=>startMedicalTest("critical"));
+$("medStopTest").addEventListener("click",()=>{
+ medicalAwaitingConfirmation=false;
+ stopMedicalTest();
+});
+$("medAlarmSeen").addEventListener("click",()=>{
+ if(!medicalAlarmMode)return;
+ medicalAwaitingConfirmation=true;
+ showPage("chat");
+ addMessage("WARVEX MEDICAL","Du hast auf „Alarm gesehen“ gedrückt. Bitte bestätige jetzt, dass du den Alarm wahrgenommen hast. Schreibe exakt: Ich habe den Alarm gesehen.");
+ $("chatStatus").textContent="WARVEX MEDICAL wartet auf deine Textbestätigung.";
+ $("chatInput").focus();
+});
+
+/* SYSTEM-TOOLS */
+$("timeBtn").addEventListener("click",()=>$("toolResult").textContent="Uhrzeit: "+new Date().toLocaleTimeString("de-DE"));
+$("dateBtn").addEventListener("click",()=>$("toolResult").textContent="Datum: "+new Date().toLocaleDateString("de-DE"));
+$("batteryBtn").addEventListener("click",()=>$("toolResult").textContent="Akku: "+$("battery").textContent);
+$("internetBtn").addEventListener("click",()=>{updateInternet();$("toolResult").textContent="Internet: "+$("internet").textContent;});
+$("diagnoseBtn").addEventListener("click",()=>{
+  $("toolResult").textContent="Web-App aktiv. Internet: "+(navigator.onLine?"verbunden":"offline")+
+    ". Spracherkennung: "+(window.SpeechRecognition||window.webkitSpeechRecognition?"unterstützt":"nicht unterstützt")+
+    ". Online-TTS: "+TTS_URL;
+  $("diagnosticStatus").textContent="Diagnose abgeschlossen.";
+});
+
+/* NOTIZEN */
+try{$("noteInput").value=localStorage.getItem("warvex_note")||"";}catch(error){}
+$("saveNote").addEventListener("click",()=>{
+  try{localStorage.setItem("warvex_note",$("noteInput").value);$("noteStatus").textContent="Notiz gespeichert.";}
+  catch(error){$("noteStatus").textContent="Speichern nicht möglich: "+error.message;}
+});
+$("deleteNote").addEventListener("click",()=>{
+  $("noteInput").value="";
+  try{localStorage.removeItem("warvex_note");}catch(error){}
+  $("noteStatus").textContent="Notiz gelöscht.";
+});
+
+/* SMART-HOME-DEMO */
+$("lightBtn").addEventListener("click",()=>{
+  lightOn=!lightOn;
+  $("lightBtn").textContent="LICHT: "+(lightOn?"AN":"AUS");
+  $("homeStatus").textContent="Demo-Licht "+(lightOn?"eingeschaltet.":"ausgeschaltet.");
+});
+$("plugBtn").addEventListener("click",()=>{
+  plugOn=!plugOn;
+  $("plugBtn").textContent="STECKDOSE: "+(plugOn?"AN":"AUS");
+  $("homeStatus").textContent="Demo-Steckdose "+(plugOn?"eingeschaltet.":"ausgeschaltet.");
+});
+
+$("systemStatus").textContent="WARVEX SYSTEMS V6 ist gestartet.";
+$("toolStatus").textContent="Web-App aktiv · KI über Cloudflare · Online-TTS mit automatischem Ersatzsystem.";
+</script>
+</body>
+</html>
