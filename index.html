@@ -332,6 +332,7 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
   <div class="call-controls">
    <button class="primary call-control" id="callBegin">ANRUF STARTEN</button>
    <button class="call-control" id="callMic" disabled>🎙️ MIKRO AUS</button>
+   <button class="call-control" id="callCamera" disabled>📷 KAMERA AUS</button>
    <button class="call-control call-hangup" id="callEnd" disabled>☎ AUFLEGEN</button>
   </div>
   <div class="call-log" id="callLog" aria-live="polite">WARVEX: Ich bin bereit für deinen Anruf.</div>
@@ -1255,7 +1256,7 @@ async function beginWarvexCall(){
   $("callVideo").srcObject=warvexCallStream;
   try{await $("callVideo").play();}catch(playError){}
   warvexCallActive=true;warvexCallMicEnabled=true;warvexCallStartedAt=Date.now();
-  $("callEnd").disabled=false;$("callMic").disabled=false;$("callMic").textContent="🎙️ MIKRO AUS";
+  $("callEnd").disabled=false;$("callMic").disabled=false;$("callMic").textContent="🎙️ MIKRO AUS";$("callCamera").disabled=false;$("callCamera").textContent="📷 KAMERA AUS";
   $("callLog").textContent="";callLog("SYSTEM","Kamera und Mikrofon freigegeben.");callLog("SYSTEM","WARVEX wird angerufen …");
   callState("WARVEX klingelt …");$("callAiState").textContent="Eingehender Anruf wird signalisiert";
   $("callTimer").textContent="● VERBINDET";warvexCallClock=setInterval(()=>{if(!warvexCallActive)return;const sec=Math.floor((Date.now()-warvexCallStartedAt)/1000);$("callTimer").textContent="● "+String(Math.floor(sec/60)).padStart(2,"0")+":"+String(sec%60).padStart(2,"0");},1000);
@@ -1277,17 +1278,26 @@ async function beginWarvexCall(){
   callState(message);$("callAiState").textContent="Start fehlgeschlagen";callLog("SYSTEM",message);
  }
 }
+function toggleWarvexCamera(){
+ const track=warvexCallStream?.getVideoTracks()?.[0];
+ if(!track)return;
+ track.enabled=!track.enabled;
+ $("callCamera").textContent=track.enabled?"📷 KAMERA AUS":"📷 KAMERA AN";
+ callState(track.enabled?"Kamera ist eingeschaltet.":"Kamera ist ausgeschaltet · Audioanruf läuft weiter.");
+ callLog("SYSTEM",track.enabled?"Kamera eingeschaltet.":"Kamera ausgeschaltet.");
+}
 function endWarvexCall(){
  warvexCallActive=false;warvexCallBusy=false;stopCallRecognition();stopWarvexRingtone();
  if(warvexCallStream){warvexCallStream.getTracks().forEach(t=>t.stop());warvexCallStream=null;}
  $("callVideo").srcObject=null;
  if(warvexCallClock){clearInterval(warvexCallClock);warvexCallClock=null;}
- $("callBegin").disabled=false;$("callEnd").disabled=true;$("callMic").disabled=true;$("callMic").textContent="🎙️ MIKRO AUS";$("callAiState").textContent="Anruf beendet";$("callTimer").textContent="ANRUF BEENDET";callState("Anruf beendet.");
+ $("callBegin").disabled=false;$("callEnd").disabled=true;$("callMic").disabled=true;$("callCamera").disabled=true;$("callCamera").textContent="📷 KAMERA AUS";$("callMic").textContent="🎙️ MIKRO AUS";$("callAiState").textContent="Anruf beendet";$("callTimer").textContent="ANRUF BEENDET";callState("Anruf beendet.");
  if(currentAudio){currentAudio.pause();currentAudio=null;}if("speechSynthesis" in window)speechSynthesis.cancel();
 }
 $("visionCallStart").addEventListener("click",()=>showPage("visionCall"));
 $("callBegin").addEventListener("click",beginWarvexCall);
 $("callEnd").addEventListener("click",endWarvexCall);
+$("callCamera").addEventListener("click",toggleWarvexCamera);
 $("callMic").addEventListener("click",()=>{warvexCallMicEnabled=!warvexCallMicEnabled;$("callMic").textContent=warvexCallMicEnabled?"🎙️ MIKRO AUS":"🔇 MIKRO AN";if(!warvexCallMicEnabled){stopCallRecognition();callState("Mikrofon pausiert.");}else{callState("Mikrofon aktiv.");startCallRecognition();}});
 $("callBack").addEventListener("click",()=>{endWarvexCall();showPage("vision");});
 window.addEventListener("pagehide",endWarvexCall);
