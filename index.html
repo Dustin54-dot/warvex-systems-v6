@@ -1256,8 +1256,11 @@ $("toolStatus").textContent="Web-App aktiv · KI über Cloudflare · Online-TTS 
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"}}
 </script>
 <script type="module">
-import * as THREE from "https://esm.sh/three@0.170.0";
-import { GLTFLoader } from "https://esm.sh/three@0.170.0/examples/jsm/loaders/GLTFLoader.js";
+// Erst jsDelivr versuchen; wenn das CDN nicht erreichbar ist, automatisch esm.sh verwenden.
+const THREE = await import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js")
+ .catch(() => import("https://esm.sh/three@0.170.0"));
+const { GLTFLoader } = await import("https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/loaders/GLTFLoader.js")
+ .catch(() => import("https://esm.sh/three@0.170.0/examples/jsm/loaders/GLTFLoader.js"));
 
 /* WARVEX MEDICAL – leichtes, fest ausgerichtetes Hologramm mit echten GLB-Modellen. */
 (() => {
@@ -1315,7 +1318,17 @@ import { GLTFLoader } from "https://esm.sh/three@0.170.0/examples/jsm/loaders/GL
  }
  function loadGLB(url){
   return new Promise((resolve,reject)=>{
-   loader.load(url,g=>resolve(g.scene),undefined,reject);
+   let settled=false;
+   const timeout=setTimeout(()=>{
+    if(!settled){settled=true;reject(new Error("Zeitüberschreitung beim Laden des 3D-Modells"));}
+   },25000);
+   loader.load(url,g=>{
+    if(settled)return;
+    settled=true;clearTimeout(timeout);resolve(g.scene);
+   },undefined,error=>{
+    if(settled)return;
+    settled=true;clearTimeout(timeout);reject(error||new Error("3D-Datei nicht erreichbar"));
+   });
   });
  }
  async function addOrgan(url,targetHeight,position,kind){
@@ -1420,7 +1433,7 @@ import { GLTFLoader } from "https://esm.sh/three@0.170.0/examples/jsm/loaders/GL
    animate();
    buildScene().catch(error=>{
     console.error("WARVEX medical GLB:",error);
-    setStatus("3D-MODELL NICHT GELADEN · Internetverbindung oder Modellserver prüfen");
+    setStatus("3D-MODELL NICHT GELADEN · CDN oder Modellserver nicht erreichbar. Bitte Internetverbindung prüfen.");
    });
   }catch(error){
    console.error("WARVEX 3D medical:",error);
