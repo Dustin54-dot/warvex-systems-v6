@@ -73,57 +73,66 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
   .grid{grid-template-columns:1fr}
 }
 
-/* WARVEX MEDICAL – klinische, responsive Gesundheitsoberfläche */
-.medical-page{color:#172b3b}
-.medical-page .med-shell{background:#f4f8fb;color:#172b3b;border:1px solid #d8e3eb;border-radius:18px;padding:clamp(12px,2vw,22px);box-shadow:0 12px 34px #061c2b12}
-.med-topline{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:4px 2px 16px;border-bottom:1px solid #dce6ed}
-.med-brand{font-size:clamp(20px,3vw,28px);font-weight:850;letter-spacing:.4px;color:#123b55}
-.med-device-pill{font-size:11px;font-weight:700;color:#8b5b14;border:1px solid #f0d9a9;background:#fff8e9;padding:8px 11px;border-radius:99px}
-.med-intro{margin:15px 0;padding:14px 16px;background:#eaf4f8;border:1px solid #d3e5ed;border-left:4px solid #2483a6;border-radius:10px}
-.med-intro strong{display:block;color:#16445c;font-size:15px;margin-bottom:4px}
-.med-intro p{margin:0;color:#536a79;font-size:12px;line-height:1.6}
-.med-section-title{display:flex;align-items:center;gap:8px;margin:18px 2px 10px;color:#24465b;font-size:14px;font-weight:800;letter-spacing:.45px}
+/* WARVEX MEDICAL – blaues Klinikmonitor-Design mit animierter EKG-Visualisierung */
+.medical-page{color:#eaf6ff}
+.medical-page .med-shell{background:radial-gradient(ellipse at 50% 0%,#0b3b5b 0%,#06243b 38%,#031321 78%,#020b14 100%);color:#eaf6ff;border:1px solid #17658b;border-radius:18px;padding:clamp(12px,2vw,22px);box-shadow:0 14px 42px #0007,inset 0 0 42px #008bd322}
+.med-topline{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:4px 2px 15px;border-bottom:1px solid #1a6388}
+.med-brand{font-size:clamp(20px,3vw,28px);font-weight:900;letter-spacing:1.2px;color:#80e4ff;text-shadow:0 0 18px #00a9ed66}
+.med-device-pill{font-size:11px;font-weight:750;color:#b8eaff;border:1px solid #287da2;background:#082b43;padding:8px 11px;border-radius:99px}
+.med-intro{margin:14px 0;padding:14px 16px;background:linear-gradient(110deg,#0a3450,#08253b);border:1px solid #1a6488;border-left:4px solid #39bce9;border-radius:10px}
+.med-intro strong{display:block;color:#a3eaff;font-size:15px;margin-bottom:4px}
+.med-intro p{margin:0;color:#b1cbd9;font-size:12px;line-height:1.6}
+.med-section-title{display:flex;align-items:center;gap:8px;margin:18px 2px 10px;color:#91e2ff;font-size:13px;font-weight:850;letter-spacing:1px}
 .med-clinic-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
 .med-column{display:flex;flex-direction:column;gap:12px;min-width:0}
-.med-panel{background:#fff;border:1px solid #dce6ed;border-radius:12px;padding:14px;min-width:0;box-shadow:0 3px 12px #102f4010}
-.med-panel h3{margin:0 0 10px;color:#28536b;font-size:12px;letter-spacing:.7px}
-.med-value-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #edf1f4;font-size:13px;color:#4d6270}
+.med-panel{background:linear-gradient(145deg,#082b43ed,#041727f5);border:1px solid #17658b;border-radius:12px;padding:14px;min-width:0;box-shadow:0 5px 16px #0003,inset 0 0 18px #0876a51a;transition:border-color .2s,box-shadow .2s,background .2s}
+.med-panel h3{margin:0 0 10px;color:#8cdef8;font-size:12px;letter-spacing:.8px}
+.med-value-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #75c8e51c;font-size:13px;color:#c2dce9;transition:color .2s,background .2s}
 .med-value-row:last-child{border-bottom:0}
-.med-dash{color:#1d6685;font-weight:800;letter-spacing:.5px;white-space:nowrap}
-.med-muted{color:#718491;font-size:11px;line-height:1.55;margin:9px 0 0}
-.med-organ-art{width:100%;height:78px;display:block;max-width:180px;margin:0 auto 6px}
-.med-organ-art path{fill:#fbe8e9;stroke:#c65c69;stroke-width:2}
-.med-organ-art.lungs path{fill:#e4f3f8;stroke:#3986a2}
-.med-mini-ecg{width:100%;height:34px;display:block}
-.med-mini-ecg path{fill:none;stroke:#4c9bb5;stroke-width:2;stroke-linecap:round}
+.med-dash{color:#8ee7ff;font-weight:900;letter-spacing:.5px;white-space:nowrap}
+.med-muted{color:#91b2c5;font-size:11px;line-height:1.55;margin:9px 0 0}
+.med-organ-art{width:100%;height:88px;display:block;max-width:180px;margin:0 auto 6px;filter:drop-shadow(0 0 9px #21baff25)}
+.med-organ-art path{fill:#ff52672b;stroke:#ff91a0;stroke-width:2}
+.med-organ-art.lungs path{fill:#38baff24;stroke:#83e4ff}
+.med-mini-ecg{width:100%;height:54px;display:block;overflow:hidden;background:linear-gradient(90deg,#031522aa,#082b43aa);border:1px solid #145477;border-radius:7px}
+.med-ecg-scroll{animation:med-ecg-scroll 3.4s linear infinite}
+.med-ecg-trace{fill:none;stroke:#56d9ff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 3px #20baff88)}
+.med-ecg-grid{stroke:#2a7897;stroke-width:.5;opacity:.38}
 .med-system{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
-.med-system-box{background:#fff;border:1px solid #dce6ed;border-radius:12px;padding:14px}
-.med-system-box h3{margin:0 0 8px;color:#28536b;font-size:12px}
-.med-missing{font-size:12px;color:#627887;line-height:1.9}
-.med-missing strong{color:#344e5e}
-.med-alert-banner{display:none;margin-top:12px;padding:14px;text-align:center;border:2px solid #df5262;border-radius:11px;background:#fff0f1;color:#7e1d2a}
-.med-alert-banner strong{display:block;font-size:clamp(19px,4vw,26px);letter-spacing:.5px;color:#b3273b;margin-bottom:5px}
+.med-system-box{background:linear-gradient(145deg,#082b43,#041727);border:1px solid #17618a;border-radius:12px;padding:14px}
+.med-system-box h3{margin:0 0 8px;color:#8cdef8;font-size:12px}
+.med-missing{font-size:12px;color:#b2cfde;line-height:1.9}
+.med-missing strong{color:#e4f7ff}
+.med-alert-banner{display:none;margin-top:12px;padding:14px;text-align:center;border:2px solid #df5262;border-radius:11px;background:linear-gradient(100deg,#350b19,#701729,#350b19);color:#fff;box-shadow:0 0 24px #ff1e3c55}
+.med-alert-banner strong{display:block;font-size:clamp(19px,4vw,26px);letter-spacing:.7px;color:#ff9eaa;margin-bottom:5px}
 .med-alert-banner span{font-size:12px}
-.med-ack-button{display:block;width:100%;margin-top:12px;padding:14px;background:#b52d40;border:1px solid #8e1c2d;border-radius:8px;color:#fff;font-size:14px;font-weight:850;letter-spacing:.5px}
+.med-ack-button{display:block;width:100%;margin-top:12px;padding:14px;background:#b52d40;border:1px solid #ff9aa5;border-radius:8px;color:#fff;font-size:14px;font-weight:900;letter-spacing:.5px}
 .med-ack-button[hidden]{display:none}
 .medical-page.heart-alarm-active .med-alert-banner,.medical-page.lung-alarm-active .med-alert-banner,.medical-page.critical-alarm-active .med-alert-banner{display:block}
-.med-test-area{margin-top:12px;border:1px solid #ead8b5;background:#fffaf0;border-radius:12px;padding:14px}
-.med-test-area h3{margin:0 0 6px;color:#79551e;font-size:13px}
-.med-test-note{font-size:11px;color:#806b4b;margin:0 0 10px;line-height:1.55}
+.med-test-area{margin-top:12px;border:1px solid #8b6b32;background:linear-gradient(110deg,#30230e,#171407);border-radius:12px;padding:14px}
+.med-test-area h3{margin:0 0 6px;color:#ffda91;font-size:13px}
+.med-test-note{font-size:11px;color:#e2cda4;margin:0 0 10px;line-height:1.55}
 .med-test-area .actions button{flex:1;min-width:125px}
-.med-test-area button{background:#edf2f5;color:#29485a;border:1px solid #ccd9e1}
-.med-test-area button.primary{background:#2e718e;border-color:#2e718e;color:#fff}
-.med-test-status{font-size:12px;color:#526c7b;margin-top:10px;min-height:18px}
-.med-alert{color:#b3273b!important;font-weight:800}
-.med-ai-bar{display:flex;align-items:center;gap:12px;margin-top:12px;padding:14px;border:1px solid #cfe1e9;border-radius:11px;background:#eaf4f8;color:#24566e}
-.med-ai-bar strong{display:block;font-size:13px;letter-spacing:.5px}
-.med-ai-bar small{display:block;color:#5b7180;font-size:11px;margin-top:4px;line-height:1.5}
-.med-disclaimer{margin:12px 2px 2px;color:#647986;font-size:10px;line-height:1.6}
+.med-test-area button{background:#12374d;color:#e8f7ff;border:1px solid #286783}
+.med-test-area button.primary{background:#176487;border-color:#39a4ca;color:#fff}
+.med-test-status{font-size:12px;color:#b9d8e7;margin-top:10px;min-height:18px}
+.med-alert{color:#ff9eaa!important;font-weight:850}
+.med-ai-bar{display:flex;align-items:center;gap:12px;margin-top:12px;padding:14px;border:1px solid #176b92;border-radius:11px;background:linear-gradient(100deg,#06253b,#0a3852);color:#91e3ff}
+.med-ai-bar strong{display:block;font-size:13px;letter-spacing:.6px}
+.med-ai-bar small{display:block;color:#b2d5e5;font-size:11px;margin-top:4px;line-height:1.5}
+.med-disclaimer{margin:12px 2px 2px;color:#91adbd;font-size:10px;line-height:1.6}
+.medical-page.heart-alarm-active .med-pulse-row{color:#ff9eaa;background:#52132366;animation:med-warning-blink .72s steps(2,end) infinite}
+.medical-page.heart-alarm-active .med-pulse-row .med-dash{color:#ff8797}
 .medical-page.heart-alarm-active .med-heart-panel-icon{animation:med-heartbeat .72s ease-in-out infinite}
-.medical-page.heart-alarm-active .med-pulse-row{color:#b3273b}
-.medical-page.lung-alarm-active .med-lung-row{color:#b3273b}
-.medical-page.medical-vibration-active .med-device-pill{outline:2px solid #df5262}
+.medical-page.heart-alarm-active .med-ecg-trace{stroke:#ff7185;filter:drop-shadow(0 0 5px #ff315f);animation:med-ecg-bright .75s ease-in-out infinite alternate}
+.medical-page.lung-alarm-active #medLungPanel{border-color:#ff6679;box-shadow:0 0 0 2px #ff526733,0 0 22px #ff315f44;animation:med-warning-blink .9s steps(2,end) infinite}
+.medical-page.lung-alarm-active .med-lung-row{color:#ff9eaa;background:#52132366;animation:med-warning-blink .9s steps(2,end) infinite}
+.medical-page.critical-alarm-active .med-value-row{animation:med-warning-blink .8s steps(2,end) infinite}
+.medical-page.medical-vibration-active .med-device-pill{border-color:#ff788b;color:#ffd4da;box-shadow:0 0 14px #ff304855}
+@keyframes med-warning-blink{50%{opacity:.35;filter:brightness(1.6)}}
 @keyframes med-heartbeat{0%,100%{transform:scale(1)}12%{transform:scale(1.15)}24%{transform:scale(.98)}38%{transform:scale(1.1)}52%{transform:scale(1)}}
+@keyframes med-ecg-scroll{to{transform:translateX(-220px)}}
+@keyframes med-ecg-bright{to{opacity:.55}}
 @media(max-width:620px){.med-clinic-grid{grid-template-columns:1fr}.med-system{grid-template-columns:1fr}.med-test-area .actions button{min-width:100%}}
 @media(prefers-reduced-motion:reduce){.medical-page *{animation:none!important;scroll-behavior:auto!important}}
 </style>
@@ -198,10 +207,10 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
     <div class="med-value-row"><span>Temperatur</span><strong class="med-dash">— °C</strong></div>
     <p class="med-muted">Noch keine Messdaten vorhanden. Es werden keine Werte geschätzt oder erfunden.</p>
    </div>
-   <div class="med-panel"><h3>HERZFREQUENZ / EKG</h3><svg class="med-mini-ecg" viewBox="0 0 220 36" role="img" aria-label="Kein EKG-Signal"><path d="M0 18 H220"/></svg><div class="med-muted">Kein EKG-Signal verbunden. Ein EKG kann nicht durch eine normale Smartwatch-Anzeige ersetzt werden.</div></div>
+   <div class="med-panel"><h3>EKG-ANZEIGE · VISUELLE SIMULATION</h3><svg class="med-mini-ecg" viewBox="0 0 220 54" role="img" aria-label="Animierte schematische EKG-Linie, kein echtes EKG-Signal"><path class="med-ecg-grid" d="M0 13.5H220 M0 27H220 M0 40.5H220 M55 0V54 M110 0V54 M165 0V54"/><g class="med-ecg-scroll"><path class="med-ecg-trace" d="M0 27 H12 L17 27 L22 24 L27 30 L32 7 L38 46 L44 18 L50 27 H68 L73 27 L78 24 L83 30 L88 7 L94 46 L100 18 L106 27 H124 L129 27 L134 24 L139 30 L144 7 L150 46 L156 18 L162 27 H180 L185 27 L190 24 L195 30 L200 7 L206 46 L212 18 L220 27 M220 27 H232 L237 27 L242 24 L247 30 L252 7 L258 46 L264 18 L270 27 H288 L293 27 L298 24 L303 30 L308 7 L314 46 L320 18 L326 27 H344 L349 27 L354 24 L359 30 L364 7 L370 46 L376 18 L382 27 H400 L405 27 L410 24 L415 30 L420 7 L426 46 L432 18 L440 27"/></g></svg><div class="med-muted">Nur eine animierte Monitor-Grafik. Kein echtes EKG und keine Herzmessung verbunden.</div></div>
   </div>
   <div class="med-column">
-   <div class="med-panel"><h3>ATMUNGSSYSTEM</h3><svg class="med-organ-art lungs" viewBox="0 0 150 105" role="img" aria-label="Schematische Darstellung der Lunge"><path d="M72 12 V43 M78 12 V43 M68 35 C48 16 29 35 25 72 C23 91 43 96 59 79 C68 69 71 52 72 42 M82 35 C102 16 121 35 125 72 C127 91 107 96 91 79 C82 69 79 52 78 42"/></svg><div class="med-muted">Schematische Illustration · keine Atemmessung verfügbar</div></div>
+   <div class="med-panel" id="medLungPanel"><h3>ATMUNGSSYSTEM</h3><svg class="med-organ-art lungs" viewBox="0 0 150 105" role="img" aria-label="Schematische Darstellung der Lunge"><path d="M72 12 V43 M78 12 V43 M68 35 C48 16 29 35 25 72 C23 91 43 96 59 79 C68 69 71 52 72 42 M82 35 C102 16 121 35 125 72 C127 91 107 96 91 79 C82 69 79 52 78 42"/></svg><div class="med-muted">Schematische Illustration · keine Atemmessung verfügbar</div></div>
    <div class="med-panel"><h3>HERZ-KREISLAUF-SYSTEM</h3><svg class="med-organ-art" viewBox="0 0 150 105" role="img" aria-label="Schematische Darstellung des Herzens"><path d="M75 28 C57 8 30 20 36 48 C41 68 63 83 75 94 C87 83 109 68 114 48 C120 20 93 8 75 28 Z"/></svg><div class="med-muted">Schematische Illustration · kein Herzsensor verbunden</div></div>
   </div>
  </div>
