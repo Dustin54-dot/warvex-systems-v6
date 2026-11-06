@@ -223,6 +223,23 @@ main:has(#medical.active){max-width:1500px;padding:clamp(9px,2vw,24px)}
 .medical-page.heart-alarm-active .med-heart-core{animation:med-heartbeat .62s ease-in-out infinite;filter:drop-shadow(0 0 13px #ff294d)}
 .medical-page.lung-alarm-active .med-lungs{animation:med-lungs .85s ease-in-out infinite alternate}
 
+
+/* WARVEX MEDICAL – 3D-Hologram-Upgrade */
+.medical-page .med-stage{perspective:1100px;isolation:isolate}
+.medical-page .med-stage:before{width:78%;height:78%;border-radius:50%;transform:translate(-50%,-50%) rotateX(68deg);box-shadow:0 0 65px #08baff33,inset 0 0 45px #08baff25}
+.medical-page .med-stage:after{width:90%;height:90%;border-radius:50%;transform:translate(-50%,-50%) rotateX(68deg);border-color:#52d9ff66}
+.medical-page .med-human-3d{width:min(100%,390px);height: min(610px,78vh);min-height:430px;overflow:visible;transform:rotateY(-7deg) rotateX(1deg);transform-style:preserve-3d;filter:drop-shadow(0 0 18px #2cc8ff99) drop-shadow(0 16px 24px #00101c);animation:med-float-3d 7s ease-in-out infinite}
+.medical-page .med-human-3d .med-body-shape{fill:url(#medSkin3d);stroke:url(#medEdge3d);stroke-width:2.2}
+.medical-page .med-human-3d .med-depth-back{transform:translateZ(-18px)}
+.medical-page .med-human-3d .med-scan-lines{animation:med-scan-pass 5s linear infinite}
+.medical-page .med-human-3d .med-lungs{transform-box:fill-box;transform-origin:center;filter:drop-shadow(0 0 9px #5adfff99)}
+.medical-page .med-human-3d .med-heart-core{transform-box:fill-box;transform-origin:center;filter:drop-shadow(0 0 12px #ff315f)}
+@keyframes med-float-3d{0%,100%{transform:rotateY(-7deg) translateY(0)}50%{transform:rotateY(7deg) translateY(-7px)}}
+@keyframes med-scan-pass{0%{opacity:.08}50%{opacity:.42}100%{opacity:.08}}
+@media(max-width:850px){.medical-page .med-human-3d{height:min(510px,70vh);min-height:390px;width:min(100%,350px)}}
+@media(max-width:520px){.medical-page .med-human-3d{height:430px;min-height:390px;width:min(100%,340px)}}
+@media(prefers-reduced-motion:reduce){.medical-page .med-human-3d,.medical-page .med-scan-lines{animation:none}}
+
 </style>
 </head>
 <body>
@@ -297,36 +314,71 @@ main:has(#medical.active){max-width:1500px;padding:clamp(9px,2vw,24px)}
   </div>
   <div class="med-column med-center-column">
    <div class="med-stage" aria-label="Blauer holografischer Körperscan">
-    <svg class="med-human" viewBox="0 0 360 700" role="img" aria-label="Anatomischer Körperscan von vorn mit Herz, Lunge und Gefäßsystem">
+    <svg class="med-human med-human-3d" viewBox="0 0 420 720" role="img" aria-label="Dreidimensional wirkender holografischer menschlicher Körperscan mit Herz und Lungen">
  <defs>
-  <linearGradient id="medBodyGradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c4f6ff" stop-opacity=".26"/><stop offset=".45" stop-color="#31baf2" stop-opacity=".09"/><stop offset="1" stop-color="#6bdcff" stop-opacity=".2"/></linearGradient>
-  <linearGradient id="medBodyEdge" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b8f3ff"/><stop offset="1" stop-color="#168ac7"/></linearGradient>
-  <filter id="medGlow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-  <clipPath id="medTorsoClip"><path d="M126 155 Q105 160 83 181 Q66 201 72 254 L93 345 Q99 374 124 386 L113 475 Q108 500 121 519 L132 673 Q134 691 151 691 Q166 691 168 674 L180 510 L192 674 Q194 691 210 691 Q227 691 228 673 L237 519 Q250 500 245 475 L234 386 Q259 374 267 345 L288 254 Q294 201 277 181 Q255 160 234 155 L211 145 L149 145 Z"/></clipPath>
+  <radialGradient id="medSkin3d" cx="34%" cy="22%" r="82%"><stop offset="0" stop-color="#d9fbff" stop-opacity=".42"/><stop offset=".28" stop-color="#65d8ff" stop-opacity=".22"/><stop offset=".68" stop-color="#1476ae" stop-opacity=".12"/><stop offset="1" stop-color="#03182c" stop-opacity=".48"/></radialGradient>
+  <linearGradient id="medEdge3d" x1="0" y1="0" x2="1" y2=".2"><stop stop-color="#e0fcff"/><stop offset=".28" stop-color="#5bdcff"/><stop offset=".7" stop-color="#178fc8"/><stop offset="1" stop-color="#b8f6ff"/></linearGradient>
+  <linearGradient id="medShade3d" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#b5f4ff" stop-opacity=".2"/><stop offset=".45" stop-color="#2cb7ed" stop-opacity=".02"/><stop offset="1" stop-color="#8deaff" stop-opacity=".25"/></linearGradient>
+  <radialGradient id="medOrgan3d"><stop stop-color="#ff8799"/><stop offset=".45" stop-color="#f13c61"/><stop offset="1" stop-color="#8e1238"/></radialGradient>
+  <linearGradient id="medLung3d" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#b4f5ff" stop-opacity=".62"/><stop offset=".5" stop-color="#32b9ed" stop-opacity=".26"/><stop offset="1" stop-color="#0872a9" stop-opacity=".48"/></linearGradient>
+  <filter id="medGlow3d" x="-40%" y="-30%" width="180%" height="170%"><feGaussianBlur stdDeviation="5" result="blur"/><feColorMatrix in="blur" values="0 0 0 0 .05 0 0 0 0 .62 0 0 0 0 1 0 0 0 .75 0" result="cyan"/><feMerge><feMergeNode in="cyan"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <filter id="medSoft3d"><feGaussianBlur stdDeviation="2.2"/></filter>
+  <clipPath id="medTorsoClip3d"><path d="M174 151 Q145 153 119 166 Q83 180 76 218 L91 322 Q98 360 130 380 L119 478 Q112 510 129 535 L139 681 Q141 701 163 701 Q181 700 184 680 L210 520 L236 680 Q239 700 257 701 Q279 701 281 681 L291 535 Q308 510 301 478 L290 380 Q322 360 329 322 L344 218 Q337 180 301 166 Q275 153 246 151 L231 139 L189 139 Z"/></clipPath>
  </defs>
- <!-- Ganzkörper-Silhouette -->
- <g filter="url(#medGlow)">
-  <path class="med-body-shape" fill="url(#medBodyGradient)" stroke="url(#medBodyEdge)" d="M151 28 Q180 12 209 28 Q232 43 229 78 Q226 112 204 132 L204 147 Q221 150 234 155 Q255 160 277 181 Q294 201 288 254 L267 345 Q259 374 237 386 L245 475 Q250 500 237 519 L228 673 Q227 691 210 691 Q194 691 192 674 L180 510 L168 674 Q166 691 151 691 Q134 691 132 673 L121 519 Q108 500 113 475 L124 386 Q99 374 93 345 L72 254 Q66 201 83 181 Q105 160 126 155 Q139 150 156 147 L156 132 Q134 112 131 78 Q128 43 151 28 Z"/>
-  <path class="med-body-detail" d="M156 147 Q180 162 204 147 M126 155 Q180 184 234 155 M111 190 Q180 224 249 190 M105 263 Q180 284 255 263 M124 386 Q180 405 237 386 M123 476 Q180 492 238 476 M151 132 Q180 143 209 132 M180 163 V505 M126 188 Q111 264 130 342 M234 188 Q249 264 230 342 M145 410 L151 665 M215 410 L209 665 M92 225 L56 328 Q51 344 64 350 Q76 355 83 339 L113 263 M268 225 L304 328 Q309 344 296 350 Q284 355 277 339 L247 263"/>
-  <path class="med-body-detail" d="M146 153 Q128 190 138 226 M214 153 Q232 190 222 226 M138 226 Q180 244 222 226 M128 355 Q180 371 232 355 M140 393 Q180 414 220 393"/>
+ <!-- floating scan shadow and depth layers -->
+ <ellipse cx="210" cy="697" rx="118" ry="10" fill="#25caff" opacity=".12" filter="url(#medSoft3d)"/>
+ <g class="med-depth-back" fill="none" stroke="#36caff" opacity=".28" stroke-width="2">
+  <path d="M174 160 Q120 170 105 222 L125 352 M246 160 Q300 170 315 222 L295 352"/>
+  <path d="M151 390 Q137 472 150 665 M269 390 Q283 472 270 665"/>
  </g>
- <!-- Gefäßbahnen und Rippen -->
- <g clip-path="url(#medTorsoClip)" class="med-vessels">
-  <path d="M180 170 V320 M180 235 C160 245 151 264 145 290 M180 235 C200 245 209 264 215 290 M180 300 C157 321 150 346 145 370 M180 300 C203 321 210 346 215 370 M180 320 V470 M180 390 C157 408 151 434 147 462 M180 390 C203 408 209 434 213 462" fill="none" stroke="#64dfff" stroke-width="2" opacity=".62"/>
-  <path d="M180 205 Q147 190 123 211 M180 205 Q213 190 237 211 M180 230 Q146 216 119 241 M180 230 Q214 216 241 241 M180 256 Q147 244 118 270 M180 256 Q213 244 242 270 M180 282 Q150 272 120 299 M180 282 Q210 272 240 299" fill="none" stroke="#9beaff" stroke-width="1.2" opacity=".25"/>
+ <!-- complete human silhouette with dimensional shading -->
+ <g filter="url(#medGlow3d)">
+  <path class="med-body-shape" fill="url(#medSkin3d)" stroke="url(#medEdge3d)" stroke-width="2.2" d="M179 30 Q210 9 241 30 Q265 48 261 91 Q258 126 235 145 L233 157 Q264 158 300 174 Q337 190 345 222 L329 322 Q323 358 290 380 L301 478 Q308 510 291 535 L281 681 Q279 701 257 701 Q239 700 236 680 L210 520 L184 680 Q181 700 163 701 Q141 701 139 681 L129 535 Q112 510 119 478 L130 380 Q97 358 91 322 L75 222 Q83 190 120 174 Q156 158 187 157 L185 145 Q162 126 159 91 Q155 48 179 30 Z"/>
+  <path d="M184 147 Q210 164 236 147 L247 171 Q210 187 173 171 Z" fill="url(#medShade3d)" stroke="#8deaff" stroke-opacity=".45"/>
+  <path d="M120 184 Q151 168 177 184 Q210 205 243 184 Q269 168 300 184 Q281 211 280 251 L292 351 Q264 378 210 385 Q156 378 128 351 L140 251 Q139 211 120 184Z" fill="url(#medShade3d)" opacity=".8"/>
  </g>
- <!-- Lunge -->
- <g class="med-lungs" filter="url(#medGlow)">
-  <path d="M174 213 C157 190 137 190 126 213 C112 240 113 294 127 315 C139 333 160 319 169 295 Q177 272 176 238 Z"/>
-  <path d="M186 213 C203 190 223 190 234 213 C248 240 247 294 233 315 C221 333 200 319 191 295 Q183 272 184 238 Z"/>
+ <!-- face, ears, neck and shoulder anatomy -->
+ <g fill="none" stroke="#a9f1ff" stroke-linecap="round">
+  <path d="M178 66 Q210 43 242 66 M174 91 Q210 111 246 91 M187 119 Q210 130 233 119" stroke-width="1.5" opacity=".65"/>
+  <path d="M166 78 Q151 79 159 104 Q164 116 174 112 M254 78 Q269 79 261 104 Q256 116 246 112" opacity=".5"/>
+  <path d="M190 145 Q210 153 230 145 M188 151 Q210 164 232 151 M176 165 Q210 181 244 165" opacity=".55"/>
+  <path d="M120 188 Q143 194 165 215 M300 188 Q277 194 255 215 M130 202 Q146 227 151 260 M290 202 Q274 227 269 260" opacity=".48"/>
+  <path d="M176 186 Q210 198 244 186 M164 198 Q210 216 256 198" opacity=".35"/>
  </g>
- <path d="M180 164 V250 M180 211 C169 218 164 230 160 242 M180 211 C191 218 196 230 200 242" fill="none" stroke="#b8f4ff" stroke-width="4" stroke-linecap="round"/>
- <!-- Herz und Aorta -->
- <path d="M180 278 C165 260 139 270 142 294 C145 317 168 336 180 346 C192 336 215 317 218 294 C221 270 195 260 180 278 Z" class="med-heart-core" filter="url(#medGlow)"/>
- <path d="M180 275 V252 M180 300 C164 298 159 286 154 278 M180 300 C196 298 201 286 206 278" fill="none" stroke="#ff9eae" stroke-width="3" stroke-linecap="round"/>
- <!-- Kopf-/Gesichtskontur -->
- <path d="M153 53 Q180 34 207 53 M147 79 Q180 96 213 79 M160 110 Q180 118 200 110" fill="none" stroke="#8ceaff" stroke-width="1.4" opacity=".48"/>
- <circle cx="180" cy="72" r="48" fill="none" stroke="#8ceaff" stroke-dasharray="2 8" opacity=".45"/>
+ <!-- rib cage and internal anatomy mapped to torso -->
+ <g clip-path="url(#medTorsoClip3d)" fill="none" stroke="#8ceaff" stroke-linecap="round">
+  <path d="M210 174 V455" stroke-width="5" opacity=".55"/>
+  <path d="M210 206 Q171 181 137 214 Q119 233 132 253 Q158 263 190 245 M210 206 Q249 181 283 214 Q301 233 288 253 Q262 263 230 245
+  M210 231 Q168 210 132 244 Q114 266 132 283 Q159 290 190 270 M210 231 Q252 210 288 244 Q306 266 288 283 Q261 290 230 270
+  M210 258 Q169 240 137 272 Q121 291 141 309 Q164 314 192 294 M210 258 Q251 240 283 272 Q299 291 279 309 Q256 314 228 294
+  M210 285 Q174 270 145 300 Q132 319 151 335 Q174 339 195 322 M210 285 Q246 270 275 300 Q288 319 269 335 Q246 339 225 322" stroke-width="2" opacity=".28"/>
+  <path d="M210 177 C180 192 166 213 158 242 M210 177 C240 192 254 213 262 242 M210 300 C179 322 163 350 156 382 M210 300 C241 322 257 350 264 382 M210 365 C180 390 174 420 171 455 M210 365 C240 390 246 420 249 455" stroke="#54d5ff" stroke-width="2.4" opacity=".55"/>
+  <path d="M210 390 Q177 409 151 407 M210 390 Q243 409 269 407 M210 420 Q180 442 160 444 M210 420 Q240 442 260 444" stroke-width="1.5" opacity=".25"/>
+ </g>
+ <!-- lungs with highlights and bronchial tree -->
+ <g class="med-lungs" filter="url(#medGlow3d)">
+  <path d="M202 213 C181 185 153 191 140 224 C126 259 132 307 151 329 C169 347 190 327 199 298 Q207 269 202 213Z" fill="url(#medLung3d)" stroke="#b5f5ff" stroke-width="2.4"/>
+  <path d="M218 213 C239 185 267 191 280 224 C294 259 288 307 269 329 C251 347 230 327 221 298 Q213 269 218 213Z" fill="url(#medLung3d)" stroke="#b5f5ff" stroke-width="2.4"/>
+  <path d="M202 226 Q181 240 171 267 M202 242 Q182 260 183 291 M218 226 Q239 240 249 267 M218 242 Q238 260 237 291" fill="none" stroke="#d1fbff" stroke-width="2" opacity=".72"/>
+ </g>
+ <path d="M210 166 V252 M210 205 Q193 213 184 233 M210 205 Q227 213 236 233" fill="none" stroke="#d7fbff" stroke-width="5" stroke-linecap="round" filter="url(#medGlow3d)"/>
+ <!-- heart, vessels and aorta -->
+ <g class="med-heart-group" filter="url(#medGlow3d)">
+  <path d="M210 278 C190 253 157 265 160 296 C163 326 194 351 210 363 C226 351 257 326 260 296 C263 265 230 253 210 278Z" class="med-heart-core" fill="url(#medOrgan3d)" stroke="#ffc0ca" stroke-width="2.4"/>
+  <path d="M210 278 C205 259 213 245 230 244 C247 243 254 257 250 270 M210 278 C215 259 207 245 190 244 C173 243 166 257 170 270" fill="none" stroke="#ffb2c0" stroke-width="5" stroke-linecap="round"/>
+  <path d="M210 282 V341 M210 298 Q192 291 182 280 M210 298 Q228 291 238 280" fill="none" stroke="#ffbac5" stroke-width="2" opacity=".75"/>
+ </g>
+ <!-- arms, hands and leg contour detail -->
+ <g fill="none" stroke="#9cecff" stroke-linecap="round" opacity=".52">
+  <path d="M91 225 L56 322 Q51 343 65 351 Q78 356 86 338 L119 260 M329 225 L364 322 Q369 343 355 351 Q342 356 334 338 L301 260" stroke-width="2"/>
+  <path d="M61 346 L52 371 M69 350 L64 377 M357 346 L368 371 M351 350 L356 377" stroke-width="1.4"/>
+  <path d="M130 384 Q210 407 290 384 M128 478 Q210 501 292 478 M143 531 Q210 550 277 531 M150 548 L158 676 M270 548 L262 676 M184 524 L174 675 M236 524 L246 675" stroke-width="1.4"/>
+ </g>
+ <!-- fine holographic scan lines and anatomical grid -->
+ <g class="med-scan-lines" stroke="#8deaff" opacity=".18">
+  <path d="M105 210 H315 M96 245 H324 M100 280 H320 M110 315 H310 M120 350 H300 M126 390 H294 M126 430 H294 M125 470 H295 M132 510 H288 M139 550 H281 M143 590 H277 M147 630 H273"/>
+ </g>
+ <g fill="none" stroke="#9ceeff" opacity=".48"><circle cx="210" cy="72" r="53" stroke-dasharray="2 8"/><ellipse cx="210" cy="355" rx="105" ry="185" stroke-dasharray="3 10"/></g>
 </svg>
    </div>
   </div>
