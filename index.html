@@ -312,12 +312,12 @@ main:has(#medical.active){max-width:1500px;padding:clamp(9px,2vw,24px)}
  <div class="med-topline"><div class="med-brand">✚ WARVEX MEDICAL</div><div class="med-device-pill">● KEINE GERÄTE VERBUNDEN</div></div>
  <div class="med-clinic-grid">
   <div class="med-column">
-   <div class="med-panel"><h3>⌁ VITALWERTE</h3>
+   <div class="med-panel"><h3>⌁ LIVE-VITALWERTE</h3>
     <div class="med-value-row med-pulse-row"><span>♥ Puls</span><strong class="med-dash">— BPM</strong></div>
     <div class="med-value-row"><span>◉ SpO₂</span><strong class="med-dash">— %</strong></div>
     <div class="med-value-row med-lung-row"><span>Atmung</span><strong class="med-dash">— /min</strong></div>
     <div class="med-value-row"><span>Temperatur</span><strong class="med-dash">— °C</strong></div>
-    <p class="med-muted">Keine Messdaten vorhanden.</p>
+    <p class="med-muted">Wartet auf kompatiblen Sensor. Ohne Verbindung werden keine Live-Werte angezeigt.</p>
    </div>
    <div class="med-panel"><h3>EKG / HERZFREQUENZ</h3><svg class="med-mini-ecg" viewBox="0 0 220 36"><path d="M0 18 H220"/></svg><div class="med-muted">Kein EKG-Signal verbunden</div></div>
   </div>
@@ -1259,166 +1259,177 @@ $("toolStatus").textContent="Web-App aktiv · KI über Cloudflare · Online-TTS 
 import * as THREE from "https://esm.sh/three@0.170.0";
 import { GLTFLoader } from "https://esm.sh/three@0.170.0/examples/jsm/loaders/GLTFLoader.js";
 
-/* WARVEX MEDICAL – CC0-3D-Modelle: menschlicher Basis-Körper plus separate Organe. */
+/* WARVEX MEDICAL – leichtes, fest ausgerichtetes Hologramm mit echten GLB-Modellen. */
 (() => {
  const page=document.getElementById("medical");
  const host=document.getElementById("med3dCanvas");
  const status=document.getElementById("med3dStatus");
  if(!page||!host||!status)return;
- let started=false,renderer,scene,camera,modelRoot,heartGroup,lungsGroup,heartBaseScale=1,lungsBaseScale=1,raf=0;
+
+ let started=false,renderer,scene,camera,modelRoot,heartGroup,lungsGroup;
+ let heartBaseScale=1,lungsBaseScale=1;
  const loader=new GLTFLoader();
  const ASSETS={
-  body:"https://files.innerscene.com/library/human-base-mesh-with-editable-53-bone-rig-8e7c8ab1/329f39cef2f95a0f0a24/human-base-rigged.glb",
-  heart:"https://files.innerscene.com/library/heart-e9f72b0e/14accaedb5b055c561f3/heart.glb",
+  // CC0 MakeHuman-Basiskörper, 4,3 MB, 163 Knochen, glatte menschliche Oberfläche.
+  body:"https://files.innerscene.com/library/male-base-mesh-3d-person-rigged-a-pose-380e6d89/038f3a526b2fc3efd012/male-base-mesh-base_male.glb",
+  // Herz mit großen Blutgefäßen (CC0), statt einer einfachen Herz-Silhouette.
+  heart:"https://files.innerscene.com/library/heart-with-major-blood-vessels-2b67da90/9016ef326096eff67c62/heart-with-major-blood-vessels.glb",
+  // Lunge mit Luftröhre (CC0).
   lungs:"https://files.innerscene.com/library/lungs-with-trachea-respiratory-system-1d019b26/a2ad3d80d8f04b607c37/lungs-with-trachea-respiratory-system.glb"
  };
- const setStatus=t=>status.textContent=t;
+ const setStatus=t=>{status.textContent=t;};
  const hologram=new THREE.MeshPhysicalMaterial({
-  color:0x55dfff,emissive:0x087ca8,emissiveIntensity:.9,
-  transparent:true,opacity:.22,roughness:.28,metalness:.2,
-  side:THREE.DoubleSide,depthWrite:false
+  color:0x64dfff,
+  emissive:0x087ca8,
+  emissiveIntensity:1.05,
+  transparent:true,
+  opacity:.34,
+  roughness:.3,
+  metalness:.24,
+  side:THREE.DoubleSide,
+  depthWrite:false
  });
+ function fitBody(root,targetHeight){
+  root.updateMatrixWorld(true);
+  const box=new THREE.Box3().setFromObject(root);
+  const size=box.getSize(new THREE.Vector3());
+  const scale=targetHeight/Math.max(size.y,.001);
+  root.scale.setScalar(scale);
+  root.position.set(-((box.min.x+box.max.x)/2)*scale,-box.min.y*scale,-((box.min.z+box.max.z)/2)*scale);
+  root.updateMatrixWorld(true);
+ }
+ function centerObject(root){
+  root.updateMatrixWorld(true);
+  const box=new THREE.Box3().setFromObject(root);
+  const center=box.getCenter(new THREE.Vector3());
+  root.position.sub(center);
+  root.updateMatrixWorld(true);
+ }
  function applyHologram(root){
   root.traverse(o=>{
    if(!o.isMesh)return;
    o.material=hologram;
    o.renderOrder=1;
+   o.frustumCulled=true;
   });
- }
- function fitToHeight(root,targetHeight){
-  const box=new THREE.Box3().setFromObject(root);
-  const size=box.getSize(new THREE.Vector3());
-  const center=box.getCenter(new THREE.Vector3());
-  const scale=targetHeight/Math.max(size.y,.001);
-  root.scale.setScalar(scale);
-  root.position.set(-center.x*scale,-box.min.y*scale,-center.z*scale);
  }
  function loadGLB(url){
-  return new Promise((resolve,reject)=>loader.load(url,g=>resolve(g.scene),undefined,reject));
- }
- async function buildScene(){
-  setStatus("HOLOGRAMM-KÖRPER UND ORGANE WERDEN GELADEN …");
-  const [body,heart,lungs]=await Promise.all([
-   loadGLB(ASSETS.body),loadGLB(ASSETS.heart),loadGLB(ASSETS.lungs)
-  ]);
-  // Den vollständigen Körper auf eine einheitliche Szenenhöhe bringen.
-  fitToHeight(body,3.45);
-  applyHologram(body);
-  modelRoot=new THREE.Group();
-  modelRoot.add(body);
-  // Die Organmodelle bleiben detailliert und farblich unterscheidbar.
-  heartGroup=new THREE.Group();
-  heartGroup.add(heart);
-  const heartBox=new THREE.Box3().setFromObject(heart);
-  const heartSize=heartBox.getSize(new THREE.Vector3());
-  const heartScale=.27/Math.max(heartSize.y,.001);
-  heartGroup.scale.setScalar(heartScale);\n  heartBaseScale=heartScale;
-  heartGroup.position.set(-.075,2.27,.12);
-  heartGroup.traverse(o=>{
-   if(!o.isMesh)return;
-   o.material=o.material.clone();
-   o.material.transparent=false;
-   o.material.roughness=.42;
-   o.material.emissive=new THREE.Color(0x3c0712);
-   o.material.emissiveIntensity=.22;
-   o.renderOrder=3;
+  return new Promise((resolve,reject)=>{
+   loader.load(url,g=>resolve(g.scene),undefined,reject);
   });
-  lungsGroup=new THREE.Group();
-  lungsGroup.add(lungs);
-  const lungBox=new THREE.Box3().setFromObject(lungs);
-  const lungSize=lungBox.getSize(new THREE.Vector3());
-  const lungScale=.67/Math.max(lungSize.y,.001);
-  lungsGroup.scale.setScalar(lungScale);\n  lungsBaseScale=lungScale;
-  lungsGroup.position.set(0,2.34,.075);
-  lungsGroup.traverse(o=>{
+ }
+ async function addOrgan(url,targetHeight,position,kind){
+  const root=await loadGLB(url);
+  centerObject(root);
+  const group=new THREE.Group();
+  group.add(root);
+  const box=new THREE.Box3().setFromObject(root);
+  const size=box.getSize(new THREE.Vector3());
+  const scale=targetHeight/Math.max(size.y,.001);
+  group.scale.setScalar(scale);
+  group.position.set(position[0],position[1],position[2]);
+  root.traverse(o=>{
    if(!o.isMesh)return;
    o.material=o.material.clone();
    o.material.transparent=false;
    o.material.roughness=.48;
-   o.material.emissive=new THREE.Color(0x063b52);
-   o.material.emissiveIntensity=.18;
-   o.renderOrder=2;
+   o.material.metalness=.08;
+   o.material.emissive=new THREE.Color(kind==="heart"?0x3d0715:0x06384e);
+   o.material.emissiveIntensity=.2;
+   o.renderOrder=kind==="heart"?3:2;
   });
-  modelRoot.add(lungsGroup,heartGroup);
+  return {group,scale};
+ }
+ async function buildScene(){
+  setStatus("REALISTISCHER 3D-KÖRPER WIRD GELADEN …");
+  const body=await loadGLB(ASSETS.body);
+  fitBody(body,3.25);
+  applyHologram(body);
+  modelRoot=new THREE.Group();
+  modelRoot.add(body);
   scene.add(modelRoot);
-  setStatus("3D-HOLOGRAMM GELADEN · MIT EINEM FINGER DREHEN · ZWEI FINGER ZUM ZOOMEN");
+  setStatus("KÖRPER GELADEN · ORGANE WERDEN EINGEPASST …");
+
+  const [heartResult,lungsResult]=await Promise.allSettled([
+   addOrgan(ASSETS.heart,.29,[-.075,2.23,.16],"heart"),
+   addOrgan(ASSETS.lungs,.62,[0,2.36,.075],"lungs")
+  ]);
+  if(lungsResult.status==="fulfilled"){
+   lungsGroup=lungsResult.value.group;
+   lungsBaseScale=lungsResult.value.scale;
+   modelRoot.add(lungsGroup);
+  }else{
+   console.warn("WARVEX lung model:",lungsResult.reason);
+  }
+  if(heartResult.status==="fulfilled"){
+   heartGroup=heartResult.value.group;
+   heartBaseScale=heartResult.value.scale;
+   modelRoot.add(heartGroup);
+  }else{
+   console.warn("WARVEX heart model:",heartResult.reason);
+  }
+  if(heartResult.status==="rejected"||lungsResult.status==="rejected"){
+   setStatus("KÖRPER GELADEN · EIN ORGANMODELL KONNTE NICHT GELADEN WERDEN");
+  }else{
+   setStatus("3D-HOLOGRAMM BEREIT · FESTE ANSICHT · LIVE-DATEN NUR MIT VERBUNDENEM SENSOR");
+  }
  }
  function init(){
-  if(started)return;started=true;
+  if(started)return;
+  started=true;
   try{
    scene=new THREE.Scene();
-   camera=new THREE.PerspectiveCamera(35,1,.1,30);
-   camera.position.set(0,1.72,6.6);
-   camera.lookAt(0,1.72,0);
-   renderer=new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:"low-power"});
-   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));
+   camera=new THREE.PerspectiveCamera(34,1,.1,30);
+   camera.position.set(0,1.64,6.35);
+   camera.lookAt(0,1.64,0);
+   renderer=new THREE.WebGLRenderer({alpha:true,antialias:false,powerPreference:"low-power"});
+   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.25));
    renderer.outputColorSpace=THREE.SRGBColorSpace;
    renderer.setClearColor(0x000000,0);
    host.replaceChildren(renderer.domElement);
-   renderer.domElement.style.touchAction="none";
-   scene.add(new THREE.HemisphereLight(0x9beaff,0x061629,2.1));
-   const key=new THREE.DirectionalLight(0x8beaff,2.4);key.position.set(2,3,4);scene.add(key);
-   const rim=new THREE.PointLight(0x00aaff,14,8);rim.position.set(-2,2,2);scene.add(rim);
-   const red=new THREE.PointLight(0xff315b,4,4);red.position.set(0,2.3,1);scene.add(red);
-   let dragging=false,lastX=0,lastY=0,pointers=new Map(),pinchStart=0,cameraStart=6.6;
-   const el=renderer.domElement;
-   el.addEventListener("pointerdown",e=>{
-    pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
-    el.setPointerCapture(e.pointerId);
-    if(pointers.size===1){dragging=true;lastX=e.clientX;lastY=e.clientY;}
-    if(pointers.size===2){
-     const p=[...pointers.values()];
-     pinchStart=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);
-     cameraStart=camera.position.z;dragging=false;
-    }
-   });
-   el.addEventListener("pointermove",e=>{
-    if(!pointers.has(e.pointerId))return;
-    pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
-    if(pointers.size===2){
-     const p=[...pointers.values()];
-     const dist=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);
-     if(pinchStart>0)camera.position.z=Math.max(4.3,Math.min(9,cameraStart*pinchStart/Math.max(dist,1)));
-     return;
-    }
-    if(!dragging||!modelRoot)return;
-    const dx=e.clientX-lastX,dy=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;
-    modelRoot.rotation.y+=dx*.008;
-    modelRoot.rotation.x=Math.max(-.22,Math.min(.22,modelRoot.rotation.x+dy*.004));
-   });
-   const endPointer=e=>{pointers.delete(e.pointerId);if(pointers.size<2)pinchStart=0;dragging=pointers.size===1;};
-   el.addEventListener("pointerup",endPointer);
-   el.addEventListener("pointercancel",endPointer);
-   el.addEventListener("wheel",e=>{
-    e.preventDefault();camera.position.z=Math.max(4.3,Math.min(9,camera.position.z+e.deltaY*.004));
-   },{passive:false});
+   renderer.domElement.style.touchAction="pan-y";
+   scene.add(new THREE.HemisphereLight(0x9beaff,0x061629,2.0));
+   const key=new THREE.DirectionalLight(0x8beaff,2.2);
+   key.position.set(2,3,4);scene.add(key);
+   const rim=new THREE.PointLight(0x00aaff,12,8);
+   rim.position.set(-2,2,2);scene.add(rim);
+   const red=new THREE.PointLight(0xff315b,3.5,4);
+   red.position.set(0,2.3,1);scene.add(red);
+
+   // Absichtlich keine Pointer-, Touch-, Drag-, Zoom- oder Rotationssteuerung:
+   // Der Körperscan bleibt fest ausgerichtet und kann nicht versehentlich verschoben werden.
    const resize=()=>{
     const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);
-    renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();
+    renderer.setSize(w,h,false);
+    camera.aspect=w/h;
+    camera.updateProjectionMatrix();
    };
    resize();
    if("ResizeObserver" in window)new ResizeObserver(resize).observe(host);
    else window.addEventListener("resize",resize);
+
    const clock=new THREE.Clock();
    const animate=()=>{
-    raf=requestAnimationFrame(animate);
+    requestAnimationFrame(animate);
     if(document.hidden)return;
     const t=clock.getElapsedTime();
-    if(lungsGroup)lungsGroup.scale.y=(lungsGroup.scale.y||1)*(1+Math.sin(t*1.5)*.0005);
-    if(heartGroup)heartGroup.rotation.z=Math.sin(t*4.2)*.025;
+    if(lungsGroup)lungsGroup.scale.set(lungsBaseScale,lungsBaseScale*(1+Math.sin(t*1.5)*.012),lungsBaseScale);
+    if(heartGroup)heartGroup.scale.setScalar(heartBaseScale*(1+Math.max(0,Math.sin(t*4.2))*.025));
     renderer.render(scene,camera);
    };
    animate();
    buildScene().catch(error=>{
     console.error("WARVEX medical GLB:",error);
-    setStatus("3D-MODELL KONNTE NICHT GELADEN WERDEN · Internetverbindung oder Modellserver prüfen.");
+    setStatus("3D-MODELL NICHT GELADEN · Internetverbindung oder Modellserver prüfen");
    });
   }catch(error){
    console.error("WARVEX 3D medical:",error);
-   setStatus("3D-ANSICHT KONNTE NICHT STARTEN · WebGL oder Browser prüfen.");
+   setStatus("3D-ANSICHT NICHT GESTARTET · WebGL oder Browser prüfen");
   }
  }
- const observer=new MutationObserver(()=>{if(page.classList.contains("active"))init();});
+ const observer=new MutationObserver(()=>{
+  if(page.classList.contains("active"))init();
+ });
  observer.observe(page,{attributes:true,attributeFilter:["class"]});
  if(page.classList.contains("active"))init();
 })();
