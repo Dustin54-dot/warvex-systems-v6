@@ -240,6 +240,13 @@ main:has(#medical.active){max-width:1500px;padding:clamp(9px,2vw,24px)}
 @media(max-width:520px){.medical-page .med-human-3d{height:430px;min-height:390px;width:min(100%,340px)}}
 @media(prefers-reduced-motion:reduce){.medical-page .med-human-3d,.medical-page .med-scan-lines{animation:none}}
 
+
+/* WARVEX MEDICAL – echtes GLB/WebGL-Hologramm */
+.medical-page .med-stage{position:relative}
+.medical-page .med3d-canvas{position:absolute;inset:0;width:100%;height:100%;min-height:390px;z-index:2}
+.medical-page .med3d-canvas canvas{display:block;width:100%;height:100%;touch-action:pan-y}
+.medical-page .med3d-status{position:absolute;z-index:3;left:8px;right:8px;bottom:8px;text-align:center;color:#8ddfff;font-size:10px;letter-spacing:.7px;text-shadow:0 0 8px #001522;pointer-events:none}
+@media(max-width:520px){.medical-page .med3d-canvas{min-height:390px}}
 </style>
 </head>
 <body>
@@ -314,72 +321,8 @@ main:has(#medical.active){max-width:1500px;padding:clamp(9px,2vw,24px)}
   </div>
   <div class="med-column med-center-column">
    <div class="med-stage" aria-label="Blauer holografischer Körperscan">
-    <svg class="med-human med-human-3d" viewBox="0 0 420 720" role="img" aria-label="Dreidimensional wirkender holografischer menschlicher Körperscan mit Herz und Lungen">
- <defs>
-  <radialGradient id="medSkin3d" cx="34%" cy="22%" r="82%"><stop offset="0" stop-color="#d9fbff" stop-opacity=".42"/><stop offset=".28" stop-color="#65d8ff" stop-opacity=".22"/><stop offset=".68" stop-color="#1476ae" stop-opacity=".12"/><stop offset="1" stop-color="#03182c" stop-opacity=".48"/></radialGradient>
-  <linearGradient id="medEdge3d" x1="0" y1="0" x2="1" y2=".2"><stop stop-color="#e0fcff"/><stop offset=".28" stop-color="#5bdcff"/><stop offset=".7" stop-color="#178fc8"/><stop offset="1" stop-color="#b8f6ff"/></linearGradient>
-  <linearGradient id="medShade3d" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#b5f4ff" stop-opacity=".2"/><stop offset=".45" stop-color="#2cb7ed" stop-opacity=".02"/><stop offset="1" stop-color="#8deaff" stop-opacity=".25"/></linearGradient>
-  <radialGradient id="medOrgan3d"><stop stop-color="#ff8799"/><stop offset=".45" stop-color="#f13c61"/><stop offset="1" stop-color="#8e1238"/></radialGradient>
-  <linearGradient id="medLung3d" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#b4f5ff" stop-opacity=".62"/><stop offset=".5" stop-color="#32b9ed" stop-opacity=".26"/><stop offset="1" stop-color="#0872a9" stop-opacity=".48"/></linearGradient>
-  <filter id="medGlow3d" x="-40%" y="-30%" width="180%" height="170%"><feGaussianBlur stdDeviation="5" result="blur"/><feColorMatrix in="blur" values="0 0 0 0 .05 0 0 0 0 .62 0 0 0 0 1 0 0 0 .75 0" result="cyan"/><feMerge><feMergeNode in="cyan"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-  <filter id="medSoft3d"><feGaussianBlur stdDeviation="2.2"/></filter>
-  <clipPath id="medTorsoClip3d"><path d="M174 151 Q145 153 119 166 Q83 180 76 218 L91 322 Q98 360 130 380 L119 478 Q112 510 129 535 L139 681 Q141 701 163 701 Q181 700 184 680 L210 520 L236 680 Q239 700 257 701 Q279 701 281 681 L291 535 Q308 510 301 478 L290 380 Q322 360 329 322 L344 218 Q337 180 301 166 Q275 153 246 151 L231 139 L189 139 Z"/></clipPath>
- </defs>
- <!-- floating scan shadow and depth layers -->
- <ellipse cx="210" cy="697" rx="118" ry="10" fill="#25caff" opacity=".12" filter="url(#medSoft3d)"/>
- <g class="med-depth-back" fill="none" stroke="#36caff" opacity=".28" stroke-width="2">
-  <path d="M174 160 Q120 170 105 222 L125 352 M246 160 Q300 170 315 222 L295 352"/>
-  <path d="M151 390 Q137 472 150 665 M269 390 Q283 472 270 665"/>
- </g>
- <!-- complete human silhouette with dimensional shading -->
- <g filter="url(#medGlow3d)">
-  <path class="med-body-shape" fill="url(#medSkin3d)" stroke="url(#medEdge3d)" stroke-width="2.2" d="M179 30 Q210 9 241 30 Q265 48 261 91 Q258 126 235 145 L233 157 Q264 158 300 174 Q337 190 345 222 L329 322 Q323 358 290 380 L301 478 Q308 510 291 535 L281 681 Q279 701 257 701 Q239 700 236 680 L210 520 L184 680 Q181 700 163 701 Q141 701 139 681 L129 535 Q112 510 119 478 L130 380 Q97 358 91 322 L75 222 Q83 190 120 174 Q156 158 187 157 L185 145 Q162 126 159 91 Q155 48 179 30 Z"/>
-  <path d="M184 147 Q210 164 236 147 L247 171 Q210 187 173 171 Z" fill="url(#medShade3d)" stroke="#8deaff" stroke-opacity=".45"/>
-  <path d="M120 184 Q151 168 177 184 Q210 205 243 184 Q269 168 300 184 Q281 211 280 251 L292 351 Q264 378 210 385 Q156 378 128 351 L140 251 Q139 211 120 184Z" fill="url(#medShade3d)" opacity=".8"/>
- </g>
- <!-- face, ears, neck and shoulder anatomy -->
- <g fill="none" stroke="#a9f1ff" stroke-linecap="round">
-  <path d="M178 66 Q210 43 242 66 M174 91 Q210 111 246 91 M187 119 Q210 130 233 119" stroke-width="1.5" opacity=".65"/>
-  <path d="M166 78 Q151 79 159 104 Q164 116 174 112 M254 78 Q269 79 261 104 Q256 116 246 112" opacity=".5"/>
-  <path d="M190 145 Q210 153 230 145 M188 151 Q210 164 232 151 M176 165 Q210 181 244 165" opacity=".55"/>
-  <path d="M120 188 Q143 194 165 215 M300 188 Q277 194 255 215 M130 202 Q146 227 151 260 M290 202 Q274 227 269 260" opacity=".48"/>
-  <path d="M176 186 Q210 198 244 186 M164 198 Q210 216 256 198" opacity=".35"/>
- </g>
- <!-- rib cage and internal anatomy mapped to torso -->
- <g clip-path="url(#medTorsoClip3d)" fill="none" stroke="#8ceaff" stroke-linecap="round">
-  <path d="M210 174 V455" stroke-width="5" opacity=".55"/>
-  <path d="M210 206 Q171 181 137 214 Q119 233 132 253 Q158 263 190 245 M210 206 Q249 181 283 214 Q301 233 288 253 Q262 263 230 245
-  M210 231 Q168 210 132 244 Q114 266 132 283 Q159 290 190 270 M210 231 Q252 210 288 244 Q306 266 288 283 Q261 290 230 270
-  M210 258 Q169 240 137 272 Q121 291 141 309 Q164 314 192 294 M210 258 Q251 240 283 272 Q299 291 279 309 Q256 314 228 294
-  M210 285 Q174 270 145 300 Q132 319 151 335 Q174 339 195 322 M210 285 Q246 270 275 300 Q288 319 269 335 Q246 339 225 322" stroke-width="2" opacity=".28"/>
-  <path d="M210 177 C180 192 166 213 158 242 M210 177 C240 192 254 213 262 242 M210 300 C179 322 163 350 156 382 M210 300 C241 322 257 350 264 382 M210 365 C180 390 174 420 171 455 M210 365 C240 390 246 420 249 455" stroke="#54d5ff" stroke-width="2.4" opacity=".55"/>
-  <path d="M210 390 Q177 409 151 407 M210 390 Q243 409 269 407 M210 420 Q180 442 160 444 M210 420 Q240 442 260 444" stroke-width="1.5" opacity=".25"/>
- </g>
- <!-- lungs with highlights and bronchial tree -->
- <g class="med-lungs" filter="url(#medGlow3d)">
-  <path d="M202 213 C181 185 153 191 140 224 C126 259 132 307 151 329 C169 347 190 327 199 298 Q207 269 202 213Z" fill="url(#medLung3d)" stroke="#b5f5ff" stroke-width="2.4"/>
-  <path d="M218 213 C239 185 267 191 280 224 C294 259 288 307 269 329 C251 347 230 327 221 298 Q213 269 218 213Z" fill="url(#medLung3d)" stroke="#b5f5ff" stroke-width="2.4"/>
-  <path d="M202 226 Q181 240 171 267 M202 242 Q182 260 183 291 M218 226 Q239 240 249 267 M218 242 Q238 260 237 291" fill="none" stroke="#d1fbff" stroke-width="2" opacity=".72"/>
- </g>
- <path d="M210 166 V252 M210 205 Q193 213 184 233 M210 205 Q227 213 236 233" fill="none" stroke="#d7fbff" stroke-width="5" stroke-linecap="round" filter="url(#medGlow3d)"/>
- <!-- heart, vessels and aorta -->
- <g class="med-heart-group" filter="url(#medGlow3d)">
-  <path d="M210 278 C190 253 157 265 160 296 C163 326 194 351 210 363 C226 351 257 326 260 296 C263 265 230 253 210 278Z" class="med-heart-core" fill="url(#medOrgan3d)" stroke="#ffc0ca" stroke-width="2.4"/>
-  <path d="M210 278 C205 259 213 245 230 244 C247 243 254 257 250 270 M210 278 C215 259 207 245 190 244 C173 243 166 257 170 270" fill="none" stroke="#ffb2c0" stroke-width="5" stroke-linecap="round"/>
-  <path d="M210 282 V341 M210 298 Q192 291 182 280 M210 298 Q228 291 238 280" fill="none" stroke="#ffbac5" stroke-width="2" opacity=".75"/>
- </g>
- <!-- arms, hands and leg contour detail -->
- <g fill="none" stroke="#9cecff" stroke-linecap="round" opacity=".52">
-  <path d="M91 225 L56 322 Q51 343 65 351 Q78 356 86 338 L119 260 M329 225 L364 322 Q369 343 355 351 Q342 356 334 338 L301 260" stroke-width="2"/>
-  <path d="M61 346 L52 371 M69 350 L64 377 M357 346 L368 371 M351 350 L356 377" stroke-width="1.4"/>
-  <path d="M130 384 Q210 407 290 384 M128 478 Q210 501 292 478 M143 531 Q210 550 277 531 M150 548 L158 676 M270 548 L262 676 M184 524 L174 675 M236 524 L246 675" stroke-width="1.4"/>
- </g>
- <!-- fine holographic scan lines and anatomical grid -->
- <g class="med-scan-lines" stroke="#8deaff" opacity=".18">
-  <path d="M105 210 H315 M96 245 H324 M100 280 H320 M110 315 H310 M120 350 H300 M126 390 H294 M126 430 H294 M125 470 H295 M132 510 H288 M139 550 H281 M143 590 H277 M147 630 H273"/>
- </g>
- <g fill="none" stroke="#9ceeff" opacity=".48"><circle cx="210" cy="72" r="53" stroke-dasharray="2 8"/><ellipse cx="210" cy="355" rx="105" ry="185" stroke-dasharray="3 10"/></g>
-</svg>
+    <div id="med3dCanvas" class="med3d-canvas" role="img" aria-label="Echter 3D-Hologramm-Körperscan mit Herz und Lungen"></div>
+    <div id="med3dStatus" class="med3d-status" aria-live="polite">3D-Körperscan wird vorbereitet …</div>
    </div>
   </div>
   <div class="med-column">
@@ -1187,8 +1130,9 @@ function medicalBeep(){
   if(!AC)return;
   if(!medicalAudioContext||medicalAudioContext.state==="closed")medicalAudioContext=new AC();
   if(medicalAudioContext.state==="suspended")medicalAudioContext.resume();
-  const volume=[.075,.095,.12][medicalAlarmLevel-1];
-  const pitchShift=[0,120,240][medicalAlarmLevel-1];
+  /* Zehn Stufen: schrittweise deutlicher, mit begrenztem Audio-Pegel. */
+  const volume=Math.min(.16,.035+(medicalAlarmLevel-1)*.0139);
+  const pitchShift=(medicalAlarmLevel-1)*16;
   if(medicalAlarmMode==="heart"){
     medicalTone(920+pitchShift,0,.16,volume);
     medicalTone(1180+pitchShift,.23,.16,volume);
@@ -1208,14 +1152,16 @@ function medicalBeep(){
 
 function updateMedicalEscalation(){
  medicalElapsedSeconds++;
- const nextLevel=Math.min(3,1+Math.floor(medicalElapsedSeconds/10));
+ const nextLevel=Math.min(10,1+Math.floor(medicalElapsedSeconds/10));
  if(nextLevel>medicalAlarmLevel){
   medicalAlarmLevel=nextLevel;
   const status=$("medTestStatus");
-  if(status)status.textContent="SIMULATION · Eskalationsstufe "+medicalAlarmLevel+"/3 · seit "+medicalElapsedSeconds+" Sekunden unbeantwortet. Tonmuster und Lautstärke steigen kontrolliert.";
+  if(status)status.textContent="SIMULATION · ESKALATIONSSTUFE "+medicalAlarmLevel+"/10 · seit "+medicalElapsedSeconds+" Sekunden unbeantwortet. Signal wird schrittweise deutlicher.";
   const title=$("medAlarmTitle");
-  if(title)title.textContent="⚠ "+(medicalAlarmMode==="heart"?"HERZ":medicalAlarmMode==="lungs"?"LUNGEN":"KRITISCHER")+" ALARM – STUFE "+medicalAlarmLevel+"/3 · TEST";
+  if(title)title.textContent="⚠ "+(medicalAlarmMode==="heart"?"HERZ":medicalAlarmMode==="lungs"?"LUNGEN":"KRITISCHER")+" ALARM – STUFE "+medicalAlarmLevel+"/10 · TEST";
+  if(medicalAlarmTimer){clearInterval(medicalAlarmTimer);medicalAlarmTimer=null;}
   medicalBeep();
+  medicalAlarmTimer=setInterval(medicalBeep,Math.max(760,1400-(medicalAlarmLevel-1)*65));
  }
 }
 
@@ -1229,7 +1175,7 @@ function startMedicalTest(mode){
  $("medAlarmTitle").textContent="⚠ "+label+" – TEST";
  $("medAlarmText").textContent="SIMULATION: Dieser Alarm wurde manuell gestartet. Es liegen keine echten Messdaten vor.";
  if(seen)seen.hidden=false;
- status.textContent="SIMULATION · "+label+" läuft. Ohne Bestätigung steigt die Alarmstufe alle 10 Sekunden bis Stufe 3.";
+ status.textContent="SIMULATION · "+label+" läuft. Ohne Bestätigung steigt die Alarmstufe alle 10 Sekunden bis Stufe 10.";
  status.classList.add("med-alert");
  medicalBeep();
  medicalAlarmTimer=setInterval(medicalBeep,1400);
@@ -1291,5 +1237,100 @@ $("plugBtn").addEventListener("click",()=>{
 $("systemStatus").textContent="WARVEX SYSTEMS V6 ist gestartet.";
 $("toolStatus").textContent="Web-App aktiv · KI über Cloudflare · Online-TTS mit automatischem Ersatzsystem.";
 </script>
+
+<script type="module">
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js";
+import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/loaders/GLTFLoader.js";
+
+/* Lädt echte CC0-GLB-Meshes erst beim Öffnen von MEDICAL. */
+(() => {
+ const page=document.getElementById("medical");
+ const host=document.getElementById("med3dCanvas");
+ const status=document.getElementById("med3dStatus");
+ if(!page||!host||!status)return;
+ let started=false,renderer,scene,camera,bodyGroup;
+ const loader=new GLTFLoader();
+ const MODEL={
+  body:"https://files.innerscene.com/library/human-base-mesh-with-editable-53-bone-rig-8e7c8ab1/329f39cef2f95a0f0a24/human-base-rigged.glb",
+  heart:"https://files.innerscene.com/library/heart-e9f72b0e/14accaedb5b055c561f3/heart.glb",
+  lungs:"https://files.innerscene.com/library/lungs-with-trachea-respiratory-system-1d019b26/a2ad3d80d8f04b607c37/lungs-with-trachea-respiratory-system.glb"
+ };
+ const setStatus=t=>status.textContent=t;
+ const load=url=>new Promise((resolve,reject)=>loader.load(url,g=>resolve(g.scene),undefined,reject));
+ function tint(root,material){
+  root.traverse(n=>{if(n.isMesh){n.material=material;n.castShadow=false;n.receiveShadow=false;}});
+ }
+ function fit(bounds){
+  const size=bounds.getSize(new THREE.Vector3()),center=bounds.getCenter(new THREE.Vector3());
+  camera.position.set(center.x,center.y+size.y*.05,center.z+Math.max(size.x,size.y,size.z)*2.35);
+  camera.lookAt(center);camera.near=.01;camera.far=30;camera.updateProjectionMatrix();
+ }
+ async function init(){
+  if(started)return;started=true;
+  try{
+   setStatus("3D-MODELL WIRD GELADEN …");
+   scene=new THREE.Scene();
+   camera=new THREE.PerspectiveCamera(34,1,.01,30);
+   renderer=new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:"low-power"});
+   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));
+   renderer.outputColorSpace=THREE.SRGBColorSpace;
+   renderer.setClearColor(0x000000,0);
+   host.replaceChildren(renderer.domElement);
+   scene.add(new THREE.HemisphereLight(0x8ceaff,0x061629,2.1));
+   const key=new THREE.DirectionalLight(0x78dfff,2.2);key.position.set(2,3,4);scene.add(key);
+   const rim=new THREE.PointLight(0x00aaff,18,5);rim.position.set(-1,1,1);scene.add(rim);
+   bodyGroup=new THREE.Group();scene.add(bodyGroup);
+
+   const body=await load(MODEL.body);
+   tint(body,new THREE.MeshPhysicalMaterial({
+    color:0x42caff,emissive:0x063d61,emissiveIntensity:1.25,
+    metalness:.42,roughness:.22,transparent:true,opacity:.27,
+    side:THREE.DoubleSide,depthWrite:false,clearcoat:.8
+   }));
+   bodyGroup.add(body);
+   let bounds=new THREE.Box3().setFromObject(body);
+   const size=bounds.getSize(new THREE.Vector3()),center=bounds.getCenter(new THREE.Vector3());
+   const height=size.y||1,front=center.z+size.z*.30;
+   setStatus("HERZ UND LUNGEN WERDEN GELADEN …");
+   const [heart,lungs]=await Promise.all([load(MODEL.heart),load(MODEL.lungs)]);
+   tint(heart,new THREE.MeshPhysicalMaterial({color:0xff496b,emissive:0x6e0927,emissiveIntensity:1.1,metalness:.18,roughness:.28,side:THREE.DoubleSide}));
+   tint(lungs,new THREE.MeshPhysicalMaterial({color:0x47d9ff,emissive:0x075c8b,emissiveIntensity:1.1,transparent:true,opacity:.82,metalness:.18,roughness:.28,side:THREE.DoubleSide}));
+   const factor=height/1.68;
+   heart.scale.setScalar(factor);lungs.scale.setScalar(factor);
+   heart.position.set(center.x+size.x*.025,bounds.min.y+height*.625,front);
+   lungs.position.set(center.x,bounds.min.y+height*.705,front-size.z*.015);
+   bodyGroup.add(lungs,heart);
+   bounds=new THREE.Box3().setFromObject(bodyGroup);fit(bounds);
+
+   const resize=()=>{
+    const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);
+    renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();
+   };
+   resize();
+   if("ResizeObserver" in window)new ResizeObserver(resize).observe(host);
+   else window.addEventListener("resize",resize);
+   const clock=new THREE.Clock();
+   const animate=()=>{
+    requestAnimationFrame(animate);
+    if(document.hidden)return;
+    const t=clock.getElapsedTime();
+    bodyGroup.rotation.y=Math.sin(t*.22)*.13;
+    bodyGroup.position.y=Math.sin(t*.8)*.008;
+    renderer.render(scene,camera);
+   };
+   animate();
+   setStatus("3D-HOLOGRAMM AKTIV · CC0-ANATOMIEMODELLE");
+  }catch(error){
+   console.error("WARVEX 3D medical load:",error);
+   setStatus("3D-MODELL NICHT GELADEN · Internet oder Modellserver prüfen.");
+   if(renderer){renderer.dispose();renderer=null;}
+  }
+ }
+ const observer=new MutationObserver(()=>{if(page.classList.contains("active"))init();});
+ observer.observe(page,{attributes:true,attributeFilter:["class"]});
+ if(page.classList.contains("active"))init();
+})();
+</script>
+
 </body>
 </html>
