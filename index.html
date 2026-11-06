@@ -85,7 +85,6 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
   <button class="active" data-page="start">START</button>
   <button data-page="chat">KI CHAT</button>
   <button data-page="voice">SPRACHE</button>
-  <button data-page="code">PROGRAMMIEREN</button>
   <button data-page="tools">TOOLS</button>
   <button data-page="notes">NOTIZEN</button>
   <button data-page="home">SMART HOME</button>
@@ -122,7 +121,6 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
     <div class="actions">
       <button class="primary" data-open="chat">KI CHAT</button>
       <button data-open="voice">SPRACHE</button>
-      <button data-open="code">PROGRAMMIEREN</button>
       <button data-open="tools">TOOLS</button>
     </div>
   </div>
@@ -159,81 +157,6 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
     <div class="status" id="voiceStatus">Sprachsteuerung ausgeschaltet.</div>
     <p class="muted" id="ttsStatus">Sprachsystem wird geprüft …</p>
     <p class="muted" id="diagnosticStatus">Diagnose noch nicht gestartet.</p>
-  </div>
-</section>
-
-<section id="code" class="page">
-  <div class="card">
-    <h2>WARVEX CODE STUDIO</h2>
-    <p class="muted">
-      Dein Programmierbereich mit direkter KI-Unterstützung.
-      Die KI kann Code erklären, Fehler untersuchen und kleinere
-      Codeabschnitte erstellen.
-    </p>
-
-    <h3>Deine Programmierfrage</h3>
-    <textarea id="codePrompt"
-      placeholder="Beispiel: Erstelle eine Funktion, die die Uhrzeit anzeigt."></textarea>
-
-    <div class="actions">
-      <button class="primary" id="codeAskBtn">KI FRAGEN</button>
-      <button id="codeExplainBtn">CODE ERKLÄREN</button>
-    </div>
-
-    <p class="muted" id="codeStatus">KI-Verbindung bereit.</p>
-
-    <h3>KI-Ergebnis</h3>
-    <div class="status" id="codeAnswer">
-      Hier erscheint die Antwort deiner KI.
-    </div>
-    <div class="actions">
-      <button id="insertCodeBtn">ERGEBNIS IN EDITOR</button>
-      <button id="copyAnswerBtn">ERGEBNIS KOPIEREN</button>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>Code-Editor</h2>
-    <p class="muted">
-      Hier kannst du deinen Code bearbeiten und kopieren.
-      Änderungen werden nicht automatisch auf GitHub gespeichert.
-    </p>
-
-    <textarea id="codeEditor" spellcheck="false"
-      placeholder="// Dein Code kommt hier hinein …"></textarea>
-
-    <div class="actions">
-      <button class="primary" id="copyEditorBtn">CODE KOPIEREN</button>
-      <button id="clearEditorBtn">EDITOR LEEREN</button>
-    </div>
-    <p class="muted" id="editorStatus">Editor bereit.</p>
-  </div>
-
-  <div class="card">
-    <h2>GitHub Verbindung</h2>
-    <p class="muted">
-      Öffne dein WARVEX-Projekt oder bearbeite direkt die
-      index.html-Datei.
-    </p>
-    <div class="actions">
-      <a href="https://github.com/Dustin54-dot/warvex-systems-v6"
-         target="_blank" rel="noopener">
-        <button class="primary">GITHUB PROJEKT</button>
-      </a>
-      <a href="https://github.com/Dustin54-dot/warvex-systems-v6/edit/main/index.html"
-         target="_blank" rel="noopener">
-        <button>INDEX.HTML BEARBEITEN</button>
-      </a>
-      <a href="https://dustin54-dot.github.io/warvex-systems-v6/"
-         target="_blank" rel="noopener">
-        <button>WEB-APP ÖFFNEN</button>
-      </a>
-    </div>
-    <div class="status">
-      KI-Verbindung: Cloudflare Worker<br>
-      GitHub: Projekt und Editor direkt erreichbar<br>
-      Automatisches Committen: nicht eingerichtet
-    </div>
   </div>
 </section>
 
@@ -792,104 +715,6 @@ $("chatInput").addEventListener("keydown",e=>{
 $("clearChat").addEventListener("click",()=>{
   $("chatMessages").replaceChildren();
   addMessage("WARVEX","Chat wurde geleert.");
-});
-
-/* PROGRAMMIERFENSTER */
-
-let lastCodeAnswer="";
-
-async function codeAsk(mode){
-  const prompt=$("codePrompt").value.trim();
-
-  if(!prompt){
-    $("codeStatus").textContent=
-      "Bitte schreibe zuerst deine Programmierfrage.";
-    return;
-  }
-
-  const currentCode=$("codeEditor").value.slice(0,2200);
-
-  let instruction="Du bist WARVEX CODE ASSISTANT. "+
-    "Antworte auf Deutsch. Sei technisch korrekt und knapp. ";
-
-  if(mode==="explain"){
-    instruction+="Erkläre den folgenden Code verständlich und "+
-      "nenne mögliche Fehler. Erfinde keine Testergebnisse. ";
-  }else{
-    instruction+="Hilf bei der Programmierung. Wenn sinnvoll, "+
-      "liefere einen kleinen, vollständigen Codeabschnitt. "+
-      "Verwende Codeblöcke. Behaupte nicht, dass du Dateien "+
-      "auf GitHub geändert hast. ";
-  }
-
-  const fullPrompt=instruction+
-    "\nAufgabe:\n"+prompt+
-    "\n\nAktueller Code (Auszug):\n"+currentCode;
-
-  $("codeAskBtn").disabled=true;
-  $("codeExplainBtn").disabled=true;
-  $("codeStatus").textContent="WARVEX KI arbeitet …";
-  $("codeAnswer").textContent="Antwort wird erstellt …";
-
-  try{
-    lastCodeAnswer=await askAI(fullPrompt);
-    $("codeAnswer").textContent=lastCodeAnswer;
-    $("codeStatus").textContent="KI-Antwort erhalten.";
-  }catch(error){
-    lastCodeAnswer="";
-    $("codeAnswer").textContent="KI-Fehler: "+error.message;
-    $("codeStatus").textContent="Verbindung fehlgeschlagen.";
-  }finally{
-    $("codeAskBtn").disabled=false;
-    $("codeExplainBtn").disabled=false;
-  }
-}
-
-$("codeAskBtn").addEventListener("click",()=>codeAsk("create"));
-$("codeExplainBtn").addEventListener("click",()=>codeAsk("explain"));
-
-function stripCodeFences(text){
-  return String(text||"")
-    .replace(/^```[a-zA-Z0-9_-]*\s*/,"")
-    .replace(/\s*```$/,"")
-    .trim();
-}
-
-$("insertCodeBtn").addEventListener("click",()=>{
-  if(!lastCodeAnswer){
-    $("codeStatus").textContent="Noch kein KI-Ergebnis vorhanden.";
-    return;
-  }
-
-  $("codeEditor").value=stripCodeFences(lastCodeAnswer);
-  $("editorStatus").textContent="KI-Ergebnis in den Editor übernommen.";
-});
-
-$("copyAnswerBtn").addEventListener("click",async()=>{
-  if(!lastCodeAnswer)return;
-
-  try{
-    await navigator.clipboard.writeText(lastCodeAnswer);
-    $("codeStatus").textContent="KI-Ergebnis kopiert.";
-  }catch(error){
-    $("codeStatus").textContent="Kopieren nicht möglich.";
-  }
-});
-
-$("copyEditorBtn").addEventListener("click",async()=>{
-  try{
-    await navigator.clipboard.writeText($("codeEditor").value);
-    $("editorStatus").textContent="Code wurde kopiert.";
-  }catch(error){
-    $("editorStatus").textContent=
-      "Kopieren nicht möglich. Bitte Code manuell markieren.";
-
-  }
-});
-
-$("clearEditorBtn").addEventListener("click",()=>{
-  $("codeEditor").value="";
-  $("editorStatus").textContent="Editor geleert.";
 });
 
 /* SPRACHSTEUERUNG */
