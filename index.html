@@ -185,6 +185,42 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
 @media(max-width:680px){.med-clinic-grid{grid-template-columns:1fr 1fr}.med-center-column{grid-column:1/-1;grid-row:1}.med-stage{min-height:360px}.med-human{height:350px}.med-system{grid-template-columns:1fr}.med-column{gap:7px}}
 @media(max-width:390px){.med-clinic-grid{grid-template-columns:1fr}.med-center-column{grid-column:auto;grid-row:auto}.med-stage{min-height:340px}}
 
+
+/* MEDICAL REDESIGN V2 – anatomischer Scan und klinische Monitoroberfläche */
+main:has(#medical.active){max-width:1500px;padding:clamp(9px,2vw,24px)}
+.medical-page .med-shell{background:radial-gradient(ellipse at 50% 32%,#092c45 0%,#041321 42%,#02070d 100%);border:1px solid #17658b;border-radius:16px;padding:clamp(10px,1.5vw,18px);box-shadow:0 18px 55px #0009,inset 0 0 48px #0077aa20}
+.med-topline{padding:7px 5px 14px;border-bottom:1px solid #1b5877}
+.med-brand{font-size:clamp(19px,2.3vw,29px);letter-spacing:2.5px;text-shadow:0 0 18px #30caff66}
+.med-device-pill{font-weight:700;letter-spacing:.6px;background:#250d15;border-color:#a43b4a}
+.med-clinic-grid{grid-template-columns:minmax(210px,.9fr) minmax(300px,1.2fr) minmax(210px,.9fr);gap:12px;margin-top:14px}
+.med-column{gap:12px}
+.med-panel{background:linear-gradient(145deg,#071e30ed,#020b15f5);border:1px solid #1a6388;border-radius:10px;padding:13px;box-shadow:0 8px 20px #0004,inset 0 0 22px #0b5c8020}
+.med-panel h3{font-size:12px;letter-spacing:1.35px;color:#8ae7ff}
+.med-stage{min-height:565px;border:1px solid #1674a0;border-radius:12px;background:radial-gradient(ellipse at 50% 43%,#0a4267 0%,#05243b 42%,#020b16 100%);box-shadow:inset 0 0 45px #00aaff25,0 0 26px #009de51c}
+.med-stage:before{width:74%;border-color:#48c9f866;box-shadow:0 0 50px #00baff20,inset 0 0 35px #00baff18}
+.med-stage:after{width:88%;border-color:#48c9f844}
+.med-human{width:min(100%,340px);height:550px;filter:drop-shadow(0 0 17px #2cc8ff88)}
+.med-human .med-body-shape{fill:rgba(50,179,235,.12);stroke:#8ceaff;stroke-width:1.65;stroke-linejoin:round}
+.med-human .med-body-detail{fill:none;stroke:#9beaff55;stroke-width:1.2;stroke-linecap:round}
+.med-vessels path{stroke:#54cfff;stroke-linecap:round;stroke-linejoin:round}
+.med-lungs path{fill:#39b8ef28;stroke:#8deaff;stroke-width:2.1}
+.med-heart-core{fill:#ed304e;stroke:#ff9eae;stroke-width:1.8;transform-box:fill-box;transform-origin:center}
+.med-value-row{padding:11px 0;font-size:13px}
+.med-number{font-size:clamp(22px,2.2vw,30px);text-shadow:0 0 12px #37caff45}
+.med-organ-art{height:116px;filter:drop-shadow(0 0 8px #25baff44)}
+.med-organ-art path{stroke-width:1.8}
+.med-system{margin-top:12px;gap:12px}
+.med-system-box{border:1px solid #17638a;border-radius:10px;background:linear-gradient(145deg,#061b2c,#020a13);padding:13px}
+.med-alert-banner{border-width:2px;box-shadow:0 0 28px #ff1e3c99,inset 0 0 18px #ff1e3c33}
+.med-alert-banner strong{font-size:clamp(24px,4vw,38px);text-shadow:0 0 15px #ff334f}
+.med-test-area{border-color:#8a672c;background:linear-gradient(110deg,#241706,#130d05);box-shadow:inset 0 0 18px #f6b74412}
+.med-ai-bar{background:linear-gradient(100deg,#041b2b,#06263a);border-color:#167aa7;box-shadow:0 0 20px #009ed51c}
+@media(max-width:850px){.med-clinic-grid{grid-template-columns:1fr 1fr}.med-center-column{grid-column:1/-1;grid-row:1}.med-stage{min-height:460px}.med-human{height:450px}.med-system{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.med-clinic-grid{grid-template-columns:1fr 1fr;gap:8px}.med-center-column{grid-column:1/-1;grid-row:1}.med-stage{min-height:410px}.med-human{height:400px}.med-column{gap:8px}.med-panel{padding:10px}.med-system{grid-template-columns:1fr}.med-test-area .actions button{min-width:100%;}}
+@media(max-width:360px){.med-clinic-grid{grid-template-columns:1fr}.med-center-column{grid-column:auto;grid-row:auto}.med-stage{min-height:370px}.med-human{height:360px}}
+.medical-page.heart-alarm-active .med-heart-core{animation:med-heartbeat .62s ease-in-out infinite;filter:drop-shadow(0 0 13px #ff294d)}
+.medical-page.lung-alarm-active .med-lungs{animation:med-lungs .85s ease-in-out infinite alternate}
+
 </style>
 </head>
 <body>
@@ -259,16 +295,37 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
   </div>
   <div class="med-column med-center-column">
    <div class="med-stage" aria-label="Blauer holografischer Körperscan">
-    <svg class="med-human" viewBox="0 0 320 620" role="img" aria-label="Menschlicher Hologramm-Körperscan mit Herz und Lunge">
-     <defs><linearGradient id="medBodyGradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8ceaff" stop-opacity=".3"/><stop offset=".55" stop-color="#28a9ed" stop-opacity=".08"/><stop offset="1" stop-color="#8ceaff" stop-opacity=".22"/></linearGradient></defs>
-     <circle cx="160" cy="70" r="36" fill="url(#medBodyGradient)" stroke="#80e2ff" stroke-width="2.4"/>
-     <path class="med-body-shape" fill="url(#medBodyGradient)" d="M139 110 L139 132 Q112 132 91 148 L65 245 Q58 270 72 279 Q84 285 91 265 L112 190 L102 322 Q100 348 121 365 L111 574 Q110 595 128 596 Q143 597 146 578 L160 411 L174 578 Q177 597 193 596 Q210 595 208 574 L199 365 Q220 348 218 322 L208 190 L229 265 Q236 285 248 279 Q262 270 255 245 L229 148 Q208 132 181 132 L181 110 Z"/>
-     <path class="med-body-detail" d="M160 132 L160 405 M112 190 Q160 215 208 190 M112 322 Q160 345 208 322 M121 365 Q160 380 199 365 M139 132 Q160 145 181 132 M125 220 L145 260 M195 220 L175 260 M130 390 L145 550 M190 390 L175 550"/>
-     <g class="med-lungs"><path d="M151 202 C133 183 117 197 116 222 L111 265 Q112 284 130 278 Q148 271 154 242 Z"/><path d="M169 202 C187 183 203 197 204 222 L209 265 Q208 284 190 278 Q172 271 166 242 Z"/></g>
-     <path d="M160 185 V250" fill="none" stroke="#9beaff" stroke-width="3"/>
-     <path class="med-heart-core" d="M160 282 C148 268 128 274 130 292 C132 308 151 321 160 329 C169 321 188 308 190 292 C192 274 172 268 160 282 Z"/>
-     <circle cx="160" cy="70" r="41" fill="none" stroke="#73dcff55" stroke-dasharray="3 7"/>
-    </svg>
+    <svg class="med-human" viewBox="0 0 360 700" role="img" aria-label="Anatomischer Körperscan von vorn mit Herz, Lunge und Gefäßsystem">
+ <defs>
+  <linearGradient id="medBodyGradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c4f6ff" stop-opacity=".26"/><stop offset=".45" stop-color="#31baf2" stop-opacity=".09"/><stop offset="1" stop-color="#6bdcff" stop-opacity=".2"/></linearGradient>
+  <linearGradient id="medBodyEdge" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b8f3ff"/><stop offset="1" stop-color="#168ac7"/></linearGradient>
+  <filter id="medGlow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <clipPath id="medTorsoClip"><path d="M126 155 Q105 160 83 181 Q66 201 72 254 L93 345 Q99 374 124 386 L113 475 Q108 500 121 519 L132 673 Q134 691 151 691 Q166 691 168 674 L180 510 L192 674 Q194 691 210 691 Q227 691 228 673 L237 519 Q250 500 245 475 L234 386 Q259 374 267 345 L288 254 Q294 201 277 181 Q255 160 234 155 L211 145 L149 145 Z"/></clipPath>
+ </defs>
+ <!-- Ganzkörper-Silhouette -->
+ <g filter="url(#medGlow)">
+  <path class="med-body-shape" fill="url(#medBodyGradient)" stroke="url(#medBodyEdge)" d="M151 28 Q180 12 209 28 Q232 43 229 78 Q226 112 204 132 L204 147 Q221 150 234 155 Q255 160 277 181 Q294 201 288 254 L267 345 Q259 374 237 386 L245 475 Q250 500 237 519 L228 673 Q227 691 210 691 Q194 691 192 674 L180 510 L168 674 Q166 691 151 691 Q134 691 132 673 L121 519 Q108 500 113 475 L124 386 Q99 374 93 345 L72 254 Q66 201 83 181 Q105 160 126 155 Q139 150 156 147 L156 132 Q134 112 131 78 Q128 43 151 28 Z"/>
+  <path class="med-body-detail" d="M156 147 Q180 162 204 147 M126 155 Q180 184 234 155 M111 190 Q180 224 249 190 M105 263 Q180 284 255 263 M124 386 Q180 405 237 386 M123 476 Q180 492 238 476 M151 132 Q180 143 209 132 M180 163 V505 M126 188 Q111 264 130 342 M234 188 Q249 264 230 342 M145 410 L151 665 M215 410 L209 665 M92 225 L56 328 Q51 344 64 350 Q76 355 83 339 L113 263 M268 225 L304 328 Q309 344 296 350 Q284 355 277 339 L247 263"/>
+  <path class="med-body-detail" d="M146 153 Q128 190 138 226 M214 153 Q232 190 222 226 M138 226 Q180 244 222 226 M128 355 Q180 371 232 355 M140 393 Q180 414 220 393"/>
+ </g>
+ <!-- Gefäßbahnen und Rippen -->
+ <g clip-path="url(#medTorsoClip)" class="med-vessels">
+  <path d="M180 170 V320 M180 235 C160 245 151 264 145 290 M180 235 C200 245 209 264 215 290 M180 300 C157 321 150 346 145 370 M180 300 C203 321 210 346 215 370 M180 320 V470 M180 390 C157 408 151 434 147 462 M180 390 C203 408 209 434 213 462" fill="none" stroke="#64dfff" stroke-width="2" opacity=".62"/>
+  <path d="M180 205 Q147 190 123 211 M180 205 Q213 190 237 211 M180 230 Q146 216 119 241 M180 230 Q214 216 241 241 M180 256 Q147 244 118 270 M180 256 Q213 244 242 270 M180 282 Q150 272 120 299 M180 282 Q210 272 240 299" fill="none" stroke="#9beaff" stroke-width="1.2" opacity=".25"/>
+ </g>
+ <!-- Lunge -->
+ <g class="med-lungs" filter="url(#medGlow)">
+  <path d="M174 213 C157 190 137 190 126 213 C112 240 113 294 127 315 C139 333 160 319 169 295 Q177 272 176 238 Z"/>
+  <path d="M186 213 C203 190 223 190 234 213 C248 240 247 294 233 315 C221 333 200 319 191 295 Q183 272 184 238 Z"/>
+ </g>
+ <path d="M180 164 V250 M180 211 C169 218 164 230 160 242 M180 211 C191 218 196 230 200 242" fill="none" stroke="#b8f4ff" stroke-width="4" stroke-linecap="round"/>
+ <!-- Herz und Aorta -->
+ <path d="M180 278 C165 260 139 270 142 294 C145 317 168 336 180 346 C192 336 215 317 218 294 C221 270 195 260 180 278 Z" class="med-heart-core" filter="url(#medGlow)"/>
+ <path d="M180 275 V252 M180 300 C164 298 159 286 154 278 M180 300 C196 298 201 286 206 278" fill="none" stroke="#ff9eae" stroke-width="3" stroke-linecap="round"/>
+ <!-- Kopf-/Gesichtskontur -->
+ <path d="M153 53 Q180 34 207 53 M147 79 Q180 96 213 79 M160 110 Q180 118 200 110" fill="none" stroke="#8ceaff" stroke-width="1.4" opacity=".48"/>
+ <circle cx="180" cy="72" r="48" fill="none" stroke="#8ceaff" stroke-dasharray="2 8" opacity=".45"/>
+</svg>
    </div>
   </div>
   <div class="med-column">
@@ -1036,11 +1093,25 @@ function medicalBeep(){
   const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
   if(!medicalAudioContext||medicalAudioContext.state==="closed")medicalAudioContext=new AC();
   if(medicalAudioContext.state==="suspended")medicalAudioContext.resume();
-  const now=medicalAudioContext.currentTime, osc=medicalAudioContext.createOscillator(), gain=medicalAudioContext.createGain();
-  const freq=medicalBeepStep%2===0?980:1320;medicalBeepStep++;
-  osc.type="square";osc.frequency.setValueAtTime(freq,now);
-  gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.055,now+.012);gain.gain.setValueAtTime(.055,now+.085);gain.gain.exponentialRampToValueAtTime(.0001,now+.14);
-  osc.connect(gain);gain.connect(medicalAudioContext.destination);osc.start(now);osc.stop(now+.15);
+  const now=medicalAudioContext.currentTime;
+  const level=Math.min(3,1+Math.floor(medicalBeepStep/7));
+  const base=[880,1280,1680][level-1];
+  const freq=base+(medicalBeepStep%2)*150;
+  const duration=level===3?.19:.15;
+  const osc=medicalAudioContext.createOscillator(),gain=medicalAudioContext.createGain();
+  osc.type="square";
+  osc.frequency.setValueAtTime(freq,now);
+  osc.frequency.exponentialRampToValueAtTime(freq*1.08,now+duration*.55);
+  const volume=[.065,.082,.10][level-1];
+  gain.gain.setValueAtTime(.0001,now);
+  gain.gain.exponentialRampToValueAtTime(volume,now+.014);
+  gain.gain.setValueAtTime(volume,now+duration*.48);
+  gain.gain.exponentialRampToValueAtTime(.0001,now+duration);
+  osc.connect(gain);gain.connect(medicalAudioContext.destination);
+  osc.start(now);osc.stop(now+duration+.01);
+  medicalBeepStep++;
+  const status=$("medTestStatus");
+  if(status)status.textContent="SIMULATION · Alarmstufe "+level+"/3 · steigende Tonhöhe und Lautstärke – keine Messdaten.";
  }catch(error){$("medTestStatus").textContent="Animation aktiv; Audio wird vom Browser blockiert.";}
 }
 function startMedicalTest(mode){
@@ -1049,7 +1120,7 @@ function startMedicalTest(mode){
  if(mode==="heart"){page.classList.add("heart-alarm-active");$("medAlarmTitle").textContent="⚠ HERZ-ALARM – TEST";$("medAlarmText").textContent="Simulierter Alarmton und Anzeige – keine Messung." ;status.textContent="SIMULATION: Herzalarm-Test läuft.";}
  else{page.classList.add("lung-alarm-active");$("medAlarmTitle").textContent="⚠ LUNGENALARM – TEST";$("medAlarmText").textContent="Simulierter Alarmton und Anzeige – keine Messung.";status.textContent="SIMULATION: Lungentest läuft.";}
  status.classList.add("med-alert");medicalBeep();
- medicalAlarmTimer=setInterval(medicalBeep,520);
+ medicalAlarmTimer=setInterval(medicalBeep,440);
 }
 $("medHeartTest").addEventListener("click",()=>startMedicalTest("heart"));
 $("medLungTest").addEventListener("click",()=>startMedicalTest("lungs"));
