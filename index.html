@@ -646,27 +646,77 @@ async function say(text){
 
 /* KI-VERBINDUNG */
 
+let lastAIDiagnostic = "Noch keine KI-Diagnose vorhanden.";
+
+function setAIDiagnostic(message){
+  lastAIDiagnostic=String(message||"Unbekannter Fehler");
+  const el=$("diagnosticStatus");
+  if(el) el.textContent="KI-Diagnose: "+lastAIDiagnostic;
+  console.warn("[WARVEX KI-Diagnose]",lastAIDiagnostic);
+}
+
+function describeAIStatus(status){
+  if(status===400) return "HTTP 400: Anfrage wurde vom Worker/API abgelehnt (Eingabe prüfen).";
+  if(status===401) return "HTTP 401: Authentifizierung fehlt oder ist ungültig.";
+  if(status===403) return "HTTP 403: Zugriff verweigert; Berechtigung oder Worker-Regel prüfen.";
+  if(status===404) return "HTTP 404: /api/ai wurde nicht gefunden; Worker-Route prüfen.";
+  if(status===408) return "HTTP 408: Zeitüberschreitung bei der Anfrage.";
+  if(status===413) return "HTTP 413: Anfrage ist zu groß.";
+  if(status===429) return "HTTP 429: Limit oder Rate-Limit erreicht.";
+  if(status>=500) return "HTTP "+status+": Server-/Worker-Fehler.";
+  return "HTTP "+status+": Anfrage fehlgeschlagen.";
+}
+
 async function askAI(prompt){
-  const response=await fetch(AI_URL,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({prompt})
-  });
+  let response;
+  try{
+    response=await fetch(AI_URL,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({prompt}),
+      cache:"no-store"
+    });
+  }catch(error){
+    const detail=error&&error.message?error.message:String(error);
+    const diagnosis=!navigator.onLine
+      ? "Gerät ist offline. Internetverbindung fehlt."
+      : "Netzwerkfehler beim Aufruf von /api/ai. Browser meldet '"+detail+"'. Mögliche Ursachen: Worker nicht erreichbar, CORS-Preflight blockiert oder Netzwerk/DNS-Problem. Der Browser kann diese Ursachen nicht allein sicher unterscheiden.";
+    setAIDiagnostic(diagnosis);
+    throw new Error(diagnosis);
+  }
 
-  const data=await response.json().catch(()=>null);
+  const raw=await response.text().catch(()=> "");
+  let data=null;
+  try{data=raw?JSON.parse(raw):null;}catch(_){}
 
-  if(!response.ok||!data||data.success!==true){
-    throw new Error(
-      data?.error||"Cloudflare-KI nicht erreichbar."
-    );
+  if(!response.ok){
+    const detail=data&&(data.error||data.message)
+      ? String(data.error||data.message).slice(0,350)
+      : raw.slice(0,350);
+    const diagnosis=describeAIStatus(response.status)
+      +(detail?" Servermeldung: "+detail:"");
+    setAIDiagnostic(diagnosis);
+    throw new Error(diagnosis);
+  }
+
+  if(!data||data.success!==true){
+    const detail=data&&(data.error||data.message)
+      ? String(data.error||data.message).slice(0,350)
+      : raw.slice(0,350);
+    const diagnosis="HTTP "+response.status+": Worker antwortet, aber das erwartete JSON-Format fehlt oder success ist nicht true."
+      +(detail?" Antwort: "+detail:"");
+    setAIDiagnostic(diagnosis);
+    throw new Error(diagnosis);
   }
 
   const answer=data.response||data.result||data.text;
-
   if(typeof answer!=="string"||!answer.trim()){
-    throw new Error("Die KI hat keine Antwort geliefert.");
+    const diagnosis="Worker erreichbar, aber die KI-Antwort ist leer. Prüfe die OpenAI-/Workers-AI-Antwort im Worker.";
+    setAIDiagnostic(diagnosis);
+    throw new Error(diagnosis);
   }
 
+  setAIDiagnostic("Erfolgreich: /api/ai antwortet mit HTTP "+response.status+".");
   return answer.trim();
 }
 
