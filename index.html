@@ -439,9 +439,9 @@ if("speechSynthesis" in window){
 
 function prepareSpeechText(text){
   return String(text||"")
-    .replace(/\\bWARVEX\\b/gi,"Warwex")
-    .replace(/\\bWARFAX\\b/gi,"Warwex")
-    .replace(/\\bVEXARA\\b/gi,"Vexara");
+    .replace(/\bWARVEX\b/gi,"Warwex")
+    .replace(/\bWARFAX\b/gi,"Warwex")
+    .replace(/\bVEXARA\b/gi,"Vexara");
 }
 
 function speakWithBrowser(text){
