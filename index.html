@@ -223,6 +223,17 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
   <div class="med-system-box"><h3>ERKANNTE DATENDIENSTE</h3><div class="med-missing" id="medServices">Noch keine Gerätedaten untersucht.</div><p class="med-muted">EKG-Rohdaten benötigen ein gerätespezifisches, bekanntes Protokoll. Ein normaler Pulssensor liefert keine EKG-Kurve.</p></div>
  </div>
  </div>
+ <div class="med-system-box med-test-area" style="margin-top:14px">
+  <h3>TESTMODUS · SIMULIERTE WERTE</h3>
+  <p class="med-muted">Nur zum Prüfen der Anzeige und Alarmtöne. Diese Werte stammen nicht von einem Sensor und sind keine echten Messungen.</p>
+  <div class="actions">
+   <button type="button" id="medTestPulse">PULS-TEST · 75 BPM</button>
+   <button type="button" id="medTestTemp38">TEMPERATUR-TEST · 38 °C</button>
+   <button type="button" id="medTestTemp40">KRITISCHER TEST · 40 °C</button>
+   <button type="button" id="medTestReset">TEST BEENDEN</button>
+  </div>
+  <p class="med-muted" id="medTestStatus" aria-live="polite">Testmodus ausgeschaltet.</p>
+ </div>
  <div class="med-alert-banner" role="status"><strong id="medAlarmTitle">MEDIZINISCHE WARNUNGEN</strong><span id="medAlarmText">Kein Alarm aktiv. Warnungen entstehen nur aus tatsächlich empfangenen Sensorwerten.</span><button id="medAlarmSeen" class="med-ack-button" hidden>ALARM BESTÄTIGEN UND STOPPEN</button></div>
  <div class="med-ai-bar"><span style="font-size:25px">✚</span><div><strong>WARVEX MEDICAL AI</strong><small>Erklärt medizinische Begriffe und allgemeine Gesundheitsthemen verständlich. Keine Diagnose und kein Ersatz für medizinisches Fachpersonal.</small></div></div>
  <p class="med-disclaimer">Hinweis: WARVEX MEDICAL ist derzeit eine Informations- und Demonstrationsoberfläche. Es besteht keine zertifizierte medizinische Zweckbestimmung. Angezeigte Illustrationen sind schematisch; ohne verbundene Sensoren liegen keine Vitaldaten vor. Bei akuten oder schweren Beschwerden bitte medizinische Hilfe holen; in Deutschland im Notfall 112.</p>
@@ -986,6 +997,11 @@ function disconnectMedicalDevice(){if(medicalDevice&&medicalDevice.gatt&&medical
 $("medConnectButton").addEventListener("click",connectMedicalDevice);
 $("medDisconnectButton").addEventListener("click",disconnectMedicalDevice);
 $("medAlarmSeen").addEventListener("click",()=>{medicalAlertAcknowledged=true;stopMedicalAlert();});
+$("medTestPulse").addEventListener("click",()=>{$("medHeartRateValue").textContent="75 BPM";$("medHeartRateValue").classList.add("med-live-value");$("medTestStatus").textContent="Simulierter Pulswert: 75 BPM · kein Sensorwert.";});
+$("medTestTemp38").addEventListener("click",()=>{medicalAlertAcknowledged=false;handleMedicalTemperature(38);$("medTestStatus").textContent="Temperaturalarm-Test: simulierte 38 °C.";});
+$("medTestTemp40").addEventListener("click",()=>{medicalAlertAcknowledged=false;handleMedicalTemperature(40);$("medTestStatus").textContent="Kritischer Alarmtest: simulierte 40 °C.";});
+$("medTestReset").addEventListener("click",()=>{medicalAlertAcknowledged=true;stopMedicalAlert();$("medTemperatureValue").textContent="— °C";$("medHeartRateValue").textContent="— BPM";$("medHeartRateValue").classList.remove("med-live-value");$("medTestStatus").textContent="Test beendet. Ohne echte Sensordaten werden keine Werte angezeigt.";});
+
 
 /* SYSTEM-TOOLS */
 $("timeBtn").addEventListener("click",()=>$("toolResult").textContent="Uhrzeit: "+new Date().toLocaleTimeString("de-DE"));
