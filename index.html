@@ -159,6 +159,21 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
 .vision-status{padding:11px;border-radius:9px;background:#0b1420;border:1px solid #2a3a50;color:#c7d5e8;font-size:13px;line-height:1.5}
 .vision-live-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#ff3048;margin-right:7px;box-shadow:0 0 10px #ff3048}
 .vision-note{font-size:12px;color:#aab5c4;line-height:1.55}
+
+/* FaceTime-inspirierter WARVEX-Anruf */
+.call-page{min-height:calc(100vh - 150px)}
+.call-stage{position:relative;min-height:68vh;background:radial-gradient(circle at 50% 35%,#26344a,#080d16 70%);border:1px solid #33445b;border-radius:22px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.call-main-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#05080d}
+.call-top{position:absolute;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;align-items:center;z-index:2;gap:10px}
+.call-pill{padding:9px 12px;border-radius:99px;background:#080d16bb;border:1px solid #ffffff2b;color:#fff;font-size:12px;backdrop-filter:blur(10px)}
+.call-ai-tile{position:absolute;right:14px;bottom:18px;width:clamp(104px,30vw,150px);aspect-ratio:3/4;border-radius:16px;background:linear-gradient(145deg,#27364c,#101827);border:1px solid #ffffff55;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;z-index:2;box-shadow:0 8px 30px #0008}
+.call-ai-orb{width:58px;height:58px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff8795,#b51f39 55%,#45101c);box-shadow:0 0 28px #ff304866;display:grid;place-items:center;font-size:24px;font-weight:900}
+.call-ai-tile small{color:#e7edf7;font-size:11px}
+.call-controls{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;padding:18px 4px}
+.call-control{min-width:112px;border-radius:99px;padding:14px 18px}
+.call-hangup{background:#d92742;border-color:#ff7182}
+.call-caption{position:absolute;left:14px;right:125px;bottom:20px;z-index:2;padding:10px 12px;border-radius:12px;background:#080d16bb;color:white;font-size:12px;line-height:1.4;backdrop-filter:blur(10px)}
+.call-log{max-height:150px;overflow:auto;background:#0b1420;border:1px solid #2a3a50;border-radius:12px;padding:10px;font-size:13px;white-space:pre-wrap}
 </style>
 </head>
 <body>
@@ -283,7 +298,9 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
 <section id="vision" class="page">
  <div class="vision-shell">
   <h2>🔴 WARVEX LIVE VISION</h2>
-  <p class="muted">Kamera- und Mikrofonbereich für deinen Live-Modus.</p>
+  <p class="muted">Starte einen Videoanruf mit WARVEX. Das Anruffenster öffnet sich wie bei einem Videoanruf.</p>
+  <div class="vision-status">Videoanruf mit Kamera-Vorschau und Sprachdialog. Die KI kann derzeit hören und antworten, aber das Kamerabild noch nicht inhaltlich erkennen.</div>
+  <div class="actions"><button class="primary" id="visionCallStart">📞 ANRUF STARTEN</button></div>
   <div class="vision-status" id="visionStatus">Kamera ist ausgeschaltet. Starte sie bewusst über den Button.</div>
   <video id="visionVideo" class="vision-camera" autoplay muted playsinline aria-label="Live-Kamerabild"></video>
   <div class="actions">
@@ -299,6 +316,27 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
   <div class="actions"><button class="primary" id="visionAsk">BILDFRAGE PRÜFEN</button></div>
   <div class="vision-status" id="visionAnswer" aria-live="polite">Noch kein Foto aufgenommen.</div>
   <p class="vision-note">Wichtig: Die Kamera-Vorschau und Fotoaufnahme laufen lokal im Browser. Die aktuelle WARVEX-KI-Schnittstelle verarbeitet bisher nur Text. Deshalb wird das Foto hier noch nicht an eine Bild-KI übertragen und WARVEX kann es noch nicht zuverlässig erkennen. Dafür muss später der Worker um einen sicheren Bildanalyse-Endpunkt erweitert werden. Kamera und Mikrofon werden nur nach deinem Tastendruck aktiviert.</p>
+ </div>
+</section>
+
+
+<section id="visionCall" class="page call-page">
+ <div class="card">
+  <div class="call-top" style="position:relative;inset:auto;margin-bottom:12px"><strong>WARVEX VIDEOANRUF</strong><span class="call-pill" id="callTimer">VERBINDUNG AUS</span></div>
+  <div class="call-stage">
+   <video id="callVideo" class="call-main-video" autoplay muted playsinline aria-label="Dein Kamerabild im Videoanruf"></video>
+   <div class="call-top"><span class="call-pill">🔴 LIVE · WARVEX</span><span class="call-pill" id="callState">Bereit</span></div>
+   <div class="call-ai-tile"><div class="call-ai-orb">W</div><strong>WARVEX</strong><small id="callAiState">KI wartet</small></div>
+   <div class="call-caption" id="callCaption">Drücke „Anruf starten“, um Kamera und Sprachdialog zu aktivieren.</div>
+  </div>
+  <div class="call-controls">
+   <button class="primary call-control" id="callBegin">ANRUF STARTEN</button>
+   <button class="call-control" id="callMic" disabled>🎙️ MIKRO AUS</button>
+   <button class="call-control call-hangup" id="callEnd" disabled>☎ AUFLEGEN</button>
+  </div>
+  <div class="call-log" id="callLog" aria-live="polite">WARVEX: Ich bin bereit für deinen Anruf.</div>
+  <p class="vision-note">Hinweis: Der Sprachdialog nutzt die vorhandene Text-KI und VEXARA-Sprachausgabe. Kamera und Mikrofon werden lokal aktiviert. Eine echte Bildanalyse ist noch nicht angeschlossen; WARVEX sieht das Kamerabild daher noch nicht. Für den Anruf musst du im Browser Kamera- und Mikrofonzugriff erlauben.</p>
+  <div class="actions"><button id="callBack">ZURÜCK ZU LIVE VISION</button></div>
  </div>
 </section>
 
@@ -1170,6 +1208,49 @@ $("visionAsk").addEventListener("click",()=>{
 });
 document.querySelectorAll('[data-page]').forEach(button=>button.addEventListener('click',()=>{if(button.dataset.page!=="vision"&&visionRecognition){try{visionRecognition.stop();}catch(error){}}}));
 window.addEventListener("pagehide",stopVisionCamera);
+
+
+/* WARVEX VIDEOANRUF · Kamera + Sprachdialog über vorhandene Text-KI */
+let warvexCallStream=null,warvexCallRecognition=null,warvexCallActive=false,warvexCallBusy=false,warvexCallMicEnabled=true,warvexCallStartedAt=0,warvexCallClock=null;
+function callLog(who,message){const log=$("callLog");if(!log)return;log.textContent+=(log.textContent?"\n":"")+who+": "+message;log.scrollTop=log.scrollHeight;}
+function callState(message){$("callState").textContent=message;$("callCaption").textContent=message;}
+function stopCallRecognition(){if(warvexCallRecognition){const r=warvexCallRecognition;warvexCallRecognition=null;try{r.onend=null;r.stop();}catch(error){}}}
+function startCallRecognition(){
+ if(!warvexCallActive||!warvexCallMicEnabled||warvexCallBusy||warvexCallRecognition)return;
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){callState("Spracherkennung nicht unterstützt – nutze den KI-Chat.");$("callMic").disabled=true;return;}
+ try{
+  const r=new SR();warvexCallRecognition=r;r.lang="de-DE";r.continuous=false;r.interimResults=false;r.maxAlternatives=1;
+  r.onstart=()=>{$("callAiState").textContent="Hört zu";callState("Ich höre zu …");};
+  r.onresult=async event=>{const heard=event.results[0][0].transcript.trim();if(!heard)return;stopCallRecognition();warvexCallBusy=true;$("callAiState").textContent="Denkt nach";callLog("DU",heard);callState("WARVEX verarbeitet deine Frage …");try{const answer=await askAI(heard);callLog("WARVEX",answer);$("callAiState").textContent="Antwortet";callState(answer);await say(answer);}catch(error){const msg="Die KI-Verbindung ist gerade nicht erreichbar: "+(error.message||String(error));callLog("WARVEX",msg);callState(msg);await say("Die KI-Verbindung ist gerade nicht erreichbar.");}finally{warvexCallBusy=false;if(warvexCallActive){$("callAiState").textContent="KI wartet";setTimeout(startCallRecognition,450);}}};
+  r.onerror=event=>{warvexCallRecognition=null;if(warvexCallActive&&event.error!=="no-speech"){callState("Mikrofon/Spracherkennung: "+event.error);$("callAiState").textContent="Mikro prüfen";}else if(warvexCallActive){setTimeout(startCallRecognition,700);}};
+  r.onend=()=>{if(warvexCallRecognition===r)warvexCallRecognition=null;if(warvexCallActive&&warvexCallMicEnabled&&!warvexCallBusy)setTimeout(startCallRecognition,350);};
+  r.start();
+ }catch(error){warvexCallRecognition=null;callState("Mikrofon konnte nicht starten: "+error.message);}
+}
+async function beginWarvexCall(){
+ if(warvexCallActive)return;
+ if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){callState("Kamera/Mikrofon benötigen HTTPS und einen kompatiblen Browser.");return;}
+ try{
+  warvexCallStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"user"}},audio:true});
+  $("callVideo").srcObject=warvexCallStream;
+  warvexCallActive=true;warvexCallMicEnabled=true;warvexCallStartedAt=Date.now();
+  $("callBegin").disabled=true;$("callEnd").disabled=false;$("callMic").disabled=false;$("callMic").textContent="🎙️ MIKRO AUS";
+  $("callLog").textContent="";callLog("WARVEX","Verbindung steht. Hallo! Was möchtest du wissen?");callState("Verbunden");$("callAiState").textContent="Verbunden";
+  $("callTimer").textContent="ANRUF LÄUFT";warvexCallClock=setInterval(()=>{const sec=Math.floor((Date.now()-warvexCallStartedAt)/1000);$("callTimer").textContent="● "+String(Math.floor(sec/60)).padStart(2,"0")+":"+String(sec%60).padStart(2,"0");},1000);
+  await say("Hallo. WARVEX ist jetzt im Anruf. Ich kann dich hören. Was möchtest du wissen?");startCallRecognition();
+ }catch(error){callState("Anruf konnte nicht gestartet werden: "+(error.message||String(error))+". Bitte Kamera- und Mikrofonrechte prüfen.");if(warvexCallStream){warvexCallStream.getTracks().forEach(t=>t.stop());warvexCallStream=null;}}
+}
+function endWarvexCall(){
+ warvexCallActive=false;warvexCallBusy=false;stopCallRecognition();if(warvexCallStream){warvexCallStream.getTracks().forEach(t=>t.stop());warvexCallStream=null;}$("callVideo").srcObject=null;
+ if(warvexCallClock){clearInterval(warvexCallClock);warvexCallClock=null;}$("callBegin").disabled=false;$("callEnd").disabled=true;$("callMic").disabled=true;$("callMic").textContent="🎙️ MIKRO AUS";$("callAiState").textContent="Anruf beendet";$("callTimer").textContent="ANRUF BEENDET";callState("Anruf beendet.");if(currentAudio){currentAudio.pause();currentAudio=null;}if("speechSynthesis" in window)speechSynthesis.cancel();
+}
+$("visionCallStart").addEventListener("click",()=>showPage("visionCall"));
+$("callBegin").addEventListener("click",beginWarvexCall);
+$("callEnd").addEventListener("click",endWarvexCall);
+$("callMic").addEventListener("click",()=>{warvexCallMicEnabled=!warvexCallMicEnabled;$("callMic").textContent=warvexCallMicEnabled?"🎙️ MIKRO AUS":"🔇 MIKRO AN";if(!warvexCallMicEnabled){stopCallRecognition();callState("Mikrofon pausiert.");}else{callState("Mikrofon aktiv.");startCallRecognition();}});
+$("callBack").addEventListener("click",()=>{endWarvexCall();showPage("vision");});
+window.addEventListener("pagehide",endWarvexCall);
 
 /* SYSTEM-TOOLS */
 $("timeBtn").addEventListener("click",()=>$("toolResult").textContent="Uhrzeit: "+new Date().toLocaleTimeString("de-DE"));
