@@ -164,6 +164,7 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
 .med-alert-banner span{font-size:12px}
 .med-ack-button{display:block;width:100%;margin-top:12px;padding:15px;background:#ff3048;border:2px solid #ffd4d9;color:#fff;font-size:16px;font-weight:900;letter-spacing:1px;box-shadow:0 0 18px #ff304888}.med-ack-button[hidden]{display:none}
 .medical-page.heart-alarm-active .med-alert-banner,.medical-page.lung-alarm-active .med-alert-banner{display:block;animation:med-banner-flash .8s steps(2,end) infinite}
+.medical-page.critical-alarm-active .med-alert-banner{display:block;animation:med-banner-flash .55s steps(2,end) infinite}
 .med-test-area{margin-top:10px;border:1px solid #735525;background:#211706;border-radius:9px;padding:11px}
 .med-test-area h3{margin:0 0 6px;color:#ffd58a;font-size:13px}
 .med-test-note{font-size:11px;color:#f3d5a4;margin:0 0 9px}
@@ -1167,6 +1168,7 @@ function updateMedicalEscalation(){
 }
 
 function startMedicalTest(mode){
+ medicalAwaitingConfirmation=false;
  stopMedicalTest(true);
  medicalAlarmMode=mode;medicalAlarmLevel=1;medicalElapsedSeconds=0;
  const page=$("medical"),status=$("medTestStatus"),seen=$("medAlarmSeen");
