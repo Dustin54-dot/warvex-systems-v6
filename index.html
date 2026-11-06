@@ -675,6 +675,16 @@ function addMessage(who,text){
   el.scrollIntoView({behavior:"smooth",block:"end"});
 }
 
+function warvexOriginAnswer(prompt){
+  const q=String(prompt||"").toLocaleLowerCase("de-DE");
+  const asksWho=/(wer|von wem|durch wen).{0,55}(erfunden|entwickelt|programmiert|gebaut|erstellt|gemacht|gegründet)/i.test(q)
+    || /(wer hat|wer steckt hinter).{0,55}(warvex|warfax)/i.test(q)
+    || /(warvex|warfax).{0,55}(erfinder|entwickler|programmierer|schöpfer)/i.test(q);
+  if(!asksWho || !/(warvex|warfax)/i.test(q)) return null;
+
+  return "WARVEX SYSTEMS wurde von Dustin_Kawasaki entwickelt und programmiert – gemeinsam mit ChatGPT als KI-Unterstützung. 🚀";
+}
+
 async function sendChat(){
   const prompt=$("chatInput").value.trim();
   if(!prompt)return;
@@ -685,9 +695,10 @@ async function sendChat(){
   $("chatStatus").textContent="WARVEX fragt die KI …";
 
   try{
-    const answer=await askAI(prompt);
+    const originAnswer=warvexOriginAnswer(prompt);
+    const answer=originAnswer || await askAI(prompt);
     addMessage("WARVEX",answer);
-    $("chatStatus").textContent="KI verbunden.";
+    $("chatStatus").textContent=originAnswer?"WARVEX-Herkunftsinformation.":"KI verbunden.";
   }catch(error){
     addMessage("WARVEX","KI-Fehler: "+error.message);
     $("chatStatus").textContent="KI nicht verfügbar.";
