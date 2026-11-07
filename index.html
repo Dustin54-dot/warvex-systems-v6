@@ -204,7 +204,7 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
   <button data-page="tools">TOOLS</button>
   <button data-page="notes">NOTIZEN</button>
   <button data-page="home">SMART HOME</button>
-  <button data-page="tracking">TRACKING</button>
+  <button data-page="tracking" id="trackingNav" hidden>TRACKING</button>
 </nav>
 
 <main>
@@ -437,10 +437,20 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
 
 <section id="home" class="page">
   <div class="card">
+    <h2>SMART HOME · GERÄTE KOPPELN</h2>
+    <p class="muted">Der Fernseher zeigt den achtstelligen Kopplungscode an. Gib diesen Code hier ein. Die Kopplung wird ausschließlich in Smart Home gestartet.</p>
+    <label for="deviceJoinCode">KOPPLUNGSCODE VOM FERNSEHER</label>
+    <input id="deviceJoinCode" type="text" maxlength="8" minlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="8-STELLIGER CODE" style="width:100%;max-width:420px;text-transform:uppercase;letter-spacing:4px;font-size:22px;font-weight:800;margin:10px 0">
+    <div class="actions">
+      <button id="joinDeviceBtn" class="primary" type="button">FERNSEHER KOPPELN</button>
+    </div>
+    <div class="status" id="deviceJoinStatus">Warte auf den Code vom Roku-Fernseher.</div>
+    <div class="status" id="devicePairState" style="margin-top:12px">0 Geräte gekoppelt.</div>
+    <p class="muted">Der Code ist einmalig und 10 Minuten gültig. Nach erfolgreicher Kopplung wird Tracking automatisch freigeschaltet.</p>
+  </div>
+  <div class="card">
     <h2>Smart Home Demo</h2>
-    <p class="muted">
-      Diese Demo-Schalter steuern noch keine echten Geräte.
-    </p>
+    <p class="muted">Diese Demo-Schalter steuern noch keine echten Geräte.</p>
     <div class="actions">
       <button id="lightBtn">LICHT: AUS</button>
       <button id="plugBtn">STECKDOSE: AUS</button>
@@ -452,38 +462,20 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
 
 <section id="tracking" class="page">
   <div class="card">
-    <h2>WARVEX TRACKING · GERÄTE</h2>
-    <p class="muted">Verbinde Geräte über einen einmaligen Code. Jedes Gerät muss die Kopplung selbst bestätigen. Ein Code gilt nur einmal und läuft nach 10 Minuten ab.</p>
-    <div class="actions">
-      <button id="createDeviceCodeBtn" class="primary" type="button">CODE FÜR TV ERSTELLEN</button>
-    </div>
-    <div class="card" style="margin-top:14px;background:#080d16">
-      <div class="muted">DEIN KOPPELCODE</div>
-      <div id="devicePairCode" style="font-size:30px;letter-spacing:5px;font-weight:900;color:#ff3048;margin:12px 0">— — — — — — — —</div>
-      <div id="deviceCreateStatus" class="status">Tippe auf „Code für TV erstellen“. Gib den angezeigten Code anschließend auf deinem Fernseher ein.</div>
-    </div>
-  </div>
-  <div class="card">
-    <h3>FERNSEHER KOPPELN</h3>
-    <p class="muted">1. Erstelle oben einen Code auf diesem Handy. 2. Öffne WARVEX auf dem Roku-Fernseher. 3. Gib den achtstelligen Code dort mit der Fernbedienung ein. Nach erfolgreicher Prüfung öffnet sich das TV-Dashboard automatisch.</p>
-    <div class="status">Der Code ist einmalig und 10 Minuten gültig. Teile ihn nur mit deinem eigenen Fernseher.</div>
-  </div>
-  <div class="card">
-    <h3>GERÄTEVERBINDUNG</h3>
-    <div id="devicePairState" class="status">Noch keine Geräteverbindung in dieser Sitzung bestätigt.</div>
-    <p class="muted">Standort wird niemals automatisch erfasst. Die Übertragung startet nur nach deiner ausdrücklichen Freigabe und lässt sich jederzeit stoppen.</p>
+    <h2>WARVEX TRACKING · LIVE-STANDORT</h2>
+    <p class="muted">Tracking ist verfügbar, weil dein Fernseher gekoppelt ist. Die Standortfreigabe bleibt standardmäßig AUS und startet nur, wenn du sie hier ausdrücklich einschaltest.</p>
+    <div class="status" id="trackingDeviceStatus">Roku-Fernseher gekoppelt.</div>
   </div>
   <div class="card">
     <h3>LIVE-STANDORT ZUM ROKU FREIGEBEN</h3>
-    <p class="muted">Wenn dieses Handy mit dem Roku gekoppelt ist, kannst du deinen aktuellen Standort während der aktiven Nutzung von WARVEX live an den Fernseher senden. Chrome fragt vorher nach der Standortberechtigung. Die Übertragung endet beim Stoppen oder spätestens nach 90 Sekunden ohne neue Verbindung.</p>
+    <p class="muted">Chrome fragt vor dem Teilen nach deiner Standortberechtigung. Die Übertragung läuft nur bei geöffneter WARVEX-App und kann jederzeit gestoppt werden.</p>
     <div class="actions">
       <button id="startLocationShareBtn" class="primary" type="button">STANDORT FREIGEBEN & LIVE TEILEN</button>
       <button id="stopLocationShareBtn" type="button" disabled>FREIGABE STOPPEN</button>
     </div>
     <div id="locationShareStatus" class="status" style="margin-top:12px">Standortfreigabe AUS · Es werden keine Standortdaten übertragen.</div>
     <div id="locationShareDetails" class="muted" style="margin-top:8px">Deine Koordinaten erscheinen hier erst nach deiner Freigabe.</div>
-    <p class="muted">Hinweis: Live-Standort funktioniert nur über HTTPS, solange WARVEX geöffnet ist. Android/Chrome kann Updates im Hintergrund oder bei gesperrtem Bildschirm pausieren. Keine heimliche Hintergrund-Ortung.</p>
-  </div>
+    <p class="muted">Hinweis: Android/Chrome kann Standortupdates im Hintergrund oder bei gesperrtem Bildschirm pausieren. Keine heimliche Hintergrund-Ortung.</p>
   </div>
 </section>
 
@@ -1656,110 +1648,74 @@ $("toolStatus").textContent="Web-App aktiv · KI über Cloudflare · Online-TTS 
   }
 })();
 
-/* WARVEX UNIVERSAL DEVICE PAIRING */
+/* WARVEX SMART HOME PAIRING · ROKU DISPLAYS THE CODE */
 const DEVICE_CLOUD = "https://warvex-roku-cloud.dustina952.workers.dev";
-const DEVICE_CONNECTIONS_KEY = "warvex_device_connections";
-
+const DEVICE_CONNECTIONS_KEY = "warvex_device_connections_v2";
+try {
+  if(localStorage.getItem("warvex_pair_flow_version") !== "roku-code-v2"){
+    localStorage.removeItem("warvex_device_connections");
+    localStorage.removeItem(DEVICE_CONNECTIONS_KEY);
+    localStorage.setItem("warvex_pair_flow_version","roku-code-v2");
+  }
+}catch(_){}
 function getDeviceConnections(){
   try{
-    const value = JSON.parse(localStorage.getItem(DEVICE_CONNECTIONS_KEY) || "[]");
-    return Array.isArray(value) ? value : [];
-  }catch(_){ return []; }
+    const value=JSON.parse(localStorage.getItem(DEVICE_CONNECTIONS_KEY)||"[]");
+    return Array.isArray(value)?value:[];
+  }catch(_){return [];}
+}
+function showDeviceMessage(id,message){
+  const el=$(id); if(el)el.textContent=message;
+}
+function phoneWriteConnection(){
+  const items=getDeviceConnections();
+  for(let i=items.length-1;i>=0;i--){
+    if(items[i]&&items[i].role==="joining"&&items[i].token)return items[i];
+  }
+  return null;
+}
+function updatePairUi(){
+  const connection=phoneWriteConnection();
+  const nav=$("trackingNav");
+  const count=$("devicePairState");
+  if(nav)nav.hidden=!connection;
+  if(count)count.textContent=connection?"1 Gerät gekoppelt · Roku-Fernseher verbunden.":"0 Geräte gekoppelt.";
+  const trackingStatus=$("trackingDeviceStatus");
+  if(trackingStatus)trackingStatus.textContent=connection?"Roku-Fernseher erfolgreich gekoppelt.":"Kein Fernseher gekoppelt.";
 }
 function saveDeviceConnection(connection){
-  const items = getDeviceConnections();
-  items.push({...connection, savedAt:Date.now()});
-  localStorage.setItem(DEVICE_CONNECTIONS_KEY, JSON.stringify(items.slice(-20)));
-  const state = $("devicePairState");
-  if(state) state.textContent = items.length + " Verbindung(en) auf diesem Gerät gespeichert.";
+  const items=getDeviceConnections().filter(x=>x&&x.device!=="Roku TV");
+  items.push({...connection,device:"Roku TV",savedAt:Date.now()});
+  localStorage.setItem(DEVICE_CONNECTIONS_KEY,JSON.stringify(items.slice(-1)));
+  updatePairUi();
 }
-function showDeviceMessage(id, message){
-  const el = $(id);
-  if(el) el.textContent = message;
-}
-const joinCodeInput = $("deviceJoinCode");
-// Eingabe nicht bei jedem Tastendruck verändern: Das stört auf Android/Gboard
-// die Buchstaben- und Zahlen-Eingabe sowie die Text-Komposition.
-// Die Prüfung erfolgt erst beim Tippen auf „GERÄT KOPPELN“.
-const createDeviceCodeBtn = $("createDeviceCodeBtn");
-if(createDeviceCodeBtn){
-  createDeviceCodeBtn.addEventListener("click",async()=>{
-    createDeviceCodeBtn.disabled = true;
-    showDeviceMessage("deviceCreateStatus","Sichere Verbindung wird vorbereitet …");
-    showDeviceMessage("devicePairCode","CODE WIRD ERSTELLT");
-    try{
-      const response = await fetch(DEVICE_CLOUD + "/api/roku/pair/start",{
-        method:"POST",headers:{"Content-Type":"application/json"},body:"{}"
-      });
-      const data = await response.json();
-      if(!response.ok || !data.code) throw new Error(data.error || "Der Cloud-Server hat keinen Code geliefert.");
-      const code = String(data.code);
-      showDeviceMessage("devicePairCode",code);
-      showDeviceMessage("deviceCreateStatus","Code bereit. Gib ihn jetzt auf dem Fernseher mit der Fernbedienung ein. Warte auf die Bestätigung …");
-      const expiresAt = Date.now() + 600000;
-      const poll = async()=>{
-        if(Date.now() >= expiresAt){
-          showDeviceMessage("deviceCreateStatus","Der Code ist abgelaufen. Erstelle einen neuen Code.");
-          createDeviceCodeBtn.disabled = false;
-          return;
-        }
-        try{
-          const check = await fetch(DEVICE_CLOUD + "/api/roku/pair/status?code=" + encodeURIComponent(code),{cache:"no-store"});
-          const state = await check.json();
-          if(check.ok && state.status === "paired" && state.phoneToken){
-            saveDeviceConnection({role:"joining",token:state.phoneToken,device:"Roku TV"});
-            showDeviceMessage("deviceCreateStatus","Kopplung bestätigt! Dein Roku-Fernseher ist jetzt verbunden.");
-            createDeviceCodeBtn.disabled = false;
-            return;
-          }
-          if(state.status === "expired"){
-            showDeviceMessage("deviceCreateStatus","Der Code ist abgelaufen. Erstelle einen neuen Code.");
-            createDeviceCodeBtn.disabled = false;
-            return;
-          }
-        }catch(_){}
-        window.setTimeout(poll,3000);
-      };
-      window.setTimeout(poll,1500);
-    }catch(error){
-      showDeviceMessage("devicePairCode","KEIN CODE");
-      showDeviceMessage("deviceCreateStatus","Fehler: " + (error.message || "Cloud nicht erreichbar."));
-      createDeviceCodeBtn.disabled = false;
-    }
-  });
-}
-const joinDeviceBtn = $("joinDeviceBtn");
+const joinCodeInput=$("deviceJoinCode");
+const joinDeviceBtn=$("joinDeviceBtn");
 if(joinDeviceBtn){
   joinDeviceBtn.addEventListener("click",async()=>{
-    const code = (joinCodeInput.value || "").trim();
-    if(!/^[A-Za-z0-9]{8}$/.test(code)){
-      showDeviceMessage("deviceJoinStatus","Bitte gib genau 8 Zeichen aus Groß-/Kleinbuchstaben und Zahlen ein. Groß-/Kleinschreibung beachten.");
+    const code=(joinCodeInput?.value||"").trim().toUpperCase();
+    if(!/^[A-HJ-NP-Z2-9]{8}$/.test(code)){
+      showDeviceMessage("deviceJoinStatus","Bitte gib den genau 8-stelligen Code vom Fernseher ein.");
       return;
     }
-    joinDeviceBtn.disabled = true;
-    showDeviceMessage("deviceJoinStatus","Kopplung wird angefragt …");
+    joinDeviceBtn.disabled=true;
+    showDeviceMessage("deviceJoinStatus","Kopplung wird sicher angefragt …");
     try{
-      const response = await fetch(DEVICE_CLOUD + "/api/roku/pair/claim",{
+      const response=await fetch(DEVICE_CLOUD+"/api/roku/pair/claim",{
         method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code})
       });
-      const data = await response.json();
-      if(!response.ok || !data.ok || !data.phoneToken) throw new Error(data.error || "Code ungültig, abgelaufen oder bereits verwendet.");
-      saveDeviceConnection({role:"joining",token:data.phoneToken,device:"Gekoppeltes Gerät"});
-      showDeviceMessage("deviceJoinStatus","Erfolgreich gekoppelt! Dieses Gerät ist jetzt registriert. Die Kopplung ist aktiv.");
-      showDeviceMessage("devicePairState","Gerät gekoppelt · Verbindungstoken gespeichert · Status: registriert");
-      joinCodeInput.value = "";
+      const data=await response.json();
+      if(!response.ok||!data.ok||!data.phoneToken)throw new Error(data.error||"Code ungültig, abgelaufen oder bereits verwendet.");
+      saveDeviceConnection({role:"joining",token:data.phoneToken});
+      if(joinCodeInput)joinCodeInput.value="";
+      showDeviceMessage("deviceJoinStatus","Erfolgreich gekoppelt! Tracking ist jetzt freigeschaltet.");
+      updatePairUi();
     }catch(error){
-      showDeviceMessage("deviceJoinStatus","Fehler: " + (error.message || "Cloud nicht erreichbar."));
-    }finally{
-      joinDeviceBtn.disabled = false;
-    }
+      showDeviceMessage("deviceJoinStatus","Kopplung fehlgeschlagen: "+(error.message||"Cloud nicht erreichbar."));
+    }finally{joinDeviceBtn.disabled=false;}
   });
 }
-const existingDeviceConnections = getDeviceConnections();
-if(existingDeviceConnections.length){
-  showDeviceMessage("devicePairState",existingDeviceConnections.length + " gespeicherte Geräteverbindung(en).");
-}
-
+updatePairUi();
 
 /* WARVEX LIVE LOCATION — explicit foreground opt-in, no background tracking */
 let warvexLocationWatchId = null;
