@@ -445,7 +445,7 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
       <button id="joinDeviceBtn" class="primary" type="button">FERNSEHER KOPPELN</button>
     </div>
     <div class="status" id="deviceJoinStatus">Warte auf den Code vom Roku-Fernseher.</div>
-    <div class="status" id="devicePairState" style="margin-top:12px">0 Geräte gekoppelt.</div>
+    <div class="status" id="devicePairState" style="margin-top:12px">TV-STATUS: NICHT VERBUNDEN</div>
     <p class="muted">Der Code ist einmalig und 10 Minuten gültig. Nach erfolgreicher Kopplung wird Tracking automatisch freigeschaltet.</p>
   </div>
   <div class="card">
@@ -523,6 +523,7 @@ let outageAnnounced = false;
 let currentAudio = null;
 
 function showPage(name){
+  if(name==="tracking" && $("trackingNav")?.hidden){ name="home"; }
   document.querySelectorAll(".page").forEach(p =>
     p.classList.toggle("active",p.id===name)
   );
@@ -1652,10 +1653,10 @@ $("toolStatus").textContent="Web-App aktiv · KI über Cloudflare · Online-TTS 
 const DEVICE_CLOUD = "https://warvex-roku-cloud.dustina952.workers.dev";
 const DEVICE_CONNECTIONS_KEY = "warvex_device_connections_v2";
 try {
-  if(localStorage.getItem("warvex_pair_flow_version") !== "roku-code-v2"){
+  if(localStorage.getItem("warvex_pair_flow_version") !== "roku-code-v3"){
     localStorage.removeItem("warvex_device_connections");
     localStorage.removeItem(DEVICE_CONNECTIONS_KEY);
-    localStorage.setItem("warvex_pair_flow_version","roku-code-v2");
+    localStorage.setItem("warvex_pair_flow_version","roku-code-v3");
   }
 }catch(_){}
 function getDeviceConnections(){
@@ -1678,8 +1679,10 @@ function updatePairUi(){
   const connection=phoneWriteConnection();
   const nav=$("trackingNav");
   const count=$("devicePairState");
+  const trackingPage=$("tracking");
   if(nav)nav.hidden=!connection;
-  if(count)count.textContent=connection?"1 Gerät gekoppelt · Roku-Fernseher verbunden.":"0 Geräte gekoppelt.";
+  if(trackingPage && !connection) trackingPage.classList.remove("active");
+  if(count)count.textContent=connection?"TV-STATUS: VERBUNDEN":"TV-STATUS: NICHT VERBUNDEN";
   const trackingStatus=$("trackingDeviceStatus");
   if(trackingStatus)trackingStatus.textContent=connection?"Roku-Fernseher erfolgreich gekoppelt.":"Kein Fernseher gekoppelt.";
 }
