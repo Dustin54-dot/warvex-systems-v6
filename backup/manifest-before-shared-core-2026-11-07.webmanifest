@@ -1,0 +1,21 @@
+{
+  "id": "./pwa/",
+  "name": "WARVEX SYSTEMS",
+  "short_name": "WARVEX",
+  "description": "WARVEX SYSTEMS V6 – KI-Assistent, Sprache, Tools und Medical-Dashboard.",
+  "lang": "de",
+  "start_url": "./pwa/",
+  "scope": "./pwa/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#090b10",
+  "theme_color": "#090b10",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
