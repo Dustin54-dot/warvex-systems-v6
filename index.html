@@ -1107,9 +1107,9 @@ function handleMedicalTemperature(celsius){if(!Number.isFinite(celsius)||celsius
 function checkMedicalVitals(spo2,bpm){
  if(!medicalVitalsLimits)return;
  const issues=[];
- if(Number.isFinite(bpm)&&medicalVitalsLimits.pulseLow!==null&&bpm<medicalVitalsLimits.pulseLow)issues.push("Puls unter der festgelegten Untergrenze ("+bpm+" BPM).");
- if(Number.isFinite(bpm)&&medicalVitalsLimits.pulseHigh!==null&&bpm>medicalVitalsLimits.pulseHigh)issues.push("Puls über der festgelegten Obergrenze ("+bpm+" BPM).");
- if(Number.isFinite(spo2)&&medicalVitalsLimits.oxygenLow!==null&&spo2<medicalVitalsLimits.oxygenLow)issues.push("SpO₂ unter der festgelegten Untergrenze ("+spo2+" %).");
+ if(Number.isFinite(bpm)&&bpm>=25&&bpm<=250&&medicalVitalsLimits.pulseLow!==null&&bpm<medicalVitalsLimits.pulseLow)issues.push("Puls unter der festgelegten Untergrenze ("+bpm+" BPM).");
+ if(Number.isFinite(bpm)&&bpm>=25&&bpm<=250&&medicalVitalsLimits.pulseHigh!==null&&bpm>medicalVitalsLimits.pulseHigh)issues.push("Puls über der festgelegten Obergrenze ("+bpm+" BPM).");
+ if(Number.isFinite(spo2)&&spo2>=70&&spo2<=100&&medicalVitalsLimits.oxygenLow!==null&&spo2<medicalVitalsLimits.oxygenLow)issues.push("SpO₂ unter der festgelegten Untergrenze ("+spo2+" %).");
  if(issues.length){
   if(!medicalVitalsAlarmAcknowledged&&!medicalAlarmMode)startMedicalAlert("vitals",issues.join(" "));
  }else{
@@ -1253,7 +1253,7 @@ $("medSaveVitalsLimits").addEventListener("click",saveMedicalVitalsLimits);
 $("medDisableVitalsLimits").addEventListener("click",disableMedicalVitalsLimits);
 $("medSimVitalsTest").addEventListener("click",()=>{medicalAudioReady();startMedicalAlert("vitals","SIMULATION: Testwarnung für abweichende Vitalwerte. Es wurden keine echten Messwerte verändert.");setTimeout(()=>{if(medicalAlarmMode==="vitals")stopMedicalAlert();},6000);});
 
-$("medAlarmSeen").addEventListener("click",()=>{medicalAlertAcknowledged=true;stopMedicalAlert();});
+$("medAlarmSeen").addEventListener("click",()=>{medicalAlertAcknowledged=true;if(medicalAlarmMode==="vitals")medicalVitalsAlarmAcknowledged=true;stopMedicalAlert();});
 
 
 
