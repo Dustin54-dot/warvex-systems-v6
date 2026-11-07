@@ -452,19 +452,30 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
 
 <section id="tracking" class="page">
   <div class="card">
-    <h2>WARVEX TRACKING · ROKU-KOPPLUNG</h2>
-    <p class="muted">Gib den Einmalcode ein, der auf deinem Roku-Fernseher angezeigt wird. Die Kopplung wird erst nach deiner Bestätigung aktiviert.</p>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-      <input id="rokuPairCode" type="text" inputmode="text" autocomplete="one-time-code" maxlength="8" placeholder="8-stelliger Einmalcode" aria-label="Roku-Einmalcode" style="flex:1;min-width:210px;padding:14px;border-radius:10px;border:1px solid #39475d;background:#080d16;color:#fff;font-size:20px;letter-spacing:3px;text-transform:uppercase">
-      <button id="rokuPairBtn" class="primary" type="button">ROKU KOPPELN</button>
+    <h2>WARVEX TRACKING · GERÄTE</h2>
+    <p class="muted">Verbinde Geräte über einen einmaligen Code. Jedes Gerät muss die Kopplung selbst bestätigen. Ein Code gilt nur einmal und läuft nach 10 Minuten ab.</p>
+    <div class="actions">
+      <button id="createDeviceCodeBtn" class="primary" type="button">KOPPELCODE ERSTELLEN</button>
     </div>
-    <div id="rokuPairStatus" class="status" style="margin-top:14px">Noch nicht gekoppelt. Öffne WARVEX TRACKING auf deinem Roku, um einen Code zu erhalten.</div>
+    <div class="card" style="margin-top:14px;background:#080d16">
+      <div class="muted">DEIN KOPPELCODE</div>
+      <div id="devicePairCode" style="font-size:30px;letter-spacing:5px;font-weight:900;color:#ff3048;margin:12px 0">— — — — — — — —</div>
+      <div id="deviceCreateStatus" class="status">Drücke „Koppelcode erstellen“, um ein weiteres Gerät einzuladen.</div>
+    </div>
   </div>
   <div class="card">
-    <h3>VERBINDUNGSSTATUS</h3>
-    <div id="rokuPairState" class="status">ROKU NICHT VERBUNDEN</div>
-    <p class="muted">Die Kopplung verknüpft dieses Handy mit genau dem Roku, dessen Einmalcode du eingegeben hast. Standortfreigabe ist eine separate, ausdrücklich zu bestätigende Funktion.</p>
-    <p class="muted" id="rokuGpsNotice">GPS-Übertragung ist noch nicht aktiviert. Es werden derzeit keine Standortdaten erfasst oder übertragen.</p>
+    <h3>MIT EINEM CODE VERBINDEN</h3>
+    <p class="muted">Gib hier den Code ein, der auf dem anderen Handy oder auf dem Roku angezeigt wird.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <input id="deviceJoinCode" type="text" inputmode="text" autocomplete="one-time-code" maxlength="8" placeholder="8-stelliger Einmalcode" aria-label="Einmalcode" style="flex:1;min-width:210px;padding:14px;border-radius:10px;border:1px solid #39475d;background:#080d16;color:#fff;font-size:20px;letter-spacing:3px;text-transform:uppercase">
+      <button id="joinDeviceBtn" class="primary" type="button">GERÄT KOPPELN</button>
+    </div>
+    <div id="deviceJoinStatus" class="status" style="margin-top:14px">Noch kein neues Gerät gekoppelt.</div>
+  </div>
+  <div class="card">
+    <h3>GERÄTEVERBINDUNG</h3>
+    <div id="devicePairState" class="status">Noch keine Geräteverbindung in dieser Sitzung bestätigt.</div>
+    <p class="muted">Das Erstellen eines Codes und die Kopplung funktionieren bereits. Eine Live-Standortübertragung ist noch nicht aktiviert; WARVEX erfasst derzeit keine Standortdaten.</p>
   </div>
 </section>
 
@@ -1637,63 +1648,110 @@ $("toolStatus").textContent="Web-App aktiv · KI über Cloudflare · Online-TTS 
   }
 })();
 
-/* WARVEX ROKU PAIRING */
-const ROKU_CLOUD = "https://warvex-roku-cloud.dustina952.workers.dev";
-const ROKU_PHONE_TOKEN_KEY = "warvex_roku_phone_token";
-function refreshRokuPairState(){
-  const token = localStorage.getItem(ROKU_PHONE_TOKEN_KEY);
-  const state = $("rokuPairState");
-  const status = $("rokuPairStatus");
-  const input = $("rokuPairCode");
-  const btn = $("rokuPairBtn");
-  if(token){
-    if(state) state.textContent = "ROKU ERFOLGREICH GEKOPPELT";
-    if(status) status.textContent = "Kopplung gespeichert. Dieses Handy ist mit deinem Roku verbunden.";
-    if(input) input.disabled = true;
-    if(btn) { btn.disabled = true; btn.textContent = "BEREITS GEKOPPELT"; }
-  }else{
-    if(state) state.textContent = "ROKU NICHT VERBUNDEN";
-    if(input) input.disabled = false;
-    if(btn) { btn.disabled = false; btn.textContent = "ROKU KOPPELN"; }
-  }
+/* WARVEX UNIVERSAL DEVICE PAIRING */
+const DEVICE_CLOUD = "https://warvex-roku-cloud.dustina952.workers.dev";
+const DEVICE_CONNECTIONS_KEY = "warvex_device_connections";
+
+function getDeviceConnections(){
+  try{
+    const value = JSON.parse(localStorage.getItem(DEVICE_CONNECTIONS_KEY) || "[]");
+    return Array.isArray(value) ? value : [];
+  }catch(_){ return []; }
 }
-const pairCodeInput = $("rokuPairCode");
-if(pairCodeInput){
-  pairCodeInput.addEventListener("input", () => {
-    pairCodeInput.value = pairCodeInput.value.toUpperCase().replace(/[^A-F0-9]/g,"").slice(0,8);
+function saveDeviceConnection(connection){
+  const items = getDeviceConnections();
+  items.push({...connection, savedAt:Date.now()});
+  localStorage.setItem(DEVICE_CONNECTIONS_KEY, JSON.stringify(items.slice(-20)));
+  const state = $("devicePairState");
+  if(state) state.textContent = items.length + " Verbindung(en) auf diesem Gerät gespeichert.";
+}
+function showDeviceMessage(id, message){
+  const el = $(id);
+  if(el) el.textContent = message;
+}
+const joinCodeInput = $("deviceJoinCode");
+if(joinCodeInput){
+  joinCodeInput.addEventListener("input",()=>{
+    joinCodeInput.value = joinCodeInput.value.toUpperCase().replace(/[^A-F0-9]/g,"").slice(0,8);
   });
 }
-const pairBtn = $("rokuPairBtn");
-if(pairBtn){
-  pairBtn.addEventListener("click", async () => {
-    const code = ($("rokuPairCode").value || "").trim().toUpperCase();
-    const status = $("rokuPairStatus");
-    if(!/^[A-F0-9]{8}$/.test(code)){
-      status.textContent = "Bitte gib den vollständigen 8-stelligen Code vom Fernseher ein.";
-      return;
-    }
-    pairBtn.disabled = true;
-    status.textContent = "Kopplung wird sicher angefragt …";
+const createDeviceCodeBtn = $("createDeviceCodeBtn");
+if(createDeviceCodeBtn){
+  createDeviceCodeBtn.addEventListener("click",async()=>{
+    createDeviceCodeBtn.disabled = true;
+    showDeviceMessage("deviceCreateStatus","Sichere Verbindung wird vorbereitet …");
+    showDeviceMessage("devicePairCode","CODE WIRD ERSTELLT");
     try{
-      const response = await fetch(ROKU_CLOUD + "/api/roku/pair/claim", {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({code})
+      const response = await fetch(DEVICE_CLOUD + "/api/roku/pair/start",{
+        method:"POST",headers:{"Content-Type":"application/json"},body:"{}"
       });
       const data = await response.json();
-      if(!response.ok || !data.ok || !data.phoneToken){
-        throw new Error(data.error || "Kopplung fehlgeschlagen.");
-      }
-      localStorage.setItem(ROKU_PHONE_TOKEN_KEY, data.phoneToken);
-      status.textContent = "Kopplung erfolgreich! Dein Handy wurde mit dem Roku verbunden.";
-      refreshRokuPairState();
+      if(!response.ok || !data.code) throw new Error(data.error || "Der Cloud-Server hat keinen Code geliefert.");
+      const code = String(data.code).toUpperCase();
+      showDeviceMessage("devicePairCode",code);
+      showDeviceMessage("deviceCreateStatus","Code bereit. Gib ihn auf dem anderen Gerät unter „Gerät koppeln“ ein. Warte auf die Bestätigung …");
+      const expiresAt = Date.now() + 600000;
+      const poll = async()=>{
+        if(Date.now() >= expiresAt){
+          showDeviceMessage("deviceCreateStatus","Der Code ist abgelaufen. Erstelle einen neuen Code.");
+          createDeviceCodeBtn.disabled = false;
+          return;
+        }
+        try{
+          const check = await fetch(DEVICE_CLOUD + "/api/roku/pair/status?code=" + encodeURIComponent(code),{cache:"no-store"});
+          const state = await check.json();
+          if(check.ok && state.status === "paired" && state.rokuToken){
+            saveDeviceConnection({role:"creator",token:state.rokuToken,device:"Gekoppeltes Gerät"});
+            showDeviceMessage("deviceCreateStatus","Kopplung bestätigt! Das andere Gerät wurde verbunden.");
+            createDeviceCodeBtn.disabled = false;
+            return;
+          }
+          if(state.status === "expired"){
+            showDeviceMessage("deviceCreateStatus","Der Code ist abgelaufen. Erstelle einen neuen Code.");
+            createDeviceCodeBtn.disabled = false;
+            return;
+          }
+        }catch(_){}
+        window.setTimeout(poll,3000);
+      };
+      window.setTimeout(poll,1500);
     }catch(error){
-      status.textContent = "Fehler: " + (error.message || "Cloud nicht erreichbar");
-      pairBtn.disabled = false;
+      showDeviceMessage("devicePairCode","KEIN CODE");
+      showDeviceMessage("deviceCreateStatus","Fehler: " + (error.message || "Cloud nicht erreichbar."));
+      createDeviceCodeBtn.disabled = false;
     }
   });
 }
-refreshRokuPairState();
+const joinDeviceBtn = $("joinDeviceBtn");
+if(joinDeviceBtn){
+  joinDeviceBtn.addEventListener("click",async()=>{
+    const code = (joinCodeInput.value || "").trim().toUpperCase();
+    if(!/^[A-F0-9]{8}$/.test(code)){
+      showDeviceMessage("deviceJoinStatus","Bitte gib einen vollständigen 8-stelligen Code ein.");
+      return;
+    }
+    joinDeviceBtn.disabled = true;
+    showDeviceMessage("deviceJoinStatus","Kopplung wird angefragt …");
+    try{
+      const response = await fetch(DEVICE_CLOUD + "/api/roku/pair/claim",{
+        method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code})
+      });
+      const data = await response.json();
+      if(!response.ok || !data.ok || !data.phoneToken) throw new Error(data.error || "Code ungültig, abgelaufen oder bereits verwendet.");
+      saveDeviceConnection({role:"joining",token:data.phoneToken,device:"Gekoppeltes Gerät"});
+      showDeviceMessage("deviceJoinStatus","Erfolgreich gekoppelt! Dieses Gerät ist jetzt registriert.");
+      joinCodeInput.value = "";
+    }catch(error){
+      showDeviceMessage("deviceJoinStatus","Fehler: " + (error.message || "Cloud nicht erreichbar."));
+    }finally{
+      joinDeviceBtn.disabled = false;
+    }
+  });
+}
+const existingDeviceConnections = getDeviceConnections();
+if(existingDeviceConnections.length){
+  showDeviceMessage("devicePairState",existingDeviceConnections.length + " gespeicherte Geräteverbindung(en).");
+}
 
 </script>
 
