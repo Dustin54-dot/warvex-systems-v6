@@ -1546,6 +1546,12 @@ $("toolStatus").textContent="Web-App aktiv · KI über Cloudflare · Online-TTS 
     });
   }
 })();
+  if("serviceWorker" in navigator && location.protocol==="https:"){
+    window.addEventListener("load",()=>{
+      navigator.serviceWorker.register("./pwa/sw.js",{scope:"./pwa/"})
+        .catch(error=>console.warn("WARVEX PWA Offline-Modus:",error));
+    });
+  }
 </script>
 
 </body>
