@@ -1707,7 +1707,7 @@ if(createDeviceCodeBtn){
           const check = await fetch(DEVICE_CLOUD + "/api/roku/pair/status?code=" + encodeURIComponent(code),{cache:"no-store"});
           const state = await check.json();
           if(check.ok && state.status === "paired" && state.phoneToken){
-            saveDeviceConnection({role:"creator",token:state.rokuToken,device:"Gekoppeltes Gerät"});
+            saveDeviceConnection({role:"joining",token:state.phoneToken,device:"Roku TV"});
             showDeviceMessage("deviceCreateStatus","Kopplung bestätigt! Dein Roku-Fernseher ist jetzt verbunden.");
             createDeviceCodeBtn.disabled = false;
             return;
