@@ -455,22 +455,18 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
     <h2>WARVEX TRACKING · GERÄTE</h2>
     <p class="muted">Verbinde Geräte über einen einmaligen Code. Jedes Gerät muss die Kopplung selbst bestätigen. Ein Code gilt nur einmal und läuft nach 10 Minuten ab.</p>
     <div class="actions">
-      <button id="createDeviceCodeBtn" class="primary" type="button">KOPPELCODE ERSTELLEN</button>
+      <button id="createDeviceCodeBtn" class="primary" type="button">CODE FÜR TV ERSTELLEN</button>
     </div>
     <div class="card" style="margin-top:14px;background:#080d16">
       <div class="muted">DEIN KOPPELCODE</div>
       <div id="devicePairCode" style="font-size:30px;letter-spacing:5px;font-weight:900;color:#ff3048;margin:12px 0">— — — — — — — —</div>
-      <div id="deviceCreateStatus" class="status">Drücke „Koppelcode erstellen“, um ein weiteres Gerät einzuladen.</div>
+      <div id="deviceCreateStatus" class="status">Tippe auf „Code für TV erstellen“. Gib den angezeigten Code anschließend auf deinem Fernseher ein.</div>
     </div>
   </div>
   <div class="card">
-    <h3>MIT EINEM CODE VERBINDEN</h3>
-    <p class="muted">Gib hier den Code ein, der auf dem anderen Handy oder auf dem Roku angezeigt wird.</p>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-      <input id="deviceJoinCode" type="text" inputmode="text" autocomplete="off" autocorrect="off" maxlength="8" placeholder="8 Zeichen: Groß-/Kleinbuchstaben und Zahlen" aria-label="Einmalcode" autocapitalize="none" spellcheck="false" enterkeyhint="done" style="flex:1;min-width:210px;padding:14px;border-radius:10px;border:1px solid #39475d;background:#080d16;color:#fff;font-size:20px;letter-spacing:3px">
-      <button id="joinDeviceBtn" class="primary" type="button">GERÄT KOPPELN</button>
-    </div>
-    <div id="deviceJoinStatus" class="status" style="margin-top:14px">Noch kein neues Gerät gekoppelt.</div>
+    <h3>FERNSEHER KOPPELN</h3>
+    <p class="muted">1. Erstelle oben einen Code auf diesem Handy. 2. Öffne WARVEX auf dem Roku-Fernseher. 3. Gib den achtstelligen Code dort mit der Fernbedienung ein. Nach erfolgreicher Prüfung öffnet sich das TV-Dashboard automatisch.</p>
+    <div class="status">Der Code ist einmalig und 10 Minuten gültig. Teile ihn nur mit deinem eigenen Fernseher.</div>
   </div>
   <div class="card">
     <h3>GERÄTEVERBINDUNG</h3>
@@ -1699,7 +1695,7 @@ if(createDeviceCodeBtn){
       if(!response.ok || !data.code) throw new Error(data.error || "Der Cloud-Server hat keinen Code geliefert.");
       const code = String(data.code);
       showDeviceMessage("devicePairCode",code);
-      showDeviceMessage("deviceCreateStatus","Code bereit. Gib ihn auf dem anderen Gerät unter „Gerät koppeln“ ein. Warte auf die Bestätigung …");
+      showDeviceMessage("deviceCreateStatus","Code bereit. Gib ihn jetzt auf dem Fernseher mit der Fernbedienung ein. Warte auf die Bestätigung …");
       const expiresAt = Date.now() + 600000;
       const poll = async()=>{
         if(Date.now() >= expiresAt){
@@ -1712,7 +1708,7 @@ if(createDeviceCodeBtn){
           const state = await check.json();
           if(check.ok && state.status === "paired" && state.rokuToken){
             saveDeviceConnection({role:"creator",token:state.rokuToken,device:"Gekoppeltes Gerät"});
-            showDeviceMessage("deviceCreateStatus","Kopplung bestätigt! Das andere Gerät wurde verbunden.");
+            showDeviceMessage("deviceCreateStatus","Kopplung bestätigt! Dein Roku-Fernseher ist jetzt verbunden.");
             createDeviceCodeBtn.disabled = false;
             return;
           }
