@@ -1191,24 +1191,95 @@ async function inspectMedicalDevice(device){
  $("medDeviceDetails").textContent=(medicalHeartCharacteristic||medicalTempCharacteristic||medicalWellueCharacteristic)?"Bluetooth-Gerät verbunden. Nur unterstützte, tatsächlich empfangene Werte werden angezeigt.":"Gerät verbunden und Dienste erkannt, aber kein unterstützter Messdienst sicher erkannt. Wellue-Protokoll hängt vom Modell ab.";
  showEcgFlatLine("Kein EKG-Rohsignal empfangen. Pulswerte werden nicht als EKG dargestellt.");
 }
+let medicalReconnectWanted=false,medicalReconnectTimer=null,medicalConnecting=false,medicalDisconnectHandler=null;
+function clearMedicalLiveValues(){
+ medicalHeartCharacteristic=null;medicalTempCharacteristic=null;medicalWellueCharacteristic=null;medicalGatt=null;
+ $("medHeartRateValue").textContent="— BPM";$("medHeartRateValue").classList.remove("med-live-value");$("medical").classList.remove("pulse-live");
+ $("medOxygenValue").textContent="— %";$("medTemperatureValue").textContent="— °C";$("medDisconnectButton").disabled=true;
+ showEcgFlatLine("Null-Linie · Kein EKG-Rohsignal empfangen.");
+}
+function scheduleMedicalReconnect(){
+ if(!medicalReconnectWanted||!medicalDevice||medicalReconnectTimer||document.visibilityState==="hidden")return;
+ medicalReconnectTimer=setTimeout(async()=>{
+  medicalReconnectTimer=null;
+  if(!medicalReconnectWanted||!medicalDevice||document.visibilityState==="hidden"||(medicalDevice.gatt&&medicalDevice.gatt.connected))return;
+  try{await connectKnownMedicalDevice(medicalDevice,true);}
+  catch(error){setMedicalConnection("Warte auf bekanntes Gerät · erneuter Versuch folgt");$("medDeviceDetails").textContent="Das gespeicherte Gerät ist gerade nicht erreichbar. WARVEX versucht es erneut, solange die App geöffnet und sichtbar ist.";scheduleMedicalReconnect();}
+ },5000);
+}
+function attachMedicalDevice(device){
+ const previous=medicalDevice;
+ if(previous===device&&medicalDisconnectHandler)return;
+ if(previous&&medicalDisconnectHandler){try{previous.removeEventListener("gattserverdisconnected",medicalDisconnectHandler);}catch(error){}}
+ medicalDevice=device;
+ medicalDisconnectHandler=()=>{
+  clearMedicalLiveValues();
+  if(medicalAlarmMode==="vitals"||medicalAlarmMode==="mild"||medicalAlarmMode==="critical"){stopMedicalAlert();medicalVitalsAlarmAcknowledged=false;medicalAlertAcknowledged=false;}
+  setMedicalConnection("Verbindung getrennt");
+  $("medDeviceDetails").textContent=medicalReconnectWanted?"Bekanntes Gerät getrennt. WARVEX versucht automatisch, es wiederzuverbinden.":"Keine aktuellen Messdaten. Bitte erneut verbinden.";
+  $("medServices").textContent="Gerät getrennt.";
+  if(medicalReconnectWanted)scheduleMedicalReconnect();
+ };
+ device.addEventListener("gattserverdisconnected",medicalDisconnectHandler);
+}
+async function connectKnownMedicalDevice(device,automatic=false){
+ if(!device)throw new Error("Kein gespeichertes Bluetooth-Gerät gefunden.");
+ if(medicalConnecting)return;
+ medicalConnecting=true;
+ try{
+  attachMedicalDevice(device);
+  if(!automatic){medicalReconnectWanted=true;try{localStorage.setItem("warvex_medical_device_id",device.id);}catch(error){}}
+  if(device.gatt&&device.gatt.connected){setMedicalConnection("Bereits verbunden mit "+(device.name||"Bluetooth-Gerät"));$("medDisconnectButton").disabled=false;return;}
+  setMedicalConnection(automatic?"Verbinde automatisch mit bekanntem Gerät …":"Verbinde mit "+(device.name||"Bluetooth-Gerät")+" …");
+  await inspectMedicalDevice(device);
+  setMedicalConnection("Verbunden mit "+(device.name||"Bluetooth-Gerät"));
+  $("medDisconnectButton").disabled=false;
+ }finally{medicalConnecting=false;}
+}
 async function connectMedicalDevice(){
  if(!navigator.bluetooth||!navigator.bluetooth.requestDevice){setMedicalConnection("Bluetooth-Suche benötigt Chrome auf Android und eine HTTPS-Verbindung.");return;}
  try{
   medicalAudioReady();
   const device=await navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:["heart_rate","health_thermometer","battery_service","6e400001-b5a3-f393-e0a9-e50e24dcca9e","14839ac4-7d7e-415c-9a42-167340cf2339"]});
-  medicalDevice=device;
-  device.addEventListener("gattserverdisconnected",()=>{
-   medicalGatt=null;medicalHeartCharacteristic=null;medicalTempCharacteristic=null;medicalWellueCharacteristic=null;
-   if(medicalAlarmMode==="vitals"||medicalAlarmMode==="mild"||medicalAlarmMode==="critical"){stopMedicalAlert();medicalVitalsAlarmAcknowledged=false;medicalAlertAcknowledged=false;}
-   $("medHeartRateValue").textContent="— BPM";$("medHeartRateValue").classList.remove("med-live-value");$("medical").classList.remove("pulse-live");
-   $("medOxygenValue").textContent="— %";$("medTemperatureValue").textContent="— °C";$("medDisconnectButton").disabled=true;
-   setMedicalConnection("Verbindung getrennt");$("medDeviceDetails").textContent="Keine aktuellen Messdaten. Bitte erneut verbinden.";$("medServices").textContent="Gerät getrennt.";
-   showEcgFlatLine("Null-Linie · Kein EKG-Gerät verbunden.");
-  });
-  await inspectMedicalDevice(device);setMedicalConnection("Verbunden mit "+(device.name||"Bluetooth-Gerät"));$("medDisconnectButton").disabled=false;
- }catch(error){setMedicalConnection("Verbindung nicht hergestellt");$("medDeviceDetails").textContent=error&&error.message?error.message:String(error);}
+  medicalReconnectWanted=true;attachMedicalDevice(device);
+  try{localStorage.setItem("warvex_medical_device_id",device.id);}catch(error){}
+  await connectKnownMedicalDevice(device,false);
+  $("medDeviceDetails").textContent="Gerät gespeichert. WARVEX versucht beim nächsten Öffnen automatisch, dieses bereits freigegebene Gerät wiederzuverbinden.";
+ }catch(error){medicalConnecting=false;setMedicalConnection("Verbindung nicht hergestellt");$("medDeviceDetails").textContent=error&&error.message?error.message:String(error);}
 }
-function disconnectMedicalDevice(){if(medicalDevice&&medicalDevice.gatt&&medicalDevice.gatt.connected)medicalDevice.gatt.disconnect();medicalDevice=null;medicalGatt=null;medicalHeartCharacteristic=null;medicalTempCharacteristic=null;medicalWellueCharacteristic=null;$("medHeartRateValue").textContent="— BPM";$("medOxygenValue").textContent="— %";$("medTemperatureValue").textContent="— °C";$("medDisconnectButton").disabled=true;setMedicalConnection("Kein Gerät verbunden");$("medServices").textContent="Noch keine Gerätedaten untersucht.";$("medDeviceDetails").textContent="Getrennt. Es werden keine Messwerte angezeigt.";showEcgFlatLine("Null-Linie · Kein EKG-Rohsignal empfangen.");if(medicalAlarmMode)stopMedicalAlert();}
+async function restoreMedicalDeviceConnection(){
+ if(!navigator.bluetooth||typeof navigator.bluetooth.getDevices!=="function")return;
+ let savedId=null;try{savedId=localStorage.getItem("warvex_medical_device_id");}catch(error){}
+ if(!savedId)return;
+ try{
+  const devices=await navigator.bluetooth.getDevices(),saved=devices.find(device=>device.id===savedId);
+  if(!saved){setMedicalConnection("Gespeichertes Gerät benötigt eventuell eine neue Freigabe.");return;}
+  medicalReconnectWanted=true;attachMedicalDevice(saved);
+  await connectKnownMedicalDevice(saved,true);
+  $("medDeviceDetails").textContent="Bekanntes Gerät automatisch wiederverbunden. Messdaten werden übernommen, sobald das Gerät sie sendet.";
+ }catch(error){
+  setMedicalConnection("Automatische Wiederverbindung derzeit nicht möglich");
+  $("medDeviceDetails").textContent=(error&&error.message?error.message:String(error))+". Öffne das Bluetooth-Menü, um erneut zu verbinden.";
+  if(medicalReconnectWanted)scheduleMedicalReconnect();
+ }
+}
+document.addEventListener("visibilitychange",()=>{
+ if(document.visibilityState==="visible"&&medicalReconnectWanted&&medicalDevice&&!(medicalDevice.gatt&&medicalDevice.gatt.connected))scheduleMedicalReconnect();
+ if(document.visibilityState==="hidden"&&medicalReconnectTimer){clearTimeout(medicalReconnectTimer);medicalReconnectTimer=null;}
+});
+window.addEventListener("pageshow",()=>{if(document.visibilityState==="visible")restoreMedicalDeviceConnection();});
+function disconnectMedicalDevice(){
+ medicalReconnectWanted=false;
+ if(medicalReconnectTimer){clearTimeout(medicalReconnectTimer);medicalReconnectTimer=null;}
+ const oldDevice=medicalDevice;
+ if(oldDevice&&medicalDisconnectHandler){try{oldDevice.removeEventListener("gattserverdisconnected",medicalDisconnectHandler);}catch(error){}}
+ if(oldDevice&&oldDevice.gatt&&oldDevice.gatt.connected)oldDevice.gatt.disconnect();
+ try{localStorage.removeItem("warvex_medical_device_id");}catch(error){}
+ medicalDevice=null;medicalDisconnectHandler=null;clearMedicalLiveValues();
+ setMedicalConnection("Kein Gerät verbunden");$("medServices").textContent="Noch keine Gerätedaten untersucht.";
+ $("medDeviceDetails").textContent="Getrennt. Die automatische Wiederverbindung wurde ausgeschaltet.";
+ if(medicalAlarmMode)stopMedicalAlert();
+}
 $("medMenuLimits").addEventListener("click",()=>{closeMedicalMenu();const panel=$("medVitalsLimitPanel");panel.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>$("medPulseHighLimit").focus({preventScroll:true}),350);});
 $("medMenuConnect").addEventListener("click",()=>{closeMedicalMenu();connectMedicalDevice();});
 function closeMedicalMenu(){const panel=$("medMenuPanel"),trigger=$("medMenuTrigger");panel.classList.remove("open");trigger.setAttribute("aria-expanded","false");}
