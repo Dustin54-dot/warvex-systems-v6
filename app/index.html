@@ -199,6 +199,7 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
   <button class="active" data-page="start">START</button>
   <button data-page="medical">MEDICAL</button>
   <button data-page="chat">KI CHAT</button>
+  <button data-page="communication">KOMMUNIKATION</button>
   <button data-page="vision">LIVE VISION</button>
   <button data-page="voice">SPRACHE</button>
   <button data-page="code">PROGRAMMIEREN</button>
@@ -328,6 +329,47 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
   </div>
 </section>
 
+
+<section id="communication" class="page">
+ <div class="card">
+  <h2>WARVEX KOMMUNIKATIONSZENTRALE</h2>
+  <p class="muted">WhatsApp Business und WARVEX LIVE · zentrale, transparente Steuerung</p>
+  <div class="status" id="commOverallStatus">Einrichtung offen · Noch kein externer Dienst verbunden</div>
+ </div>
+ <div class="card">
+  <h2>WHATSAPP BUSINESS</h2>
+  <div class="status" id="waConnectionStatus">Nicht verbunden</div>
+  <p>WARVEX kann später Nachrichten empfangen, zusammenfassen und Antworten vorschlagen. Mit aktivierter offizieller WhatsApp Business Platform kann es nach Freigabe auch Antworten senden.</p>
+  <p class="muted">Wichtig: Das ist kein Zugriff auf dein privates WhatsApp-Postfach oder dessen Chatverlauf. Es verarbeitet nur Nachrichten, die an eine eingerichtete Business-Nummer gesendet werden. Kein heimliches Mitlesen.</p>
+  <div class="actions">
+   <a class="button-link" href="https://developers.facebook.com/docs/whatsapp/cloud-api/get-started" target="_blank" rel="noopener">META EINRICHTUNG</a>
+   <button type="button" id="waSetupInfoBtn">VORAUSSETZUNGEN</button>
+  </div>
+  <div class="status" id="waSetupInfo" hidden>Benötigt werden ein von einem Erziehungsberechtigten verwaltetes Meta-Business-/Developer-Konto, eine WhatsApp-Business-Nummer, eine Meta-App, ein sicherer Webhook und serverseitig gespeicherte Zugangsdaten. Keine Tokens oder Passwörter in diese Webseite eintragen.</div>
+ </div>
+ <div class="card">
+  <h2>WARVEX LIVE · VIDEO-KONFERENZ</h2>
+  <div class="status" id="liveConnectionStatus">Live-Server nicht eingerichtet</div>
+  <p>Geplant ist ein eigener Video-Raum, in den mehrere Personen über einen Einladungslink kommen können. WARVEX soll als sichtbar gekennzeichneter KI-Teilnehmer zuhören, sprechen und freigegebene Kamerabilder analysieren.</p>
+  <p class="muted">Das ist ein eigener WARVEX-Anruf und kein Teilnehmer in einem normalen WhatsApp-Gruppen- oder Videoanruf. Mikrofon und Kamera werden nur nach ausdrücklicher Freigabe aktiviert. Alle Teilnehmer müssen wissen, dass die KI mithört und Bildinhalte verarbeitet.</p>
+  <div class="actions">
+   <a class="button-link" href="https://docs.livekit.io/agents/multimodality/vision/video/" target="_blank" rel="noopener">LIVE-VIDEO TECHNIK</a>
+   <button type="button" id="liveSetupInfoBtn">VORAUSSETZUNGEN</button>
+  </div>
+  <div class="status" id="liveSetupInfo" hidden>Benötigt werden ein LiveKit-Projekt, ein sicherer Token-Server, ein laufender WARVEX-Sprachagent und ein Modell mit Audio-/Video-Unterstützung. Der KI-Agent wird erst nach dem Beitritt und nach sichtbarer Zustimmung aktiviert.</div>
+ </div>
+ <div class="card">
+  <h2>VERBINDUNGS- UND DATENSCHUTZREGELN</h2>
+  <ul>
+   <li>Keine WhatsApp- oder LiveKit-Passwörter im Browser speichern.</li>
+   <li>Antworten zunächst nur als Entwurf; automatisches Senden erst nach bewusster Freigabe aktivieren.</li>
+   <li>Keine Gruppen- oder Privatnachrichten ohne Berechtigung importieren.</li>
+   <li>Kamera/Mikrofon deutlich anzeigen und jederzeit stoppbar machen.</li>
+   <li>Keine Aufzeichnung standardmäßig; Teilnehmer vorher informieren.</li>
+  </ul>
+  <p class="muted" id="commStatus">Diese Seite ist die vorbereitete Oberfläche. Externe Konten, Webhooks und Live-Server sind noch nicht verbunden.</p>
+ </div>
+</section>
 
 <section id="vision" class="page">
  <div class="vision-shell">
@@ -1033,6 +1075,7 @@ function localCommand(text){
   if(q.includes("öffne tools")||q==="tools"){showPage("tools");return "System-Tools geöffnet.";}
   if(q.includes("öffne notizen")||q==="notizen"){showPage("notes");return "Notizen geöffnet.";}
   if(q.includes("smart home")||q.includes("öffne home")){showPage("home");return "Smart-Home-Demo geöffnet.";}
+  if(q.includes("kommunikation")||q.includes("whatsapp")||q.includes("live raum")){showPage("communication");return "Kommunikationszentrale geöffnet.";}
   return null;
 }
 
@@ -1586,6 +1629,14 @@ $("diagnoseBtn").addEventListener("click",()=>{
     ". Spracherkennung: "+(window.SpeechRecognition||window.webkitSpeechRecognition?"unterstützt":"nicht unterstützt")+
     ". Online-TTS: "+TTS_URL;
   $("diagnosticStatus").textContent="Diagnose abgeschlossen.";
+});
+
+/* WARVEX KOMMUNIKATIONSZENTRALE · Setup-Infos */
+$("waSetupInfoBtn")?.addEventListener("click",()=>{
+ const el=$("waSetupInfo");if(el)el.hidden=!el.hidden;
+});
+$("liveSetupInfoBtn")?.addEventListener("click",()=>{
+ const el=$("liveSetupInfo");if(el)el.hidden=!el.hidden;
 });
 
 /* NOTIZEN */
