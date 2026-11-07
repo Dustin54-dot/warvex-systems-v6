@@ -475,7 +475,19 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
   <div class="card">
     <h3>GERÄTEVERBINDUNG</h3>
     <div id="devicePairState" class="status">Noch keine Geräteverbindung in dieser Sitzung bestätigt.</div>
-    <p class="muted">Das Erstellen eines Codes und die Kopplung funktionieren bereits. Eine Live-Standortübertragung ist noch nicht aktiviert; WARVEX erfasst derzeit keine Standortdaten.</p>
+    <p class="muted">Standort wird niemals automatisch erfasst. Die Übertragung startet nur nach deiner ausdrücklichen Freigabe und lässt sich jederzeit stoppen.</p>
+  </div>
+  <div class="card">
+    <h3>LIVE-STANDORT ZUM ROKU FREIGEBEN</h3>
+    <p class="muted">Wenn dieses Handy mit dem Roku gekoppelt ist, kannst du deinen aktuellen Standort während der aktiven Nutzung von WARVEX live an den Fernseher senden. Chrome fragt vorher nach der Standortberechtigung. Die Übertragung endet beim Stoppen oder spätestens nach 90 Sekunden ohne neue Verbindung.</p>
+    <div class="actions">
+      <button id="startLocationShareBtn" class="primary" type="button">STANDORT FREIGEBEN & LIVE TEILEN</button>
+      <button id="stopLocationShareBtn" type="button" disabled>FREIGABE STOPPEN</button>
+    </div>
+    <div id="locationShareStatus" class="status" style="margin-top:12px">Standortfreigabe AUS · Es werden keine Standortdaten übertragen.</div>
+    <div id="locationShareDetails" class="muted" style="margin-top:8px">Deine Koordinaten erscheinen hier erst nach deiner Freigabe.</div>
+    <p class="muted">Hinweis: Live-Standort funktioniert nur über HTTPS, solange WARVEX geöffnet ist. Android/Chrome kann Updates im Hintergrund oder bei gesperrtem Bildschirm pausieren. Keine heimliche Hintergrund-Ortung.</p>
+  </div>
   </div>
 </section>
 
@@ -1751,6 +1763,88 @@ const existingDeviceConnections = getDeviceConnections();
 if(existingDeviceConnections.length){
   showDeviceMessage("devicePairState",existingDeviceConnections.length + " gespeicherte Geräteverbindung(en).");
 }
+
+
+/* WARVEX LIVE LOCATION — explicit foreground opt-in, no background tracking */
+let warvexLocationWatchId = null;
+let warvexLocationHeartbeat = null;
+let warvexLatestPosition = null;
+let warvexLocationBusy = false;
+function locationUi(status, details){
+  const s=$("locationShareStatus"),d=$("locationShareDetails");
+  if(s)s.textContent=status;
+  if(d&&details!==undefined)d.textContent=details;
+}
+function phoneWriteConnection(){
+  const items=getDeviceConnections();
+  for(let i=items.length-1;i>=0;i--){
+    if(items[i]&&items[i].role==="joining"&&items[i].token)return items[i];
+  }
+  return null;
+}
+async function sendWarvexLocation(){
+  if(!warvexLatestPosition||warvexLocationBusy)return;
+  const connection=phoneWriteConnection();
+  if(!connection){locationUi("Keine Handy-Schreibverbindung gefunden. Koppel zuerst dieses Handy mit dem Roku.");return;}
+  warvexLocationBusy=true;
+  const p=warvexLatestPosition;
+  try{
+    const response=await fetch(DEVICE_CLOUD+"/api/roku/location",{
+      method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+connection.token},
+      body:JSON.stringify({latitude:p.coords.latitude,longitude:p.coords.longitude,accuracy:p.coords.accuracy,measuredAt:p.timestamp})
+    });
+    const data=await response.json();
+    if(!response.ok||!data.ok)throw new Error(data.error||"Standort konnte nicht übertragen werden.");
+    locationUi("● LIVE-STANDORT AKTIV · zuletzt gesendet "+new Date().toLocaleTimeString("de-DE"),
+      "Breite: "+p.coords.latitude.toFixed(6)+" · Länge: "+p.coords.longitude.toFixed(6)+" · Genauigkeit ca. "+Math.round(p.coords.accuracy)+" m");
+  }catch(error){locationUi("Übertragungsfehler: "+(error.message||String(error)));}
+  finally{warvexLocationBusy=false;}
+}
+function onWarvexLocation(position){
+  warvexLatestPosition=position;
+  sendWarvexLocation();
+}
+function onWarvexLocationError(error){
+  let message="Standort konnte nicht gelesen werden.";
+  if(error&&error.code===1)message="Standortberechtigung verweigert. Erlaube Standortzugriff in Chrome, wenn du teilen möchtest.";
+  else if(error&&error.code===2)message="Standort gerade nicht verfügbar. Prüfe GPS/Standortdienste.";
+  else if(error&&error.code===3)message="Standortabfrage hat zu lange gedauert. WARVEX versucht es weiter.";
+  locationUi(message);
+}
+function startWarvexLocationShare(){
+  const start=$("startLocationShareBtn"),stop=$("stopLocationShareBtn");
+  if(!window.isSecureContext||!navigator.geolocation){locationUi("Live-Standort benötigt HTTPS und einen Browser mit Standortfunktion.");return;}
+  if(!phoneWriteConnection()){locationUi("Dieses Handy ist nicht als sendendes Gerät gekoppelt. Koppel zuerst das Handy mit dem Roku.");return;}
+  if(warvexLocationWatchId!==null)return;
+  if(start)start.disabled=true;
+  locationUi("Chrome fragt jetzt nach deiner Standortfreigabe …");
+  try{
+    warvexLocationWatchId=navigator.geolocation.watchPosition(onWarvexLocation,onWarvexLocationError,{enableHighAccuracy:true,maximumAge:0,timeout:20000});
+    warvexLocationHeartbeat=window.setInterval(sendWarvexLocation,15000);
+    if(stop)stop.disabled=false;
+    locationUi("Standortfreigabe aktiv · warte auf GPS-Fix …");
+  }catch(error){
+    warvexLocationWatchId=null;
+    if(start)start.disabled=false;
+    locationUi("Standort konnte nicht gestartet werden: "+(error.message||String(error)));
+  }
+}
+async function stopWarvexLocationShare(){
+  if(warvexLocationWatchId!==null){navigator.geolocation.clearWatch(warvexLocationWatchId);warvexLocationWatchId=null;}
+  if(warvexLocationHeartbeat!==null){clearInterval(warvexLocationHeartbeat);warvexLocationHeartbeat=null;}
+  warvexLatestPosition=null;
+  const connection=phoneWriteConnection();
+  if(connection){
+    try{await fetch(DEVICE_CLOUD+"/api/roku/location/stop",{method:"POST",headers:{"Authorization":"Bearer "+connection.token},keepalive:true});}catch(_){}
+  }
+  const start=$("startLocationShareBtn"),stop=$("stopLocationShareBtn");
+  if(start)start.disabled=false;
+  if(stop)stop.disabled=true;
+  locationUi("Standortfreigabe AUS · Übertragung gestoppt.","Keine aktuellen Koordinaten werden mehr gesendet. Gespeicherte Live-Daten wurden gelöscht.");
+}
+$("startLocationShareBtn")?.addEventListener("click",startWarvexLocationShare);
+$("stopLocationShareBtn")?.addEventListener("click",stopWarvexLocationShare);
+window.addEventListener("pagehide",()=>{if(warvexLocationWatchId!==null){navigator.geolocation.clearWatch(warvexLocationWatchId);fetch(DEVICE_CLOUD+"/api/roku/location/stop",{method:"POST",headers:{"Authorization":"Bearer "+(phoneWriteConnection()?.token||"")} ,keepalive:true}).catch(()=>{});}});
 
 </script>
 
