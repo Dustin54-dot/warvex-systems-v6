@@ -242,7 +242,7 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
   <div class="med-column">
    <div class="med-panel"><h3>AKTUELLE MESSWERTE</h3>
     <div class="med-value-row med-pulse-row"><span>♥ Herzfrequenz</span><strong class="med-dash" id="medHeartRateValue">— BPM</strong></div>
-    <div class="med-value-row"><span>◉ Sauerstoffsättigung (SpO₂)</span><strong class="med-dash">— %</strong></div>
+    <div class="med-value-row"><span>◉ Sauerstoffsättigung (SpO₂)</span><strong class="med-dash" id="medOxygenValue">— %</strong></div>
     <div class="med-value-row med-lung-row"><span>Atmung</span><strong class="med-dash">— /min</strong></div>
     <div class="med-value-row med-temp-row"><span>Temperatur</span><strong class="med-dash" id="medTemperatureValue">— °C</strong></div>
     <p class="med-muted">Noch keine Messdaten vorhanden. Es werden keine Werte geschätzt oder erfunden.</p>
@@ -1063,7 +1063,7 @@ $("testVoiceBtn").addEventListener("click",()=>say("Hallo. Ich bin VEXARA, die O
 /* WARVEX MEDICAL · BLE-DATEN UND SENSORALARME
    Standard-Herzfrequenz und -Temperatur; keine erfundenen Messwerte.
    EKG-Rohdaten bleiben deaktiviert, bis ein passendes Geräteprotokoll bekannt ist. */
-let medicalDevice=null, medicalGatt=null, medicalAlarmTimer=null, medicalAudioContext=null;
+let medicalDevice=null, medicalGatt=null, medicalWellueCharacteristic=null, medicalAlarmTimer=null, medicalAudioContext=null;
 let medicalAlarmMode=null, medicalVibrationSupported=typeof navigator!=="undefined"&&typeof navigator.vibrate==="function";
 let medicalAlertAcknowledged=false;
 let medicalTestTimer=null, medicalTestTimeout=null, medicalTestStep=0, medicalTestRunning=false;
@@ -1096,9 +1096,62 @@ function parseIEEE11073Float(view,offset){const raw=view.getUint32(offset,true);
 function onHeartRateMeasurement(event){const v=event.target.value,flags=v.getUint8(0),wide=!!(flags&1),bpm=wide?v.getUint16(1,true):v.getUint8(1);if(!Number.isFinite(bpm)||bpm<20||bpm>250)return;$("medHeartRateValue").textContent=bpm+" BPM";$("medHeartRateValue").classList.add("med-live-value");$("medical").classList.add("pulse-live");}
 function onTemperatureMeasurement(event){const v=event.target.value,flags=v.getUint8(0),raw=parseIEEE11073Float(v,1),celsius=(flags&1)?(raw-32)*5/9:raw;handleMedicalTemperature(celsius);}
 function showEcgFlatLine(message){const trace=$("medEcgTrace");if(trace)trace.setAttribute("d","M0 27H220");$("medEcgStatus").textContent=message;}
-async function inspectMedicalDevice(device){const server=await device.gatt.connect();medicalGatt=server;const services=await server.getPrimaryServices(),lines=[];for(const service of services){const chars=await service.getCharacteristics();lines.push(service.uuid+" · "+chars.length+" Merkmal(e)");}try{const svc=await server.getPrimaryService("heart_rate");medicalHeartCharacteristic=await svc.getCharacteristic("heart_rate_measurement");await medicalHeartCharacteristic.startNotifications();medicalHeartCharacteristic.addEventListener("characteristicvaluechanged",onHeartRateMeasurement);lines.push("Herzfrequenz: aktiv");}catch(error){lines.push("Herzfrequenz: kein Standarddienst");}try{const svc=await server.getPrimaryService("health_thermometer");medicalTempCharacteristic=await svc.getCharacteristic("temperature_measurement");await medicalTempCharacteristic.startNotifications();medicalTempCharacteristic.addEventListener("characteristicvaluechanged",onTemperatureMeasurement);lines.push("Temperatur: aktiv");}catch(error){lines.push("Temperatur: kein Standarddienst");}$("medServices").textContent=lines.join("\n");$("medDeviceDetails").textContent=(medicalHeartCharacteristic||medicalTempCharacteristic)?"Standarddatenquelle verbunden. Nur tatsächlich empfangene Werte werden angezeigt.":"Gerät verbunden und Dienste erkannt, aber kein unterstützter Standard-Messdienst gefunden. Herstellerprotokoll erforderlich.";showEcgFlatLine("Kein EKG-Rohsignal empfangen. Herzfrequenzdaten werden nicht als EKG dargestellt.");}
-async function connectMedicalDevice(){if(!navigator.bluetooth||!navigator.bluetooth.requestDevice){setMedicalConnection("Bluetooth in diesem Browser nicht verfügbar. Bitte eine kompatible Chrome-Version und HTTPS verwenden.");return;}try{medicalAudioReady();const device=await navigator.bluetooth.requestDevice({filters:[{services:["heart_rate"]},{services:["health_thermometer"]}],optionalServices:["heart_rate","health_thermometer","battery_service"]});medicalDevice=device;device.addEventListener("gattserverdisconnected",()=>{medicalGatt=null;medicalHeartCharacteristic=null;medicalTempCharacteristic=null;$("medHeartRateValue").textContent="— BPM";$("medHeartRateValue").classList.remove("med-live-value");$("medical").classList.remove("pulse-live");$("medTemperatureValue").textContent="— °C";$("medDisconnectButton").disabled=true;setMedicalConnection("Verbindung getrennt");$("medDeviceDetails").textContent="Keine aktuellen Messdaten. Bitte erneut verbinden.";$("medServices").textContent="Gerät getrennt.";showEcgFlatLine("Null-Linie · Kein EKG-Gerät verbunden.");});await inspectMedicalDevice(device);setMedicalConnection("Verbunden mit "+(device.name||"Bluetooth-Gerät"));$("medDisconnectButton").disabled=false;}catch(error){setMedicalConnection("Verbindung nicht hergestellt");$("medDeviceDetails").textContent=error&&error.message?error.message:String(error);}}
-function disconnectMedicalDevice(){if(medicalDevice&&medicalDevice.gatt&&medicalDevice.gatt.connected)medicalDevice.gatt.disconnect();medicalDevice=null;medicalGatt=null;medicalHeartCharacteristic=null;medicalTempCharacteristic=null;$("medHeartRateValue").textContent="— BPM";$("medTemperatureValue").textContent="— °C";$("medDisconnectButton").disabled=true;setMedicalConnection("Kein Gerät verbunden");$("medServices").textContent="Noch keine Gerätedaten untersucht.";$("medDeviceDetails").textContent="Getrennt. Es werden keine Messwerte angezeigt.";showEcgFlatLine("Null-Linie · Kein EKG-Rohsignal empfangen.");if(medicalAlarmMode)stopMedicalAlert();}
+function onWellueNusData(event){
+ const v=event.target.value;
+ if(v.byteLength<10)return;
+ const b=[];for(let i=0;i<v.byteLength;i++)b.push(v.getUint8(i));
+ // PC-60FW-style Viatom packet: AA 55 header, 0F frame, 08 payload, 01 numeric data.
+ const offset=b.findIndex((x,i)=>x===0xaa&&b[i+1]===0x55);
+ if(offset<0||b.length<offset+11)return;
+ const p=b.slice(offset+2);
+ if(p[0]!==0x0f||p[1]!==0x08||p[2]!==0x01)return;
+ const spo2=p[3],bpm=p[4],pi=p[6];
+ if(spo2>=70&&spo2<=100)$("medOxygenValue").textContent=spo2+" %";
+ if(bpm>=25&&bpm<=250){$("medHeartRateValue").textContent=bpm+" BPM";$("medHeartRateValue").classList.add("med-live-value");$("medical").classList.add("pulse-live");}
+ $("medDeviceDetails").textContent="Wellue/Viatom-Datenpaket empfangen · SpO₂/Puls nur bei plausiblen Rohwerten angezeigt.";
+ $("medServices").textContent="Wellue BLE · Live-Datenstream aktiv"+(Number.isFinite(pi)?" · PI-Rohwert empfangen":"");
+}
+async function inspectMedicalDevice(device){
+ const server=await device.gatt.connect();medicalGatt=server;
+ const services=await server.getPrimaryServices(),lines=[];
+ for(const service of services){const chars=await service.getCharacteristics();lines.push(service.uuid+" · "+chars.length+" Merkmal(e)");}
+ try{const svc=await server.getPrimaryService("heart_rate");medicalHeartCharacteristic=await svc.getCharacteristic("heart_rate_measurement");await medicalHeartCharacteristic.startNotifications();medicalHeartCharacteristic.addEventListener("characteristicvaluechanged",onHeartRateMeasurement);lines.push("Herzfrequenz: aktiv");}catch(error){lines.push("Herzfrequenz: kein Standarddienst");}
+ try{const svc=await server.getPrimaryService("health_thermometer");medicalTempCharacteristic=await svc.getCharacteristic("temperature_measurement");await medicalTempCharacteristic.startNotifications();medicalTempCharacteristic.addEventListener("characteristicvaluechanged",onTemperatureMeasurement);lines.push("Temperatur: aktiv");}catch(error){lines.push("Temperatur: kein Standarddienst");}
+ // Nordic UART Service is used by some Viatom/Wellue fingertip oximeters (e.g. PC-60FW).
+ try{
+  const nus=await server.getPrimaryService("6e400001-b5a3-f393-e0a9-e50e24dcca9e");
+  medicalWellueCharacteristic=await nus.getCharacteristic("6e400003-b5a3-f393-e0a9-e50e24dcca9e");
+  await medicalWellueCharacteristic.startNotifications();
+  medicalWellueCharacteristic.addEventListener("characteristicvaluechanged",onWellueNusData);
+  lines.push("Wellue/Viatom Nordic UART: Benachrichtigungen aktiv");
+ }catch(error){lines.push("Wellue-NUS-Dienst nicht gefunden");}
+ // Legacy O2Ring service: report detection only until the exact model/protocol is confirmed.
+ try{
+  const oxy=await server.getPrimaryService("14839ac4-7d7e-415c-9a42-167340cf2339");
+  lines.push("Wellue O2Ring-Dienst erkannt · Modellprotokoll muss noch bestätigt werden");
+  try{const notify=await oxy.getCharacteristic("0734594a-a8e7-4b1a-a6b1-cd5243059a57");await notify.startNotifications();lines.push("O2Ring-Benachrichtigung aktiv · Rohdaten noch nicht dekodiert");}catch(error){}
+ }catch(error){}
+ $("medServices").textContent=lines.join("\n");
+ $("medDeviceDetails").textContent=(medicalHeartCharacteristic||medicalTempCharacteristic||medicalWellueCharacteristic)?"Bluetooth-Gerät verbunden. Nur unterstützte, tatsächlich empfangene Werte werden angezeigt.":"Gerät verbunden und Dienste erkannt, aber kein unterstützter Messdienst sicher erkannt. Wellue-Protokoll hängt vom Modell ab.";
+ showEcgFlatLine("Kein EKG-Rohsignal empfangen. Pulswerte werden nicht als EKG dargestellt.");
+}
+async function connectMedicalDevice(){
+ if(!navigator.bluetooth||!navigator.bluetooth.requestDevice){setMedicalConnection("Bluetooth-Suche benötigt Chrome auf Android und eine HTTPS-Verbindung.");return;}
+ try{
+  medicalAudioReady();
+  const device=await navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:["heart_rate","health_thermometer","battery_service","6e400001-b5a3-f393-e0a9-e50e24dcca9e","14839ac4-7d7e-415c-9a42-167340cf2339"]});
+  medicalDevice=device;
+  device.addEventListener("gattserverdisconnected",()=>{
+   medicalGatt=null;medicalHeartCharacteristic=null;medicalTempCharacteristic=null;medicalWellueCharacteristic=null;
+   $("medHeartRateValue").textContent="— BPM";$("medHeartRateValue").classList.remove("med-live-value");$("medical").classList.remove("pulse-live");
+   $("medOxygenValue").textContent="— %";$("medTemperatureValue").textContent="— °C";$("medDisconnectButton").disabled=true;
+   setMedicalConnection("Verbindung getrennt");$("medDeviceDetails").textContent="Keine aktuellen Messdaten. Bitte erneut verbinden.";$("medServices").textContent="Gerät getrennt.";
+   showEcgFlatLine("Null-Linie · Kein EKG-Gerät verbunden.");
+  });
+  await inspectMedicalDevice(device);setMedicalConnection("Verbunden mit "+(device.name||"Bluetooth-Gerät"));$("medDisconnectButton").disabled=false;
+ }catch(error){setMedicalConnection("Verbindung nicht hergestellt");$("medDeviceDetails").textContent=error&&error.message?error.message:String(error);}
+}
+function disconnectMedicalDevice(){if(medicalDevice&&medicalDevice.gatt&&medicalDevice.gatt.connected)medicalDevice.gatt.disconnect();medicalDevice=null;medicalGatt=null;medicalHeartCharacteristic=null;medicalTempCharacteristic=null;medicalWellueCharacteristic=null;$("medHeartRateValue").textContent="— BPM";$("medTemperatureValue").textContent="— °C";$("medDisconnectButton").disabled=true;setMedicalConnection("Kein Gerät verbunden");$("medServices").textContent="Noch keine Gerätedaten untersucht.";$("medDeviceDetails").textContent="Getrennt. Es werden keine Messwerte angezeigt.";showEcgFlatLine("Null-Linie · Kein EKG-Rohsignal empfangen.");if(medicalAlarmMode)stopMedicalAlert();}
 $("medMenuConnect").addEventListener("click",()=>{closeMedicalMenu();connectMedicalDevice();});
 function closeMedicalMenu(){const panel=$("medMenuPanel"),trigger=$("medMenuTrigger");panel.classList.remove("open");trigger.setAttribute("aria-expanded","false");}
 $("medMenuTrigger").addEventListener("click",()=>{const panel=$("medMenuPanel"),trigger=$("medMenuTrigger"),open=!panel.classList.contains("open");panel.classList.toggle("open",open);trigger.setAttribute("aria-expanded",String(open));});
