@@ -239,6 +239,7 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
     <h2>Schnellzugriff</h2>
     <div class="actions">
       <button class="primary" data-open="chat">KI CHAT</button>
+      <button class="primary" id="homeAIDiagnoseBtn">KI-DIAGNOSE STARTEN</button>
       <button data-open="voice">SPRACHE</button>
       <button data-open="code">PROGRAMMIEREN</button>
       <button data-open="tools">TOOLS</button>
@@ -324,8 +325,10 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
     <div class="actions">
       <button class="primary" id="sendBtn">SENDEN</button>
       <button id="clearChat">CHAT LÖSCHEN</button>
+      <button id="runAIDiagnoseBtn">KI-DIAGNOSE STARTEN</button>
     </div>
     <p class="muted" id="chatStatus">Bereit.</p>
+    <div class="status" id="aiDiagnosticReport" aria-live="polite">Noch kein KI-Fehlerbericht erstellt.</div>
   </div>
 </section>
 
@@ -1038,6 +1041,55 @@ async function sendChat(){
 }
 
 $("sendBtn").addEventListener("click",sendChat);
+
+/* KI-DIAGNOSE: Verbindung testen, Bericht anzeigen und vorlesen */
+async function runAIDiagnostic(){
+  const buttons=[$("runAIDiagnoseBtn"),$("homeAIDiagnoseBtn")].filter(Boolean);
+  buttons.forEach(button=>button.disabled=true);
+  showPage("chat");
+  const reportBox=$("aiDiagnosticReport");
+  const promptText="Starte eine KI-Diagnose";
+  addMessage("Du",promptText);
+  $("chatStatus").textContent="WARVEX führt eine KI-Diagnose aus …";
+  if(reportBox)reportBox.textContent="Diagnose läuft: Internet, KI-Verbindung und Sprachausgabe werden geprüft …";
+
+  const checks=[
+    "Internetverbindung: "+(navigator.onLine?"Browser meldet online":"Browser meldet offline"),
+    "Sichere Website-Verbindung (HTTPS): "+(window.isSecureContext?"aktiv":"nicht aktiv"),
+    "Browser-Sprachausgabe: "+(("speechSynthesis" in window)?"vom Browser unterstützt":"nicht verfügbar"),
+    "Online-Sprachsystem: "+(ttsState==="online"?"zuletzt aktiv":ttsState==="fallback"?"Ersatzstimme aktiv":ttsState==="none"?"keine Stimme verfügbar":"noch nicht abschließend geprüft")
+  ];
+  let report="";
+  try{
+    if(!navigator.onLine)throw new Error("Das Gerät meldet keine Internetverbindung.");
+    const diagnosticPrompt=
+      "Du bist WARVEX SYSTEMDIAGNOSE. Erstelle auf Deutsch einen kurzen, verständlichen Diagnose- und Fehlerbericht. "+
+      "Unterscheide klar zwischen tatsächlich geprüften Fakten und möglichen Ursachen. Erfinde keine Tests oder Messwerte. "+
+      "Nenne Status, erkannte Probleme, wahrscheinliche Ursache nur wenn die Daten sie stützen, und konkrete nächste Schritte. "+
+      "Es wurden folgende Browserdaten geprüft:\n- "+checks.join("\n- ")+
+      "\nLetzter interner KI-Verbindungsstatus: "+lastAIDiagnostic+
+      "\nFühre jetzt einen Verbindungstest über diese KI-Anfrage aus und berichte nur, was daraus wirklich folgt.";
+    const aiReport=await askAI(diagnosticPrompt);
+    report="KI-DIAGNOSE · ABSCHLUSS\n\nSystemchecks:\n• "+checks.join("\n• ")+
+      "\n\nKI-Fehlerbericht:\n"+aiReport+
+      "\n\nHinweis: Die Diagnose prüft die Browserverbindung und eine KI-Anfrage. Sie kann keine internen Cloudflare-Protokolle oder Hardwarefehler auslesen.";
+    $("chatStatus").textContent="KI-Diagnose abgeschlossen.";
+  }catch(error){
+    const reason=error&&error.message?error.message:String(error);
+    report="KI-DIAGNOSE · FEHLERBERICHT\n\nSystemchecks:\n• "+checks.join("\n• ")+
+      "\n\nKI-Verbindung: FEHLGESCHLAGEN\nFehler: "+reason+
+      "\n\nLetzter Diagnosehinweis: "+lastAIDiagnostic+
+      "\n\nNächste Schritte: Internetverbindung prüfen, die Seite neu laden und bei HTTP 429 kurz warten. Bei HTTP 5xx muss der Cloudflare-Worker geprüft werden. Dieser Bericht enthält nur Browser- und Verbindungsinformationen; Cloudflare-interne Logs sind hier nicht zugänglich.";
+    $("chatStatus").textContent="Diagnose beendet · KI-Verbindung fehlgeschlagen.";
+  }
+  if(reportBox)reportBox.textContent=report;
+  addMessage("WARVEX",report);
+  try{await say(report);}catch(error){console.warn("WARVEX konnte den Diagnosebericht nicht vorlesen:",error);}
+  buttons.forEach(button=>button.disabled=false);
+}
+
+$("runAIDiagnoseBtn")?.addEventListener("click",runAIDiagnostic);
+$("homeAIDiagnoseBtn")?.addEventListener("click",runAIDiagnostic);
 
 $("chatInput").addEventListener("keydown",e=>{
   if(e.key==="Enter"&&!e.shiftKey){
