@@ -204,6 +204,7 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
   <button data-page="tools">TOOLS</button>
   <button data-page="notes">NOTIZEN</button>
   <button data-page="home">SMART HOME</button>
+  <button data-page="tracking">TRACKING</button>
 </nav>
 
 <main>
@@ -445,6 +446,25 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
       <button id="plugBtn">STECKDOSE: AUS</button>
     </div>
     <div class="status" id="homeStatus">Demo bereit.</div>
+  </div>
+</section>
+
+
+<section id="tracking" class="page">
+  <div class="card">
+    <h2>WARVEX TRACKING · ROKU-KOPPLUNG</h2>
+    <p class="muted">Gib den Einmalcode ein, der auf deinem Roku-Fernseher angezeigt wird. Die Kopplung wird erst nach deiner Bestätigung aktiviert.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <input id="rokuPairCode" type="text" inputmode="text" autocomplete="one-time-code" maxlength="8" placeholder="8-stelliger Einmalcode" aria-label="Roku-Einmalcode" style="flex:1;min-width:210px;padding:14px;border-radius:10px;border:1px solid #39475d;background:#080d16;color:#fff;font-size:20px;letter-spacing:3px;text-transform:uppercase">
+      <button id="rokuPairBtn" class="primary" type="button">ROKU KOPPELN</button>
+    </div>
+    <div id="rokuPairStatus" class="status" style="margin-top:14px">Noch nicht gekoppelt. Öffne WARVEX TRACKING auf deinem Roku, um einen Code zu erhalten.</div>
+  </div>
+  <div class="card">
+    <h3>VERBINDUNGSSTATUS</h3>
+    <div id="rokuPairState" class="status">ROKU NICHT VERBUNDEN</div>
+    <p class="muted">Die Kopplung verknüpft dieses Handy mit genau dem Roku, dessen Einmalcode du eingegeben hast. Standortfreigabe ist eine separate, ausdrücklich zu bestätigende Funktion.</p>
+    <p class="muted" id="rokuGpsNotice">GPS-Übertragung ist noch nicht aktiviert. Es werden derzeit keine Standortdaten erfasst oder übertragen.</p>
   </div>
 </section>
 
@@ -1616,6 +1636,65 @@ $("toolStatus").textContent="Web-App aktiv · KI über Cloudflare · Online-TTS 
     });
   }
 })();
+
+/* WARVEX ROKU PAIRING */
+const ROKU_CLOUD = "https://warvex-roku-cloud.dustina952.workers.dev";
+const ROKU_PHONE_TOKEN_KEY = "warvex_roku_phone_token";
+function refreshRokuPairState(){
+  const token = localStorage.getItem(ROKU_PHONE_TOKEN_KEY);
+  const state = $("rokuPairState");
+  const status = $("rokuPairStatus");
+  const input = $("rokuPairCode");
+  const btn = $("rokuPairBtn");
+  if(token){
+    if(state) state.textContent = "ROKU ERFOLGREICH GEKOPPELT";
+    if(status) status.textContent = "Kopplung gespeichert. Dieses Handy ist mit deinem Roku verbunden.";
+    if(input) input.disabled = true;
+    if(btn) { btn.disabled = true; btn.textContent = "BEREITS GEKOPPELT"; }
+  }else{
+    if(state) state.textContent = "ROKU NICHT VERBUNDEN";
+    if(input) input.disabled = false;
+    if(btn) { btn.disabled = false; btn.textContent = "ROKU KOPPELN"; }
+  }
+}
+const pairCodeInput = $("rokuPairCode");
+if(pairCodeInput){
+  pairCodeInput.addEventListener("input", () => {
+    pairCodeInput.value = pairCodeInput.value.toUpperCase().replace(/[^A-F0-9]/g,"").slice(0,8);
+  });
+}
+const pairBtn = $("rokuPairBtn");
+if(pairBtn){
+  pairBtn.addEventListener("click", async () => {
+    const code = ($("rokuPairCode").value || "").trim().toUpperCase();
+    const status = $("rokuPairStatus");
+    if(!/^[A-F0-9]{8}$/.test(code)){
+      status.textContent = "Bitte gib den vollständigen 8-stelligen Code vom Fernseher ein.";
+      return;
+    }
+    pairBtn.disabled = true;
+    status.textContent = "Kopplung wird sicher angefragt …";
+    try{
+      const response = await fetch(ROKU_CLOUD + "/api/roku/pair/claim", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({code})
+      });
+      const data = await response.json();
+      if(!response.ok || !data.ok || !data.phoneToken){
+        throw new Error(data.error || "Kopplung fehlgeschlagen.");
+      }
+      localStorage.setItem(ROKU_PHONE_TOKEN_KEY, data.phoneToken);
+      status.textContent = "Kopplung erfolgreich! Dein Handy wurde mit dem Roku verbunden.";
+      refreshRokuPairState();
+    }catch(error){
+      status.textContent = "Fehler: " + (error.message || "Cloud nicht erreichbar");
+      pairBtn.disabled = false;
+    }
+  });
+}
+refreshRokuPairState();
+
 </script>
 
 </body>
