@@ -467,7 +467,7 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
     <h3>MIT EINEM CODE VERBINDEN</h3>
     <p class="muted">Gib hier den Code ein, der auf dem anderen Handy oder auf dem Roku angezeigt wird.</p>
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-      <input id="deviceJoinCode" type="text" inputmode="text" autocomplete="one-time-code" maxlength="8" placeholder="8 Zeichen: Groß-/Kleinbuchstaben und Zahlen" aria-label="Einmalcode" autocapitalize="off" spellcheck="false" style="flex:1;min-width:210px;padding:14px;border-radius:10px;border:1px solid #39475d;background:#080d16;color:#fff;font-size:20px;letter-spacing:3px">
+      <input id="deviceJoinCode" type="text" inputmode="text" autocomplete="off" autocorrect="off" maxlength="8" placeholder="8 Zeichen: Groß-/Kleinbuchstaben und Zahlen" aria-label="Einmalcode" autocapitalize="none" spellcheck="false" enterkeyhint="done" style="flex:1;min-width:210px;padding:14px;border-radius:10px;border:1px solid #39475d;background:#080d16;color:#fff;font-size:20px;letter-spacing:3px">
       <button id="joinDeviceBtn" class="primary" type="button">GERÄT KOPPELN</button>
     </div>
     <div id="deviceJoinStatus" class="status" style="margin-top:14px">Noch kein neues Gerät gekoppelt.</div>
@@ -1670,11 +1670,9 @@ function showDeviceMessage(id, message){
   if(el) el.textContent = message;
 }
 const joinCodeInput = $("deviceJoinCode");
-if(joinCodeInput){
-  joinCodeInput.addEventListener("input",()=>{
-    joinCodeInput.value = joinCodeInput.value.replace(/[^A-Za-z0-9]/g,"").slice(0,8);
-  });
-}
+// Eingabe nicht bei jedem Tastendruck verändern: Das stört auf Android/Gboard
+// die Buchstaben- und Zahlen-Eingabe sowie die Text-Komposition.
+// Die Prüfung erfolgt erst beim Tippen auf „GERÄT KOPPELN“.
 const createDeviceCodeBtn = $("createDeviceCodeBtn");
 if(createDeviceCodeBtn){
   createDeviceCodeBtn.addEventListener("click",async()=>{
