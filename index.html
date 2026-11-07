@@ -242,6 +242,13 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
       <button data-open="tools">TOOLS</button>
     </div>
   </div>
+
+  <div class="card" id="warvexAlarmTestCard">
+    <h2>NOTFALLSYSTEM</h2>
+    <p class="muted">Nur Simulation. Sendet eine Testmeldung an den WARVEX-Worker und gekoppelte Geräte, die den Alarmdienst bereits abfragen. Kein Notruf wird ausgelöst.</p>
+    <div class="status" id="warvexAlarmStatus">Alarmtest bereit · Gerät noch nicht geprüft</div>
+    <div class="actions"><button type="button" class="primary" id="warvexAlarmTestBtn">🔴 NOTFALL-ALARM TESTEN</button></div>
+  </div>
 </section>
 
 
@@ -1801,6 +1808,94 @@ $("startLocationShareBtn")?.addEventListener("click",startWarvexLocationShare);
 $("stopLocationShareBtn")?.addEventListener("click",stopWarvexLocationShare);
 window.addEventListener("pagehide",()=>{if(warvexLocationWatchId!==null){navigator.geolocation.clearWatch(warvexLocationWatchId);fetch(DEVICE_CLOUD+"/api/roku/location/stop",{method:"POST",headers:{"Authorization":"Bearer "+(phoneWriteConnection()?.token||"")} ,keepalive:true}).catch(()=>{});}});
 
+</script>
+
+
+<style>
+#wxAlarmOverlay{display:none;position:fixed;inset:0;z-index:100000;background:#260008f5;color:#fff;align-items:center;justify-content:center;padding:20px;text-align:center}
+#wxAlarmOverlay.active{display:flex;animation:wxAlarmFlash .7s steps(2,end) infinite}
+#wxAlarmOverlay .wxAlarmCard{width:min(100%,520px);padding:26px;border:3px solid #ff536b;border-radius:20px;background:#410817;box-shadow:0 0 42px #ff183f99}
+#wxAlarmOverlay h2{font-size:clamp(26px,7vw,42px);color:#ffb0bb;margin:0 0 14px}
+#wxAlarmOverlay p{line-height:1.55}
+#wxAlarmOverlay button{width:100%;margin-top:14px;padding:15px;background:#ff3048;border:1px solid #ffd0d6;font-weight:900}
+@keyframes wxAlarmFlash{50%{background:#790019f5}}
+@media(prefers-reduced-motion:reduce){#wxAlarmOverlay.active{animation:none}}
+</style>
+<div id="wxAlarmOverlay" role="alertdialog" aria-modal="true" aria-labelledby="wxAlarmTitle">
+  <div class="wxAlarmCard">
+    <div style="font-weight:900;letter-spacing:2px;color:#ffd1d8">WARVEX · TESTALARM</div>
+    <h2 id="wxAlarmTitle">DUSTIN BRAUCHT HILFE!</h2>
+    <p id="wxAlarmMessage">Ein WARVEX-Notfalltest wurde ausgelöst. Dies ist KEIN echter Notruf.</p>
+    <p id="wxAlarmLocation"></p>
+    <button type="button" id="wxAlarmAckBtn">TESTALARM BESTÄTIGEN</button>
+  </div>
+</div>
+<script>
+(()=>{
+"use strict";
+const cloud= "https://warvex-roku-cloud.dustina952.workers.dev";
+const $=id=>document.getElementById(id);
+let activeId=null, dismissedId=null, beepTimer=null, pollTimer=null, audioCtx=null;
+function alarmStatus(s){const e=$("warvexAlarmStatus");if(e)e.textContent=s;}
+function beep(){
+  try{
+    const C=window.AudioContext||window.webkitAudioContext;
+    if(!C)return;
+    audioCtx=audioCtx||new C();
+    if(audioCtx.state==="suspended")audioCtx.resume();
+    const osc=audioCtx.createOscillator(),gain=audioCtx.createGain();
+    osc.type="square";osc.frequency.value=880;gain.gain.value=.12;
+    osc.connect(gain);gain.connect(audioCtx.destination);
+    osc.start();osc.stop(audioCtx.currentTime+.22);
+  }catch(e){console.warn("WARVEX Alarmton:",e);}
+}
+function stopBeeps(){if(beepTimer){clearInterval(beepTimer);beepTimer=null;}}
+function showAlarm(event){
+  if(!event||!event.id||event.id===dismissedId||event.id===activeId)return;
+  activeId=event.id;
+  $("wxAlarmMessage").textContent=event.message||"Ein WARVEX-Notfallalarm wurde ausgelöst.";
+  const loc=$("wxAlarmLocation");
+  if(event.location&&Number.isFinite(event.location.latitude)&&Number.isFinite(event.location.longitude)){
+    const lat=event.location.latitude,lon=event.location.longitude;
+    loc.textContent="Zuletzt freigegebener Standort: "+lat.toFixed(5)+", "+lon.toFixed(5)+" · Genauigkeit ca. "+Math.round(event.location.accuracy)+" m";
+  }else{
+    loc.textContent="Kein Standort übertragen. Standortfreigabe ist nicht aktiv.";
+  }
+  $("wxAlarmOverlay").classList.add("active");
+  beep();stopBeeps();beepTimer=setInterval(beep,2200);
+  if(typeof say==="function")say("Achtung! Dustin braucht Hilfe! Ein WARVEX-Testalarm wurde ausgelöst. Dies ist kein echter Notruf.").catch(()=>{});
+}
+async function pollAlarm(){
+  const connection=typeof phoneWriteConnection==="function"?phoneWriteConnection():null;
+  if(!connection||!connection.token)return;
+  try{
+    const res=await fetch(cloud+"/api/roku/alarm",{headers:{Authorization:"Bearer "+connection.token},cache:"no-store"});
+    if(!res.ok)return;
+    const data=await res.json();
+    if(data.active&&data.event)showAlarm(data.event);
+  }catch(e){console.warn("WARVEX Alarmabruf:",e);}
+}
+$("warvexAlarmTestBtn")?.addEventListener("click",async()=>{
+  const connection=typeof phoneWriteConnection==="function"?phoneWriteConnection():null;
+  if(!connection||!connection.token){alarmStatus("Nicht gekoppelt. Koppel zuerst das Handy im Bereich SMART HOME.");return;}
+  const btn=$("warvexAlarmTestBtn");btn.disabled=true;alarmStatus("Testalarm wird an den Worker gesendet …");
+  try{
+    const res=await fetch(cloud+"/api/roku/alarm",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+connection.token},body:JSON.stringify({mode:"test"})});
+    const data=await res.json();
+    if(!res.ok||!data.ok)throw new Error(data.error||"Worker antwortet mit Fehler.");
+    alarmStatus("Testalarm wurde gespeichert. Er läuft nach 2 Minuten automatisch ab.");
+    showAlarm(data.event);
+  }catch(e){alarmStatus("Alarmtest fehlgeschlagen: "+(e.message||String(e)));}
+  finally{btn.disabled=false;}
+});
+$("wxAlarmAckBtn")?.addEventListener("click",()=>{
+  dismissedId=activeId;activeId=null;stopBeeps();$("wxAlarmOverlay").classList.remove("active");
+  if("speechSynthesis" in window)speechSynthesis.cancel();
+  alarmStatus("Testalarm auf diesem Gerät bestätigt. Der Worker-Test läuft spätestens nach 2 Minuten ab.");
+});
+pollAlarm();pollTimer=setInterval(pollAlarm,4000);
+window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(pollTimer);});
+})();
 </script>
 
 </body>
