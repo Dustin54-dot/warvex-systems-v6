@@ -1129,7 +1129,7 @@ function saveMedicalVitalsLimits(){
  $("medVitalsLimitStatus").textContent="Grenzwerte aktiviert. Prüfung erfolgt nur bei neu empfangenen, plausiblen Bluetooth-Messwerten.";
 }
 function disableMedicalVitalsLimits(){
- medicalVitalsLimits=null;medicalVitalsAlarmAcknowledged=false;
+ medicalVitalsLimits={pulseLow:null,pulseHigh:null,oxygenLow:null};medicalVitalsAlarmAcknowledged=false;
  if(medicalAlarmMode==="vitals")stopMedicalAlert();
  $("medVitalsLimitStatus").textContent="Automatische Grenzwertprüfung ist ausgeschaltet.";
 }
