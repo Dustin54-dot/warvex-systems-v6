@@ -5,6 +5,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#090b10">
+<meta name="application-name" content="WARVEX SYSTEMS">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="WARVEX">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
 <title>WARVEX SYSTEMS V6</title>
 <style>
 :root{
@@ -26,6 +32,9 @@ header{
 }
 h1{margin:0;color:var(--red);font-size:25px;letter-spacing:2px}
 header small{color:var(--muted)}
+.header-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+#installAppBtn{background:var(--red);border-color:var(--red);font-weight:800}
+#installHelp{font-size:12px;color:var(--muted)}
 nav{
   display:flex;gap:8px;overflow:auto;padding:10px;
   background:#0e131d;position:sticky;top:0;z-index:5
@@ -181,6 +190,7 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
 <header>
   <h1>WARVEX SYSTEMS</h1>
   <small>V6 · KI-Assistent · Sprachsystem · Code Studio</small>
+  <div class="header-tools"><button id="installAppBtn" type="button" hidden>WARVEX INSTALLIEREN</button><span id="installHelp">Installierbare Web-App · Chrome-Menü → „App installieren“, falls kein Button erscheint.</span></div>
 </header>
 
 <nav>
@@ -1494,6 +1504,43 @@ $("plugBtn").addEventListener("click",()=>{
 
 $("systemStatus").textContent="WARVEX SYSTEMS V6 ist gestartet.";
 $("toolStatus").textContent="Web-App aktiv · KI über Cloudflare · Online-TTS mit automatischem Ersatzsystem.";
+</script>
+
+
+<script>
+/* WARVEX PWA: install prompt + offline app shell. Does not keep Bluetooth alive after the app is closed. */
+(function(){
+  let deferredInstallPrompt=null;
+  const installButton=document.getElementById("installAppBtn");
+  const installHelp=document.getElementById("installHelp");
+  const standalone=window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone===true;
+  if(standalone&&installHelp)installHelp.textContent="WARVEX ist als App installiert.";
+  window.addEventListener("beforeinstallprompt",event=>{
+    event.preventDefault();
+    deferredInstallPrompt=event;
+    if(installButton){installButton.hidden=false;installButton.textContent="WARVEX INSTALLIEREN";}
+    if(installHelp)installHelp.textContent="WARVEX kann jetzt auf diesem Gerät installiert werden.";
+  });
+  if(installButton)installButton.addEventListener("click",async()=>{
+    if(!deferredInstallPrompt){if(installHelp)installHelp.textContent="Öffne das Chrome-Menü ⋮ und wähle „App installieren“ oder „Zum Startbildschirm hinzufügen“.";return;}
+    deferredInstallPrompt.prompt();
+    const choice=await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt=null;
+    installButton.hidden=true;
+    if(installHelp)installHelp.textContent=choice&&choice.outcome==="accepted"?"Installation gestartet.":"Installation noch nicht bestätigt.";
+  });
+  window.addEventListener("appinstalled",()=>{
+    if(installButton)installButton.hidden=true;
+    if(installHelp)installHelp.textContent="WARVEX wurde als App installiert.";
+  });
+  if("serviceWorker" in navigator && location.protocol==="https:"){
+    window.addEventListener("load",()=>{
+      navigator.serviceWorker.register("./sw.js",{scope:"./"})
+        .then(()=>{if(installHelp&&!standalone&&!deferredInstallPrompt)installHelp.textContent="Web-App bereit · Installation über das Chrome-Menü ⋮ möglich.";})
+        .catch(error=>console.warn("WARVEX Offline-App konnte nicht eingerichtet werden:",error));
+    });
+  }
+})();
 </script>
 
 </body>
