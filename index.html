@@ -1533,10 +1533,15 @@ $("toolStatus").textContent="Web-App aktiv · KI über Cloudflare · Online-TTS 
     if(installHelp)installHelp.textContent="WARVEX wurde als App installiert.";
   });
   if("serviceWorker" in navigator && location.protocol==="https:"){
-    window.addEventListener("load",()=>{
-      navigator.serviceWorker.register("./sw.js",{scope:"./"})
-        .then(()=>{if(installHelp&&!standalone&&!deferredInstallPrompt)installHelp.textContent="Web-App bereit · Installation über das Chrome-Menü ⋮ möglich.";})
-        .catch(error=>console.warn("WARVEX Offline-App konnte nicht eingerichtet werden:",error));
+    window.addEventListener("load",async()=>{
+      if(!standalone){
+        try{
+          const registrations=await navigator.serviceWorker.getRegistrations();
+          const rootScope=new URL("./",location.href).href;
+          await Promise.all(registrations.filter(reg=>reg.scope===rootScope).map(reg=>reg.unregister()));
+          if(installHelp)installHelp.textContent="Browser-Modus · WARVEX bleibt in Chrome und öffnet nicht die installierte App.";
+        }catch(error){console.warn("WARVEX Browser-Trennung:",error);}
+      }
     });
   }
 })();
