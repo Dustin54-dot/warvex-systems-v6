@@ -343,9 +343,13 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
   <p class="muted">Wichtig: Das ist kein Zugriff auf dein privates WhatsApp-Postfach oder dessen Chatverlauf. Es verarbeitet nur Nachrichten, die an eine eingerichtete Business-Nummer gesendet werden. Kein heimliches Mitlesen.</p>
   <div class="actions">
    <a class="button-link" href="https://developers.facebook.com/docs/whatsapp/cloud-api/get-started" target="_blank" rel="noopener">META EINRICHTUNG</a>
+   <a class="button-link" href="https://dash.cloudflare.com/?to=/:account/workers/services/view/warvex-communication/production/settings" target="_blank" rel="noopener">SICHERE SERVER-ZUGÄNGE</a>
    <button type="button" id="waSetupInfoBtn">VORAUSSETZUNGEN</button>
+   <button type="button" id="commCheckBtn">VERBINDUNG PRÜFEN</button>
   </div>
-  <div class="status" id="waSetupInfo" hidden>Benötigt werden ein von einem Erziehungsberechtigten verwaltetes Meta-Business-/Developer-Konto, eine WhatsApp-Business-Nummer, eine Meta-App, ein sicherer Webhook und serverseitig gespeicherte Zugangsdaten. Keine Tokens oder Passwörter in diese Webseite eintragen.</div>
+  <div class="status" id="waSetupInfo" hidden>Meta Business/Developer-Konto und WhatsApp-Business-Nummer müssen von einem Erziehungsberechtigten eingerichtet werden. Danach diese Webhook-Adresse in der Meta-App eintragen: https://warvex-communication.dustina952.workers.dev/api/whatsapp/webhook . Als Verify Token muss WA_VERIFY_TOKEN gesetzt werden. WA_ACCESS_TOKEN, WA_PHONE_NUMBER_ID, WA_APP_SECRET und WA_VERIFY_TOKEN gehören ausschließlich als Worker-Secrets in Cloudflare – niemals in diese Webseite.</div>
+  <div class="status">Webhook-Adresse: <code>https://warvex-communication.dustina952.workers.dev/api/whatsapp/webhook</code></div>
+  <div class="status" id="waRuntimeStatus">Server-Status noch nicht geprüft.</div>
  </div>
  <div class="card">
   <h2>WARVEX LIVE · VIDEO-KONFERENZ</h2>
@@ -353,10 +357,13 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
   <p>Geplant ist ein eigener Video-Raum, in den mehrere Personen über einen Einladungslink kommen können. WARVEX soll als sichtbar gekennzeichneter KI-Teilnehmer zuhören, sprechen und freigegebene Kamerabilder analysieren.</p>
   <p class="muted">Das ist ein eigener WARVEX-Anruf und kein Teilnehmer in einem normalen WhatsApp-Gruppen- oder Videoanruf. Mikrofon und Kamera werden nur nach ausdrücklicher Freigabe aktiviert. Alle Teilnehmer müssen wissen, dass die KI mithört und Bildinhalte verarbeitet.</p>
   <div class="actions">
+   <a class="button-link" href="https://cloud.livekit.io/" target="_blank" rel="noopener">LIVEKIT VERBINDEN</a>
    <a class="button-link" href="https://docs.livekit.io/agents/multimodality/vision/video/" target="_blank" rel="noopener">LIVE-VIDEO TECHNIK</a>
    <button type="button" id="liveSetupInfoBtn">VORAUSSETZUNGEN</button>
+   <button type="button" id="liveCheckBtn">LIVEKIT PRÜFEN</button>
   </div>
-  <div class="status" id="liveSetupInfo" hidden>Benötigt werden ein LiveKit-Projekt, ein sicherer Token-Server, ein laufender WARVEX-Sprachagent und ein Modell mit Audio-/Video-Unterstützung. Der KI-Agent wird erst nach dem Beitritt und nach sichtbarer Zustimmung aktiviert.</div>
+  <div class="status" id="liveSetupInfo" hidden>Erstelle ein LiveKit-Projekt und hinterlege LIVEKIT_URL, LIVEKIT_API_KEY und LIVEKIT_API_SECRET als Cloudflare-Worker-Secrets. Der Token-Endpunkt ist vorbereitet. Ein eigenständiger WARVEX-KI-Agent, der dem Raum beitritt und Audio/Video versteht, ist noch nicht installiert. Ein normaler Browser-Teilnehmer ist noch kein KI-Teilnehmer.</div>
+  <div class="status" id="liveRuntimeStatus">LiveKit-Status noch nicht geprüft.</div>
  </div>
  <div class="card">
   <h2>VERBINDUNGS- UND DATENSCHUTZREGELN</h2>
@@ -1942,6 +1949,41 @@ $("wxAlarmAckBtn")?.addEventListener("click",()=>{
 });
 pollAlarm();pollTimer=setInterval(pollAlarm,4000);
 window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(pollTimer);});
+})();
+</script>
+
+
+<script>
+(function(){
+ "use strict";
+ const gateway="https://warvex-communication.dustina952.workers.dev";
+ async function check(){
+  const overall=document.getElementById("commOverallStatus");
+  const wa=document.getElementById("waRuntimeStatus");
+  const live=document.getElementById("liveRuntimeStatus");
+  if(overall)overall.textContent="Prüfe WARVEX Communication Gateway …";
+  try{
+   const r=await fetch(gateway+"/api/status",{cache:"no-store"});
+   if(!r.ok)throw new Error("HTTP "+r.status);
+   const d=await r.json();
+   if(wa)wa.textContent=d.whatsapp.configured?"WhatsApp-Zugangsdaten vorhanden. Meta-Webhook und Nachrichtenfluss müssen noch getestet werden.":"WhatsApp wartet auf Meta-Zugangsdaten und Worker-Secrets.";
+   if(live)live.textContent=d.livekit.configured?"LiveKit-Zugangsdaten vorhanden. Der KI-Agent fehlt noch.":"LiveKit wartet auf Projekt-Zugangsdaten und Worker-Secrets.";
+   if(overall)overall.textContent="Gateway erreichbar · WhatsApp: "+(d.whatsapp.configured?"konfiguriert":"offen")+" · LiveKit: "+(d.livekit.configured?"konfiguriert":"offen")+" · KI-Agent: nicht installiert";
+   if(document.getElementById("commStatus"))document.getElementById("commStatus").textContent="Gateway online. Webhook bestätigt eingehende Events derzeit nur; Nachrichten werden nicht gespeichert und es werden keine automatischen Antworten versendet.";
+  }catch(e){
+   if(overall)overall.textContent="Gateway derzeit nicht erreichbar: "+e.message;
+   if(wa)wa.textContent="Status konnte nicht geladen werden.";
+   if(live)live.textContent="Status konnte nicht geladen werden.";
+  }
+ }
+ document.addEventListener("DOMContentLoaded",function(){
+  const w=document.getElementById("waSetupInfoBtn"),l=document.getElementById("liveSetupInfoBtn"),c=document.getElementById("commCheckBtn"),v=document.getElementById("liveCheckBtn");
+  if(w)w.addEventListener("click",()=>{const x=document.getElementById("waSetupInfo");x.hidden=!x.hidden;});
+  if(l)l.addEventListener("click",()=>{const x=document.getElementById("liveSetupInfo");x.hidden=!x.hidden;});
+  if(c)c.addEventListener("click",check);
+  if(v)v.addEventListener("click",check);
+  check();
+ });
 })();
 </script>
 
