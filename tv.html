@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>WARVEX · TV koppeln</title>
+<style>
+:root{font-family:Arial,Helvetica,sans-serif;color:#f5f5f5;background:#090b10}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at 50% 0,#281018 0,#090b10 58%)}
+main{width:min(92vw,1050px);padding:clamp(24px,5vw,64px);border:1px solid #49212b;border-radius:26px;background:#11141b;box-shadow:0 24px 80px #0009;text-align:center}
+.brand{color:#ff435d;font-weight:800;letter-spacing:.22em;font-size:clamp(16px,2vw,25px)}
+h1{font-size:clamp(30px,5vw,58px);margin:18px 0 10px}
+p{color:#b9bec9;font-size:clamp(16px,2vw,22px);line-height:1.5}
+.code{font-size:clamp(42px,9vw,104px);font-weight:900;letter-spacing:.12em;color:#fff;margin:34px 0 24px;word-break:break-word}
+button{border:0;border-radius:14px;padding:18px 30px;background:#e52f4b;color:white;font-size:clamp(17px,2vw,23px);font-weight:800;cursor:pointer}
+button:focus{outline:4px solid white;outline-offset:5px}
+.status{margin-top:24px;color:#ffb5c0;font-size:clamp(16px,2vw,22px)}
+.small{font-size:14px;color:#8d94a3;margin-top:30px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<main>
+<div class="brand">WARVEX SYSTEMS</div>
+<h1>Fernseher koppeln</h1>
+<p>Öffne WARVEX Tracking auf deinem Handy und gib dort den Code ein.</p>
+<div id="code" class="code">———</div>
+<button id="newCode">KOPPLUNGSCODE ERSTELLEN</button>
+<div id="status" class="status" role="status" aria-live="polite">Bereit · Noch kein Gerät gekoppelt</div>
+<div class="small">Der Einmalcode läuft nach 10 Minuten ab. Teile ihn nur mit dem Gerät, das du koppeln möchtest.</div>
+</main>
+<script>
+(function(){
+ const API="https://warvex-roku-cloud.dustina952.workers.dev";
+ const codeEl=document.getElementById("code");
+ const statusEl=document.getElementById("status");
+ const button=document.getElementById("newCode");
+ let timer=null, activeCode=null;
+ function stop(){if(timer){clearInterval(timer);timer=null;}}
+ async function createCode(){
+   stop(); activeCode=null; codeEl.textContent="…"; statusEl.textContent="Fordere sicheren Code an …"; button.disabled=true;
+   try{
+     const res=await fetch(API+"/api/roku/pair/start",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});
+     const data=await res.json();
+     if(!res.ok||!data.code) throw new Error(data.error||("HTTP "+res.status));
+     activeCode=data.code; codeEl.textContent=activeCode; statusEl.textContent="Warte auf Eingabe am zweiten Gerät …";
+     let checks=0;
+     timer=setInterval(async function(){
+       if(!activeCode){stop();return;}
+       checks++;
+       try{
+         const r=await fetch(API+"/api/roku/pair/status?code="+encodeURIComponent(activeCode),{cache:"no-store"});
+         const s=await r.json();
+         if(s.status==="paired"){stop();statusEl.textContent="Gerät erfolgreich gekoppelt ✓";statusEl.style.color="#7ee2a8";button.disabled=false;}
+         else if(!r.ok||s.status==="expired"||checks>=200){stop();statusEl.textContent="Code abgelaufen. Erstelle einen neuen Code.";button.disabled=false;}
+       }catch(e){statusEl.textContent="Verbindung unterbrochen – prüfe das WLAN.";}
+     },3000);
+   }catch(e){codeEl.textContent="—";statusEl.textContent="Fehler: "+e.message+" · Prüfe WLAN und lade die Seite neu.";button.disabled=false;}
+ }
+ button.addEventListener("click",createCode);
+ button.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();createCode();}});
+})();
+</script>
+</body>
+</html>
