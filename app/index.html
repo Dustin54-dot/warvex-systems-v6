@@ -928,13 +928,14 @@ function describeAIStatus(status){
   return "HTTP "+status+": Anfrage fehlgeschlagen.";
 }
 
-async function askAI(prompt){
+async function askAI(prompt,onChunk){
+  const useStream=typeof onChunk==="function";
   let response;
   try{
     response=await fetch(AI_URL,{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({prompt}),
+      body:JSON.stringify({prompt,stream:useStream}),
       cache:"no-store"
     });
   }catch(error){
@@ -946,37 +947,76 @@ async function askAI(prompt){
     throw new Error(diagnosis);
   }
 
+  if(!response.ok){
+    const raw=await response.text().catch(()=> "");
+    let data=null;try{data=raw?JSON.parse(raw):null;}catch(_){}
+    const detail=data&&(data.error||data.message)?String(data.error||data.message).slice(0,350):raw.slice(0,350);
+    const diagnosis=describeAIStatus(response.status)+(detail?" Servermeldung: "+detail:"");
+    setAIDiagnostic(diagnosis);
+    throw new Error(diagnosis);
+  }
+
+  if(useStream){
+    if(!response.body||!response.body.getReader){
+      throw new Error("Streaming wird von diesem Browser nicht unterstützt.");
+    }
+    const reader=response.body.getReader();
+    const decoder=new TextDecoder();
+    let buffer="",answer="";
+    const consumeLine=line=>{
+      const trimmed=line.trim();
+      if(!trimmed.startsWith("data:"))return;
+      const payload=trimmed.slice(5).trim();
+      if(!payload||payload==="[DONE]")return;
+      let item;try{item=JSON.parse(payload);}catch(_){return;}
+      const choice=item.choices&&item.choices[0];
+      const delta=choice&&(choice.delta||choice.message);
+      let piece="";
+      if(delta&&typeof delta.content==="string")piece=delta.content;
+      else if(typeof item.response==="string")piece=item.response;
+      else if(item.result&&typeof item.result.response==="string")piece=item.result.response;
+      if(piece){
+        answer+=piece;
+        onChunk(piece);
+      }
+    };
+    try{
+      while(true){
+        const part=await reader.read();
+        if(part.done)break;
+        buffer+=decoder.decode(part.value,{stream:true});
+        const lines=buffer.split(/\r?\n/);
+        buffer=lines.pop()||"";
+        lines.forEach(consumeLine);
+      }
+      buffer+=decoder.decode();
+      if(buffer.trim())consumeLine(buffer);
+    }finally{
+      reader.releaseLock();
+    }
+    if(!answer.trim()){
+      setAIDiagnostic("Worker erreichbar, aber der KI-Stream enthielt keinen lesbaren Antworttext.");
+      throw new Error("Die KI hat keine lesbare Streaming-Antwort geliefert.");
+    }
+    setAIDiagnostic("Erfolgreich: KI-Antwort wurde schrittweise übertragen.");
+    return answer.trim();
+  }
+
   const raw=await response.text().catch(()=> "");
   let data=null;
   try{data=raw?JSON.parse(raw):null;}catch(_){}
-
-  if(!response.ok){
-    const detail=data&&(data.error||data.message)
-      ? String(data.error||data.message).slice(0,350)
-      : raw.slice(0,350);
-    const diagnosis=describeAIStatus(response.status)
-      +(detail?" Servermeldung: "+detail:"");
-    setAIDiagnostic(diagnosis);
-    throw new Error(diagnosis);
-  }
-
   if(!data||data.success!==true){
-    const detail=data&&(data.error||data.message)
-      ? String(data.error||data.message).slice(0,350)
-      : raw.slice(0,350);
-    const diagnosis="HTTP "+response.status+": Worker antwortet, aber das erwartete JSON-Format fehlt oder success ist nicht true."
-      +(detail?" Antwort: "+detail:"");
+    const detail=data&&(data.error||data.message)?String(data.error||data.message).slice(0,350):raw.slice(0,350);
+    const diagnosis="HTTP "+response.status+": Worker antwortet, aber das erwartete JSON-Format fehlt oder success ist nicht true."+(detail?" Antwort: "+detail:"");
     setAIDiagnostic(diagnosis);
     throw new Error(diagnosis);
   }
-
   const answer=data.response||data.result||data.text;
   if(typeof answer!=="string"||!answer.trim()){
     const diagnosis="Worker erreichbar, aber die KI-Antwort ist leer. Prüfe die OpenAI-/Workers-AI-Antwort im Worker.";
     setAIDiagnostic(diagnosis);
     throw new Error(diagnosis);
   }
-
   setAIDiagnostic("Erfolgreich: /api/ai antwortet mit HTTP "+response.status+".");
   return answer.trim();
 }
@@ -1024,16 +1064,37 @@ async function sendChat(){
 
   addMessage("Du",prompt);
   $("sendBtn").disabled=true;
-  $("chatStatus").textContent="WARVEX fragt die KI …";
+  $("chatStatus").textContent="WARVEX verbindet …";
 
+  let streamedEl=null;
+  let streamedText="";
   try{
     const originAnswer=warvexOriginAnswer(prompt);
-    const answer=originAnswer || await askAI(prompt);
-    addMessage("WARVEX",answer);
+    let answer;
+    if(originAnswer){
+      answer=originAnswer;
+    }else{
+      $("chatStatus").textContent="WARVEX antwortet …";
+      answer=await askAI(prompt,chunk=>{
+        streamedText+=chunk;
+        if(!streamedEl){
+          streamedEl=document.createElement("div");
+          streamedEl.className="message";
+          $("chatMessages").appendChild(streamedEl);
+        }
+        streamedEl.textContent="WARVEX: "+streamedText;
+        streamedEl.scrollIntoView({behavior:"smooth",block:"end"});
+      });
+    }
+    if(!streamedEl)addMessage("WARVEX",answer);
     $("chatStatus").textContent=originAnswer?"WARVEX-Herkunftsinformation.":"KI verbunden.";
   }catch(error){
-    const detail=error && error.message ? error.message : String(error);
-    addMessage("WARVEX","Die KI-Verbindung ist gerade nicht erreichbar. ("+detail+")");
+    const detail=error&&error.message?error.message:String(error);
+    if(streamedEl){
+      streamedEl.textContent="WARVEX: "+(streamedText||"Die Antwort konnte nicht vollständig geladen werden.")+"\n[Verbindung unterbrochen: "+detail+"]";
+    }else{
+      addMessage("WARVEX","Die KI-Verbindung ist gerade nicht erreichbar. ("+detail+")");
+    }
     $("chatStatus").textContent="KI-Verbindung fehlgeschlagen. Internet/Worker prüfen.";
   }finally{
     $("sendBtn").disabled=false;
