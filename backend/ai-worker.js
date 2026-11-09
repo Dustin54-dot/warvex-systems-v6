@@ -38,6 +38,35 @@ function limited(ip) {
   return false;
 }
 
+function textFrom(value) {
+  if (typeof value === "string") return value;
+  if (Array.isArray(value)) {
+    return value.map(part => {
+      if (typeof part === "string") return part;
+      if (typeof part?.text === "string") return part.text;
+      if (typeof part?.content === "string") return part.content;
+      return "";
+    }).join("");
+  }
+  return "";
+}
+
+function extractAnswer(result) {
+  const candidates = [
+    result?.response,
+    result?.output_text,
+    result?.choices?.[0]?.message?.content,
+    result?.result?.response,
+    result?.result?.output_text,
+    result?.result?.choices?.[0]?.message?.content
+  ];
+  for (const candidate of candidates) {
+    const answer = textFrom(candidate).trim();
+    if (answer) return answer;
+  }
+  return typeof result === "string" ? result.trim() : "";
+}
+
 export default {
   async fetch(request, env) {
     const origin = request.headers.get("Origin") || "";
@@ -79,31 +108,40 @@ export default {
       return json({ success: false, error: "Die Nachricht ist zu lang (maximal 6000 Zeichen)." }, 413, origin);
     }
 
+    const messages = [
+      {
+        role: "system",
+        content: "Du bist WARVEX, ein hilfreicher, zuverlässiger deutschsprachiger KI-Assistent. Antworte klar, freundlich und ehrlich. Behaupte niemals, etwas ausgeführt, recherchiert oder getestet zu haben, wenn das nicht stimmt. Wenn du etwas nicht weißt, sage es offen."
+      },
+      { role: "user", content: prompt }
+    ];
+
     try {
-      const result = await env.AI.run(MODEL, {
-        messages: [
-          {
-            role: "system",
-            content: "Du bist WARVEX, ein hilfreicher, zuverlässiger deutschsprachiger KI-Assistent. Antworte klar, freundlich und ehrlich. Behaupte niemals, etwas ausgeführt, recherchiert oder getestet zu haben, wenn das nicht stimmt. Wenn du etwas nicht weißt, sage es offen."
-          },
-          { role: "user", content: prompt }
-        ],
-        max_tokens: 600
-      });
+      // GLM-4.7-Flash kann einen Teil des Tokenbudgets fürs Reasoning nutzen.
+      // Deshalb mehr Ausgabetokens erlauben und bei leerem Text einmal nachfragen.
+      let result = await env.AI.run(MODEL, { messages, max_tokens: 1600 });
+      let answer = extractAnswer(result);
 
-      const answer =
-        (typeof result?.response === "string" && result.response) ||
-        (typeof result?.choices?.[0]?.message?.content === "string" && result.choices[0].message.content) ||
-        (typeof result?.result?.response === "string" && result.result.response) ||
-        (typeof result === "string" && result) ||
-        "";
-
-      if (!answer.trim()) {
-        return json({ success: false, error: "Das KI-Modell hat keine Textantwort geliefert." }, 502, origin);
+      if (!answer) {
+        result = await env.AI.run(MODEL, { messages, max_tokens: 2400 });
+        answer = extractAnswer(result);
       }
 
-      return json({ success: true, response: answer.trim() }, 200, origin);
+      if (!answer) {
+        console.error("WARVEX AI: Modell lieferte keinen Text", {
+          finish_reason: result?.finish_reason || result?.choices?.[0]?.finish_reason || "unknown",
+          hasChoices: Array.isArray(result?.choices),
+          hasResponse: typeof result?.response === "string"
+        });
+        return json({
+          success: false,
+          error: "Das KI-Modell hat trotz erneutem Versuch keine Textantwort geliefert."
+        }, 502, origin);
+      }
+
+      return json({ success: true, response: answer }, 200, origin);
     } catch (error) {
+      console.error("WARVEX AI Worker error:", error?.message || String(error));
       return json({
         success: false,
         error: "Cloudflare-KI ist vorübergehend nicht verfügbar. Bitte später erneut versuchen."
