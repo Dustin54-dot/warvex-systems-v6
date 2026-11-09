@@ -31,6 +31,16 @@ header{
   padding:18px;background:#0e131d;
   border-bottom:1px solid var(--line)
 }
+.header-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.global-menu{position:relative;flex:0 0 auto}
+.global-menu-trigger{width:44px;height:44px;padding:0;font-size:25px;line-height:1}
+.global-menu-panel{position:absolute;right:0;top:50px;z-index:30;display:none;min-width:210px;padding:8px;background:#141b27;border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 35px #0009}
+.global-menu-panel.open{display:block}
+.global-menu-panel button{width:100%;text-align:left;background:transparent;border:0}
+.global-menu-panel button:hover{background:#263449}
+.settings-note{border:1px solid var(--line);border-radius:10px;padding:12px;background:#0c121c;color:var(--muted);font-size:13px}
+.settings-option{padding:14px 0;border-bottom:1px solid var(--line)}
+.settings-option:last-child{border-bottom:0}
 h1{margin:0;color:var(--red);font-size:25px;letter-spacing:2px}
 header small{color:var(--muted)}
 .header-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
@@ -190,8 +200,16 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
 <body>
 
 <header>
-  <h1>WARVEX SYSTEMS</h1>
-  <small>V6 · KI-Assistent · Sprachsystem · Code Studio</small>
+  <div class="header-top">
+    <div><h1>WARVEX SYSTEMS</h1>
+    <small>V6 · KI-Assistent · Sprachsystem · Code Studio</small></div>
+    <div class="global-menu">
+      <button type="button" class="global-menu-trigger" id="globalMenuTrigger" aria-label="Hauptmenü öffnen" aria-expanded="false" aria-controls="globalMenuPanel">⋮</button>
+      <div class="global-menu-panel" id="globalMenuPanel">
+        <button type="button" id="globalSettingsOpen">⚙️ Einstellungen</button>
+      </div>
+    </div>
+  </div>
   <div class="header-tools"><button id="installAppBtn" type="button" hidden>WARVEX INSTALLIEREN</button><span id="installHelp">Installierbare Web-App · Chrome-Menü → „App installieren“, falls kein Button erscheint.</span></div>
 </header>
 
@@ -254,6 +272,32 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
   </div>
 </section>
 
+
+<section id="settings" class="page">
+  <div class="card">
+    <h2>⚙️ Einstellungen</h2>
+    <p class="muted">Die Einstellungen sind über das Drei-Punkte-Menü oben rechts jederzeit erreichbar.</p>
+    <div class="settings-option">
+      <h3>Kontotyp</h3>
+      <div class="settings-note">Die sichere Kontoanmeldung wird im nächsten Schritt eingerichtet. Erst danach kann WARVEX zuverlässig erkennen, ob ein Elternkonto oder ein Kinderkonto angemeldet ist.</div>
+    </div>
+    <div class="settings-option">
+      <h3>Elternkonto</h3>
+      <p class="muted">Nach der Konto-Einrichtung können Erwachsene hier ein Kinderkonto einrichten oder ein bestehendes Kinderkonto verwalten.</p>
+      <button type="button" disabled>ELTERNKONTO · NOCH NICHT EINGERICHTET</button>
+    </div>
+    <div class="settings-option">
+      <h3>Kinderkonto</h3>
+      <p class="muted">Kinder sehen später hier ihre eigenen freigegebenen Einstellungen. Elternfreigaben können vom Kinderkonto aus nicht verändert werden.</p>
+      <button type="button" disabled>KINDERKONTO · NOCH NICHT EINGERICHTET</button>
+    </div>
+    <div class="settings-option">
+      <h3>Inhaltsfilter</h3>
+      <p class="muted">Geplant sind altersgerechte Filter, einschließlich einer Sperre für sexuelle und andere nicht altersgerechte Inhalte. Die Sperren werden serverseitig geprüft und können nicht vom Kinderkonto ausgeschaltet werden.</p>
+      <div class="settings-note">Noch nicht aktiv · wird erst nach Einrichtung der geschützten Eltern-/Kinderkonten freigeschaltet.</div>
+    </div>
+  </div>
+</section>
 
 <section id="medical" class="page medical-page">
 <div class="med-shell">
@@ -584,6 +628,7 @@ let currentAudio = null;
 
 function showPage(name){
   if(name==="tracking" && $("trackingNav")?.hidden){ name="home"; }
+  if(name==="settings") $("globalMenuPanel")?.classList.remove("open");
   document.querySelectorAll(".page").forEach(p =>
     p.classList.toggle("active",p.id===name)
   );
@@ -592,6 +637,26 @@ function showPage(name){
     b.classList.toggle("active",b.dataset.page===name)
   );
 }
+
+const globalMenuTrigger=$("globalMenuTrigger");
+const globalMenuPanel=$("globalMenuPanel");
+globalMenuTrigger?.addEventListener("click",()=>{
+  const open=globalMenuPanel?.classList.toggle("open")||false;
+  globalMenuTrigger.setAttribute("aria-expanded",String(open));
+});
+$("globalSettingsOpen")?.addEventListener("click",()=>showPage("settings"));
+document.addEventListener("click",event=>{
+  if(globalMenuPanel&&!event.target.closest(".global-menu")){
+    globalMenuPanel.classList.remove("open");
+    globalMenuTrigger?.setAttribute("aria-expanded","false");
+  }
+});
+document.addEventListener("keydown",event=>{
+  if(event.key==="Escape"){
+    globalMenuPanel?.classList.remove("open");
+    globalMenuTrigger?.setAttribute("aria-expanded","false");
+  }
+});
 
 document.querySelectorAll("[data-page]").forEach(button => {
   button.addEventListener("click",() =>
