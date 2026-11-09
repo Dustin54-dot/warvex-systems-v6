@@ -117,6 +117,25 @@ export default {
     ];
 
     try {
+      // Optionales Streaming für den Chat: erste Textteile sofort an die Website senden.
+      // Die normale JSON-Antwort bleibt für alle bestehenden Funktionen unverändert.
+      if (body.stream === true) {
+        const stream = await env.AI.run(MODEL, {
+          messages,
+          max_tokens: 1200,
+          stream: true
+        });
+        return new Response(stream, {
+          status: 200,
+          headers: {
+            "Content-Type": "text/event-stream; charset=utf-8",
+            "Cache-Control": "no-cache, no-transform",
+            "X-Accel-Buffering": "no",
+            ...cors(origin)
+          }
+        });
+      }
+
       // GLM-4.7-Flash kann einen Teil des Tokenbudgets fürs Reasoning nutzen.
       // Deshalb mehr Ausgabetokens erlauben und bei leerem Text einmal nachfragen.
       let result = await env.AI.run(MODEL, { messages, max_tokens: 1600 });
