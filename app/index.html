@@ -2417,9 +2417,12 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
  async function deviceKey(){
   let saved=await vaultGet("deviceKey");
   if(saved&&saved.privateKey&&saved.publicKey)return saved;
-  const pair=await crypto.subtle.generateKey({name:"ECDSA",namedCurve:"P-256"},false,["sign","verify"]);
+  const pair=await crypto.subtle.generateKey({name:"ECDSA",namedCurve:"P-256"},true,["sign","verify"]);
   const publicKey=await crypto.subtle.exportKey("jwk",pair.publicKey);
-  saved={privateKey:pair.privateKey,publicKey:{kty:"EC",crv:"P-256",x:publicKey.x,y:publicKey.y}};
+  let privateJwk=await crypto.subtle.exportKey("jwk",pair.privateKey);
+  const privateKey=await crypto.subtle.importKey("jwk",privateJwk,{name:"ECDSA",namedCurve:"P-256"},false,["sign"]);
+  privateJwk=null;
+  saved={privateKey,publicKey:{kty:"EC",crv:"P-256",x:publicKey.x,y:publicKey.y}};
   await vaultSet("deviceKey",saved);
   return saved;
  }
