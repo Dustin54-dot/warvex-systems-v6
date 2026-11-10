@@ -634,7 +634,7 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
     <div class="sec-row"><span>Konkrete Gewalt- oder Straftatplanung</span><span class="sec-state warn">Hohes Schutzrisiko</span></div>
    </div>
   </div>
-  <div class="sec-panel" style="margin-top:12px" id="ownerAccessPanel">
+  <div class="sec-panel" style="margin-top:12px" id="ownerAccessPanel" hidden>
    <h3>OWNER-ZUGANG & SICHERHEITSPOSTFACH</h3>
    <p class="sec-note">Geschützter Owner-Bereich. Die erste Einrichtung benötigt einen einmaligen Einrichtungscode. Neue Browser-Geräte müssen von einem bereits angemeldeten Owner-Gerät freigegeben werden.</p>
    <div id="ownerSetupBox" hidden>
@@ -2367,6 +2367,14 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
  const DB_NAME="warvex-owner-v1";
  const STORE="vault";
  const $o=id=>document.getElementById(id);
+ function updateOwnerPanelVisibility(){
+  const panel=$o("ownerAccessPanel");
+  if(!panel)return;
+  const ownerRoute=window.location.hash==="#owner";
+  panel.hidden=!(ownerRoute||panel.dataset.authenticated==="true");
+  if(ownerRoute)showPage("security");
+ }
+ window.addEventListener("hashchange",updateOwnerPanelVisibility);
  let currentDeviceId=null;
  let pollHandle=null;
 
@@ -2452,6 +2460,8 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
  }
  async function setSession(token){
   await vaultSet("sessionToken",token);
+  const panel=$o("ownerAccessPanel");if(panel)panel.dataset.authenticated="true";
+  updateOwnerPanelVisibility();
   showBox("ownerSetupBox",false);showBox("ownerLoginBox",false);showBox("ownerPendingBox",false);showBox("ownerSessionBox",true);
  }
  function addText(parent,text){
@@ -2493,6 +2503,7 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
   if(!(me.events||[]).length)addText(eventBox,"Noch keine Sicherheitsereignisse.");
  }
  async function init(){
+  updateOwnerPanelVisibility();
   try{
    const status=await api("/api/owner/status",null,null);
    const token=await vaultGet("sessionToken");
@@ -2586,6 +2597,8 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
    if(token)await api("/api/owner/logout",{},token);
    await vaultDelete("sessionToken");
    if(pollHandle)clearInterval(pollHandle);
+   const panel=$o("ownerAccessPanel");if(panel)delete panel.dataset.authenticated;
+   updateOwnerPanelVisibility();
    showBox("ownerSessionBox",false);showBox("ownerLoginBox",true);
    setStatus("OWNER wurde auf diesem Gerät abgemeldet.",false);
   }catch(e){setStatus(e.message,true);}
