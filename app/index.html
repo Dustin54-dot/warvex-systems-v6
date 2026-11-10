@@ -214,6 +214,14 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
 .sec-state.good{color:#8ee0a6}.sec-state.warn{color:#ffca75}.sec-state.off{color:#ff8797}
 .sec-alert-demo{display:none;margin-top:12px;padding:14px;border:1px solid #ff8797;border-radius:10px;background:#35121c;color:#ffe3e7}
 .sec-alert-demo.visible{display:block}
+#secOwnerAlarm{display:none;position:fixed;inset:0;z-index:100000;background:#240610f5;color:#fff;align-items:center;justify-content:center;padding:18px;text-align:left}
+#secOwnerAlarm.active{display:flex;animation:secFlash .8s steps(2,end) 3}
+#secOwnerAlarm .sec-alarm-card{width:min(100%,480px);background:#35101b;border:3px solid #ff536b;border-radius:18px;padding:20px;box-shadow:0 0 35px #ff304877}
+#secOwnerAlarm h2{color:#ff9eaa;font-size:clamp(22px,5vw,30px);margin:0 0 12px}
+#secOwnerAlarm .sec-alarm-row{padding:9px 0;border-bottom:1px solid #ffffff22;font-size:13px;overflow-wrap:anywhere}
+#secOwnerAlarm .sec-alarm-row b{color:#ffd27a}
+#secOwnerAlarm button{width:100%;margin-top:16px;background:#ff3048;border-color:#ff9eaa}
+@keyframes secFlash{50%{background:#6d071df5}}
 @media(max-width:620px){.sec-grid{grid-template-columns:1fr}}
 
 </style>
@@ -642,6 +650,20 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
 
 </main>
 
+<div id="secOwnerAlarm" role="alertdialog" aria-modal="true" aria-labelledby="secAlarmTitle">
+ <div class="sec-alarm-card">
+  <div style="font-size:12px;font-weight:900;letter-spacing:1.5px;color:#ffd27a">WARVEX · SECURITY OWNER-TEST</div>
+  <h2 id="secAlarmTitle">VERSTOSS IM SYSTEM FESTGESTELLT</h2>
+  <p style="font-size:13px;line-height:1.5">TESTWARNUNG – dies ist nur eine Simulation. Es wurde keine echte Person erkannt und kein Vorfall gemeldet.</p>
+  <div class="sec-alarm-row"><b>Ereignis-ID:</b> <span id="secAlarmEventId">DEMO-000000</span></div>
+  <div class="sec-alarm-row"><b>Risikokategorie:</b> <span>Beispiel: schwerer Sicherheitsverstoß</span></div>
+  <div class="sec-alarm-row"><b>Name:</b> <span>Demo-Konto (fiktiv)</span></div>
+  <div class="sec-alarm-row"><b>E-Mail:</b> <span>demo@example.invalid (keine echte Adresse)</span></div>
+  <div class="sec-alarm-row"><b>Personen-ID:</b> <span>DEMO-USER-001 (fiktiv)</span></div>
+  <div class="sec-alarm-row"><b>Status:</b> <span>Nur Test · keine Rückverfolgung · keine Polizei-Meldung</span></div>
+  <button type="button" id="secAlarmAck">TESTWARNUNG SCHLIESSEN</button>
+ </div>
+</div>
 <footer>WARVEX SYSTEMS V6 · Web-App</footer>
 
 <script>
@@ -2224,19 +2246,53 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
 
 
 <script>
-(()=>{"use strict";
- const https=document.getElementById("secHttps");
- const pill=document.getElementById("secOverallPill");
+(()=>{
+ "use strict";
+ const $=id=>document.getElementById(id);
+ const https=$("secHttps"),pill=$("secOverallPill");
  if(https){https.textContent=window.isSecureContext?"AKTIV":"NICHT AKTIV";https.classList.add(window.isSecureContext?"good":"off");}
  if(pill)pill.textContent=window.isSecureContext?"● BASIS-CHECK · TEILSCHUTZ":"● VERBINDUNG PRÜFEN";
- document.getElementById("secTestAlertBtn")?.addEventListener("click",()=>{
-  const box=document.getElementById("secDemoAlert");
+ let alarmAudio=null;
+ function playTestBeep(){
+  try{
+   const AudioCtx=window.AudioContext||window.webkitAudioContext;
+   if(!AudioCtx)return;
+   alarmAudio=alarmAudio||new AudioCtx();
+   if(alarmAudio.state==="suspended")alarmAudio.resume();
+   [0,0.42,0.84].forEach(delay=>{
+    const osc=alarmAudio.createOscillator(),gain=alarmAudio.createGain();
+    osc.type="sine";osc.frequency.value=880;
+    gain.gain.setValueAtTime(0.0001,alarmAudio.currentTime+delay);
+    gain.gain.exponentialRampToValueAtTime(0.16,alarmAudio.currentTime+delay+0.025);
+    gain.gain.exponentialRampToValueAtTime(0.0001,alarmAudio.currentTime+delay+0.22);
+    osc.connect(gain);gain.connect(alarmAudio.destination);
+    osc.start(alarmAudio.currentTime+delay);osc.stop(alarmAudio.currentTime+delay+0.24);
+   });
+  }catch(e){console.warn("SECURITY-Testton nicht verfügbar:",e);}
+ }
+ function speakTest(){
+  if(!("speechSynthesis" in window))return;
+  try{
+   speechSynthesis.cancel();
+   const u=new SpeechSynthesisUtterance("Verstoß im System festgestellt. Testwarnung. Dies ist nur eine Simulation.");
+   u.lang="de-DE";u.rate=.92;u.volume=1;speechSynthesis.speak(u);
+  }catch(e){console.warn("SECURITY-Sprachausgabe nicht verfügbar:",e);}
+ }
+ $("secTestAlertBtn")?.addEventListener("click",()=>{
+  const box=$("secDemoAlert"),overlay=$("secOwnerAlarm");
   if(box)box.classList.add("visible");
+  if($("secAlarmEventId"))$("secAlarmEventId").textContent="DEMO-"+Date.now().toString().slice(-8);
+  if(overlay){overlay.classList.add("active");playTestBeep();speakTest();}
  });
- document.getElementById("secHideAlertBtn")?.addEventListener("click",()=>{
-  const box=document.getElementById("secDemoAlert");
-  if(box)box.classList.remove("visible");
+ const close=()=>{
+  $("secOwnerAlarm")?.classList.remove("active");
+  if("speechSynthesis" in window)speechSynthesis.cancel();
+ };
+ $("secAlarmAck")?.addEventListener("click",close);
+ $("secHideAlertBtn")?.addEventListener("click",()=>{
+  $("secDemoAlert")?.classList.remove("visible");close();
  });
+ document.addEventListener("keydown",e=>{if(e.key==="Escape")close();});
 })();
 </script>
 
