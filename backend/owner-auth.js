@@ -147,7 +147,16 @@ export async function handleOwnerAuth(request, env) {
 
   const origin = request.headers.get("Origin") || "";
   if (origin && origin !== OWNER_ORIGIN) return json({ success: false, error: "Origin nicht erlaubt." }, 403);
-  if (request.method === "OPTIONS") return json({}, 204);
+  if (request.method === "OPTIONS") return new Response(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": OWNER_ORIGIN,
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      "Access-Control-Max-Age": "86400",
+      "Vary": "Origin"
+    }
+  });
 
   try {
     const path = url.pathname;
@@ -201,7 +210,7 @@ export async function handleOwnerAuth(request, env) {
         env.DB.prepare("INSERT INTO owner_audit_events (id,actor_owner_id,action,target_email,created_at,metadata_json) VALUES (?,?,?,?,?,?)")
           .bind(crypto.randomUUID(), ownerId, "primary_owner_bootstrap", email, now, JSON.stringify({ deviceLabel }))
       ]);
-      if (!batch?.length) return json({ success: false, error: "Einrichtung konnte nicht abgeschlossen werden." }, 500);
+      if (!batch?.length || batch[0]?.meta?.changes !== 1) return json({ success: false, error: "Einrichtungscode wurde bereits verwendet oder die Einrichtung konnte nicht abgeschlossen werden." }, 409);
       return json({ success: true, email, role: "primary_owner", sessionToken, expiresAt });
     }
 
