@@ -98,7 +98,7 @@ async function verifySignature(publicKey, challenge, signature) {
 async function readBody(request) {
   const length = Number(request.headers.get("Content-Length") || 0);
   if (length > 20000) throw new Error("Zu große Anfrage.");
-  const value = await request.ownerJson();
+  const value = await request.json();
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Ungültige Anfrage.");
   return value;
 }
