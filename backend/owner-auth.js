@@ -28,7 +28,7 @@ function same(a, b) {
   for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
   return diff === 0;
 }
-function json(data, status = 200) {
+function ownerJson(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
@@ -98,7 +98,7 @@ async function verifySignature(publicKey, challenge, signature) {
 async function readBody(request) {
   const length = Number(request.headers.get("Content-Length") || 0);
   if (length > 20000) throw new Error("Zu große Anfrage.");
-  const value = await request.json();
+  const value = await request.ownerJson();
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Ungültige Anfrage.");
   return value;
 }
@@ -137,7 +137,7 @@ async function consumeChallenge(env, row, purpose) {
 }
 async function requireOwner(request, env) {
   const session = await ownerSession(request, env);
-  if (!session) return { error: json({ success: false, error: "OWNER-Anmeldung erforderlich." }, 401) };
+  if (!session) return { error: ownerJson({ success: false, error: "OWNER-Anmeldung erforderlich." }, 401) };
   return { session };
 }
 
@@ -146,7 +146,7 @@ export async function handleOwnerAuth(request, env) {
   if (!url.pathname.startsWith("/api/owner/")) return null;
 
   const origin = request.headers.get("Origin") || "";
-  if (origin && origin !== OWNER_ORIGIN) return json({ success: false, error: "Origin nicht erlaubt." }, 403);
+  if (origin && origin !== OWNER_ORIGIN) return ownerJson({ success: false, error: "Origin nicht erlaubt." }, 403);
   if (request.method === "OPTIONS") return new Response(null, {
     status: 204,
     headers: {
@@ -166,7 +166,7 @@ export async function handleOwnerAuth(request, env) {
       const owner = await env.DB.prepare(
         "SELECT id,email,role,status FROM owner_accounts WHERE role='primary_owner' AND status='active' LIMIT 1"
       ).first();
-      return json({ success: true, initialized: !!owner });
+      return ownerJson({ success: true, initialized: !!owner });
     }
 
     if (path === "/api/owner/bootstrap" && request.method === "POST") {
@@ -178,16 +178,16 @@ export async function handleOwnerAuth(request, env) {
       const publicKey = body.publicKey;
       if (!validEmail(email) || typeof password !== "string" || password.length < 12 || password.length > 128 ||
           typeof bootstrapCode !== "string" || bootstrapCode.length < 30 || !validPublicKey(publicKey)) {
-        return json({ success: false, error: "E-Mail, Passwort (mindestens 12 Zeichen), Einrichtungscode oder Geräteschlüssel ungültig." }, 400);
+        return ownerJson({ success: false, error: "E-Mail, Passwort (mindestens 12 Zeichen), Einrichtungscode oder Geräteschlüssel ungültig." }, 400);
       }
       const bootstrap = await env.DB.prepare(
         "SELECT token_hash,email,expires_at,consumed_at FROM owner_bootstrap_tokens WHERE token_hash=? AND email=? COLLATE NOCASE AND consumed_at IS NULL AND expires_at>?"
       ).bind(await sha(bootstrapCode), email, now).first();
-      if (!bootstrap) return json({ success: false, error: "Einrichtungscode ungültig, abgelaufen oder bereits benutzt." }, 403);
+      if (!bootstrap) return ownerJson({ success: false, error: "Einrichtungscode ungültig, abgelaufen oder bereits benutzt." }, 403);
       const existing = await env.DB.prepare(
         "SELECT id FROM owner_accounts WHERE role='primary_owner' AND status='active' LIMIT 1"
       ).first();
-      if (existing) return json({ success: false, error: "Der Haupt-OWNER wurde bereits eingerichtet." }, 409);
+      if (existing) return ownerJson({ success: false, error: "Der Haupt-OWNER wurde bereits eingerichtet." }, 409);
 
       const ownerId = crypto.randomUUID();
       const deviceId = crypto.randomUUID();
@@ -210,8 +210,8 @@ export async function handleOwnerAuth(request, env) {
         env.DB.prepare("INSERT INTO owner_audit_events (id,actor_owner_id,action,target_email,created_at,metadata_json) VALUES (?,?,?,?,?,?)")
           .bind(crypto.randomUUID(), ownerId, "primary_owner_bootstrap", email, now, JSON.stringify({ deviceLabel }))
       ]);
-      if (!batch?.length || batch[0]?.meta?.changes !== 1) return json({ success: false, error: "Einrichtungscode wurde bereits verwendet oder die Einrichtung konnte nicht abgeschlossen werden." }, 409);
-      return json({ success: true, email, role: "primary_owner", sessionToken, expiresAt });
+      if (!batch?.length || batch[0]?.meta?.changes !== 1) return ownerJson({ success: false, error: "Einrichtungscode wurde bereits verwendet oder die Einrichtung konnte nicht abgeschlossen werden." }, 409);
+      return ownerJson({ success: true, email, role: "primary_owner", sessionToken, expiresAt });
     }
 
     if (path === "/api/owner/challenge" && request.method === "POST") {
@@ -219,22 +219,22 @@ export async function handleOwnerAuth(request, env) {
       const email = String(body.email || "").trim().toLowerCase();
       const purpose = body.purpose;
       if (!validEmail(email) || !["login", "device_change"].includes(purpose)) {
-        return json({ success: false, error: "Ungültige Anmeldedaten." }, 400);
+        return ownerJson({ success: false, error: "Ungültige Anmeldedaten." }, 400);
       }
       const owner = await env.DB.prepare(
         "SELECT id FROM owner_accounts WHERE email=? COLLATE NOCASE AND status='active'"
       ).bind(email).first();
-      if (!owner) return json({ success: false, error: "OWNER-Konto nicht gefunden." }, 404);
+      if (!owner) return ownerJson({ success: false, error: "OWNER-Konto nicht gefunden." }, 404);
       const recent = await env.DB.prepare(
         "SELECT COUNT(*) AS n FROM owner_challenges WHERE email=? COLLATE NOCASE AND created_at>?"
       ).bind(email, now - 60000).first();
-      if ((recent?.n || 0) >= 8) return json({ success: false, error: "Zu viele Versuche. Bitte später erneut versuchen." }, 429);
+      if ((recent?.n || 0) >= 8) return ownerJson({ success: false, error: "Zu viele Versuche. Bitte später erneut versuchen." }, 429);
       const id = crypto.randomUUID();
       const challenge = randomToken(32);
       await env.DB.prepare(
         "INSERT INTO owner_challenges (id,challenge_hash,email,purpose,expires_at,created_at) VALUES (?,?,?,?,?,?)"
       ).bind(id, await sha(challenge), email, purpose, now + CHALLENGE_MS, now).run();
-      return json({ success: true, challengeId: id, challenge, expiresAt: now + CHALLENGE_MS });
+      return ownerJson({ success: true, challengeId: id, challenge, expiresAt: now + CHALLENGE_MS });
     }
 
     if (path === "/api/owner/login" && request.method === "POST") {
@@ -244,7 +244,7 @@ export async function handleOwnerAuth(request, env) {
         "SELECT * FROM owner_challenges WHERE id=? AND email=? COLLATE NOCASE AND purpose='login' AND consumed_at IS NULL AND expires_at>?"
       ).bind(body.challengeId, email, now).first();
       if (!challenge || !same(await sha(String(body.challenge || "")), challenge.challenge_hash)) {
-        return json({ success: false, error: "Anmelde-Challenge ungültig oder abgelaufen." }, 403);
+        return ownerJson({ success: false, error: "Anmelde-Challenge ungültig oder abgelaufen." }, 403);
       }
       const owner = await env.DB.prepare(
         "SELECT id,email,role FROM owner_accounts WHERE email=? COLLATE NOCASE AND status='active'"
@@ -253,22 +253,22 @@ export async function handleOwnerAuth(request, env) {
         "SELECT salt,password_hash,iterations FROM owner_passwords WHERE owner_id=?"
       ).bind(owner.id).first() : null;
       if (!owner || !(await verifyPassword(body.password, pass))) {
-        return json({ success: false, error: "E-Mail oder Passwort falsch." }, 401);
+        return ownerJson({ success: false, error: "E-Mail oder Passwort falsch." }, 401);
       }
       const deviceHash = String(body.deviceKeyHash || "");
       const device = await env.DB.prepare(
         "SELECT id,credential_public_key FROM owner_devices WHERE owner_id=? AND credential_id_hash=? AND revoked_at IS NULL"
       ).bind(owner.id, deviceHash).first();
-      if (!device) return json({ success: false, error: "Dieses Gerät ist noch nicht freigegeben. Bitte Gerätefreigabe anfordern." }, 403);
+      if (!device) return ownerJson({ success: false, error: "Dieses Gerät ist noch nicht freigegeben. Bitte Gerätefreigabe anfordern." }, 403);
       const publicKey = JSON.parse(device.credential_public_key);
       if (!(await verifySignature(publicKey, String(body.challenge), body.signature))) {
-        return json({ success: false, error: "Geräte-Signatur ungültig." }, 403);
+        return ownerJson({ success: false, error: "Geräte-Signatur ungültig." }, 403);
       }
-      if (!(await consumeChallenge(env, challenge, "login"))) return json({ success: false, error: "Challenge wurde bereits verwendet." }, 409);
+      if (!(await consumeChallenge(env, challenge, "login"))) return ownerJson({ success: false, error: "Challenge wurde bereits verwendet." }, 409);
       await env.DB.prepare("UPDATE owner_devices SET last_seen_at=? WHERE id=?").bind(now, device.id).run();
       const session = await newSession(env, owner.id, device.id);
       await audit(env, owner.id, "owner_login", email, { deviceId: device.id });
-      return json({ success: true, email, role: owner.role, ...session });
+      return ownerJson({ success: true, email, role: owner.role, ...session });
     }
 
     if (path === "/api/owner/request-device" && request.method === "POST") {
@@ -278,7 +278,7 @@ export async function handleOwnerAuth(request, env) {
         "SELECT * FROM owner_challenges WHERE id=? AND email=? COLLATE NOCASE AND purpose='device_change' AND consumed_at IS NULL AND expires_at>?"
       ).bind(body.challengeId, email, now).first();
       if (!challenge || !same(await sha(String(body.challenge || "")), challenge.challenge_hash)) {
-        return json({ success: false, error: "Geräte-Challenge ungültig oder abgelaufen." }, 403);
+        return ownerJson({ success: false, error: "Geräte-Challenge ungültig oder abgelaufen." }, 403);
       }
       const owner = await env.DB.prepare(
         "SELECT id FROM owner_accounts WHERE email=? COLLATE NOCASE AND status='active'"
@@ -287,22 +287,22 @@ export async function handleOwnerAuth(request, env) {
         "SELECT salt,password_hash,iterations FROM owner_passwords WHERE owner_id=?"
       ).bind(owner.id).first() : null;
       if (!owner || !(await verifyPassword(body.password, pass))) {
-        return json({ success: false, error: "E-Mail oder Passwort falsch." }, 401);
+        return ownerJson({ success: false, error: "E-Mail oder Passwort falsch." }, 401);
       }
       if (!validPublicKey(body.publicKey) || !(await verifySignature(body.publicKey, String(body.challenge), body.signature))) {
-        return json({ success: false, error: "Geräteschlüssel oder Signatur ungültig." }, 403);
+        return ownerJson({ success: false, error: "Geräteschlüssel oder Signatur ungültig." }, 403);
       }
       const deviceHash = await keyHash(body.publicKey);
       const already = await env.DB.prepare(
         "SELECT id FROM owner_devices WHERE owner_id=? AND credential_id_hash=? AND revoked_at IS NULL"
       ).bind(owner.id, deviceHash).first();
-      if (already) return json({ success: false, error: "Dieses Gerät ist bereits registriert. Bitte normal anmelden." }, 409);
+      if (already) return ownerJson({ success: false, error: "Dieses Gerät ist bereits registriert. Bitte normal anmelden." }, 409);
       const pending = await env.DB.prepare(
         "SELECT id FROM owner_access_requests WHERE credential_id_hash=? AND status='pending' AND expires_at>?"
       ).bind(deviceHash, now).first();
-      if (pending) return json({ success: false, error: "Für dieses Gerät besteht bereits eine offene Anfrage." }, 409);
+      if (pending) return ownerJson({ success: false, error: "Für dieses Gerät besteht bereits eine offene Anfrage." }, 409);
       if (!(await consumeChallenge(env, challenge, "device_change"))) {
-        return json({ success: false, error: "Challenge wurde bereits verwendet." }, 409);
+        return ownerJson({ success: false, error: "Challenge wurde bereits verwendet." }, 409);
       }
       const requestId = crypto.randomUUID();
       const requestToken = randomToken(32);
@@ -314,7 +314,7 @@ export async function handleOwnerAuth(request, env) {
         request.cf?.country || null, request.cf?.city || null,
         now, now + REQUEST_MS, canonicalKey(body.publicKey), deviceHash).run();
       await audit(env, owner.id, "owner_device_requested", email, { deviceLabel: label });
-      return json({ success: true, requestId, requestToken, expiresAt: now + REQUEST_MS });
+      return ownerJson({ success: true, requestId, requestToken, expiresAt: now + REQUEST_MS });
     }
 
     if (path === "/api/owner/request-status" && request.method === "POST") {
@@ -322,29 +322,29 @@ export async function handleOwnerAuth(request, env) {
       const requestRow = await env.DB.prepare(
         "SELECT * FROM owner_access_requests WHERE id=? AND code_hash=?"
       ).bind(body.requestId, await sha(String(body.requestToken || ""))).first();
-      if (!requestRow) return json({ success: false, error: "Geräteanfrage nicht gefunden." }, 404);
-      if (requestRow.status === "denied") return json({ success: false, status: "denied", error: "Gerätefreigabe abgelehnt." }, 403);
-      if (requestRow.status === "consumed") return json({ success: false, status: "consumed", error: "Diese Anfrage wurde bereits verwendet." }, 409);
+      if (!requestRow) return ownerJson({ success: false, error: "Geräteanfrage nicht gefunden." }, 404);
+      if (requestRow.status === "denied") return ownerJson({ success: false, status: "denied", error: "Gerätefreigabe abgelehnt." }, 403);
+      if (requestRow.status === "consumed") return ownerJson({ success: false, status: "consumed", error: "Diese Anfrage wurde bereits verwendet." }, 409);
       if (requestRow.expires_at <= now && requestRow.status === "pending") {
         await env.DB.prepare("UPDATE owner_access_requests SET status='expired' WHERE id=? AND status='pending'").bind(requestRow.id).run();
-        return json({ success: true, status: "expired" });
+        return ownerJson({ success: true, status: "expired" });
       }
-      if (requestRow.status !== "approved") return json({ success: true, status: requestRow.status });
+      if (requestRow.status !== "approved") return ownerJson({ success: true, status: requestRow.status });
       const device = await env.DB.prepare(
         "SELECT id,owner_id FROM owner_devices WHERE credential_id_hash=? AND revoked_at IS NULL"
       ).bind(requestRow.credential_id_hash).first();
-      if (!device) return json({ success: false, error: "Freigegebenes Gerät nicht gefunden." }, 500);
+      if (!device) return ownerJson({ success: false, error: "Freigegebenes Gerät nicht gefunden." }, 500);
       const sessionToken = randomToken(32);
       const expiresAt = now + SESSION_MS;
       const consumed = await env.DB.prepare(
         "UPDATE owner_access_requests SET status='consumed',consumed_at=? WHERE id=? AND status='approved' AND consumed_at IS NULL"
       ).bind(now, requestRow.id).run();
-      if (consumed.meta?.changes !== 1) return json({ success: false, error: "Anfrage wurde bereits verwendet." }, 409);
+      if (consumed.meta?.changes !== 1) return ownerJson({ success: false, error: "Anfrage wurde bereits verwendet." }, 409);
       await env.DB.prepare(
         "INSERT INTO owner_sessions (token_hash,owner_id,device_id,created_at,expires_at) VALUES (?,?,?,?,?)"
       ).bind(await sha(sessionToken), device.owner_id, device.id, now, expiresAt).run();
       await audit(env, device.owner_id, "owner_device_joined", requestRow.email, { deviceId: device.id });
-      return json({ success: true, status: "approved", sessionToken, expiresAt });
+      return ownerJson({ success: true, status: "approved", sessionToken, expiresAt });
     }
 
     if (path === "/api/owner/me" && request.method === "GET") {
@@ -356,7 +356,7 @@ export async function handleOwnerAuth(request, env) {
       const events = await env.DB.prepare(
         "SELECT id,action,target_email,created_at,metadata_json FROM owner_audit_events WHERE actor_owner_id=? ORDER BY created_at DESC LIMIT 30"
       ).bind(auth.session.owner_id).all();
-      return json({ success: true, owner: { email: auth.session.email, role: auth.session.role },
+      return ownerJson({ success: true, owner: { email: auth.session.email, role: auth.session.role },
         currentDeviceId: auth.session.device_id, devices: devices.results || [], events: events.results || [] });
     }
 
@@ -366,7 +366,7 @@ export async function handleOwnerAuth(request, env) {
       const requests = await env.DB.prepare(
         "SELECT id,device_summary,browser_summary,country_code,city,created_at,expires_at FROM owner_access_requests WHERE email=? COLLATE NOCASE AND status='pending' AND expires_at>? ORDER BY created_at DESC"
       ).bind(auth.session.email, now).all();
-      return json({ success: true, requests: requests.results || [] });
+      return ownerJson({ success: true, requests: requests.results || [] });
     }
 
     if (path === "/api/owner/requests/decision" && request.method === "POST") {
@@ -376,7 +376,7 @@ export async function handleOwnerAuth(request, env) {
       const requestRow = await env.DB.prepare(
         "SELECT * FROM owner_access_requests WHERE id=? AND email=? COLLATE NOCASE AND status='pending' AND expires_at>?"
       ).bind(body.requestId, auth.session.email, now).first();
-      if (!requestRow) return json({ success: false, error: "Offene Geräteanfrage nicht gefunden." }, 404);
+      if (!requestRow) return ownerJson({ success: false, error: "Offene Geräteanfrage nicht gefunden." }, 404);
       if (body.approve === true) {
         const deviceId = crypto.randomUUID();
         await env.DB.batch([
@@ -392,7 +392,7 @@ export async function handleOwnerAuth(request, env) {
         ).bind(now, auth.session.owner_id, requestRow.id).run();
         await audit(env, auth.session.owner_id, "owner_device_denied", auth.session.email, { deviceLabel: requestRow.device_summary });
       }
-      return json({ success: true });
+      return ownerJson({ success: true });
     }
 
     if (path === "/api/owner/devices/revoke" && request.method === "POST") {
@@ -400,7 +400,7 @@ export async function handleOwnerAuth(request, env) {
       if (auth.error) return auth.error;
       const body = await readBody(request);
       if (body.deviceId === auth.session.device_id) {
-        return json({ success: false, error: "Das aktuell verwendete Gerät kann hier nicht selbst widerrufen werden. Bitte von einem anderen Owner-Gerät abmelden und verwalten." }, 400);
+        return ownerJson({ success: false, error: "Das aktuell verwendete Gerät kann hier nicht selbst widerrufen werden. Bitte von einem anderen Owner-Gerät abmelden und verwalten." }, 400);
       }
       await env.DB.batch([
         env.DB.prepare("UPDATE owner_devices SET revoked_at=? WHERE id=? AND owner_id=? AND revoked_at IS NULL")
@@ -409,7 +409,7 @@ export async function handleOwnerAuth(request, env) {
           .bind(now, body.deviceId)
       ]);
       await audit(env, auth.session.owner_id, "owner_device_revoked", auth.session.email, { deviceId: body.deviceId });
-      return json({ success: true });
+      return ownerJson({ success: true });
     }
 
     if (path === "/api/owner/logout" && request.method === "POST") {
@@ -417,12 +417,12 @@ export async function handleOwnerAuth(request, env) {
       if (auth.error) return auth.error;
       await env.DB.prepare("UPDATE owner_sessions SET revoked_at=? WHERE token_hash=? AND revoked_at IS NULL")
         .bind(now, auth.session.token_hash).run();
-      return json({ success: true });
+      return ownerJson({ success: true });
     }
 
-    return json({ success: false, error: "OWNER-Route nicht gefunden." }, 404);
+    return ownerJson({ success: false, error: "OWNER-Route nicht gefunden." }, 404);
   } catch (error) {
     console.error("WARVEX OWNER API error:", error?.message || String(error));
-    return json({ success: false, error: "OWNER-Dienst vorübergehend nicht verfügbar." }, 500);
+    return ownerJson({ success: false, error: "OWNER-Dienst vorübergehend nicht verfügbar." }, 500);
   }
 }
