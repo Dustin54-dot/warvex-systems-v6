@@ -1,3 +1,5 @@
+import { handleOwnerAuth } from "./owner-auth.js";
+
 const MODEL = "@cf/zai-org/glm-4.7-flash";
 const ALLOWED_ORIGIN = "https://dustin54-dot.github.io";
 const hits = new Map();
@@ -69,6 +71,9 @@ function extractAnswer(result) {
 
 export default {
   async fetch(request, env) {
+    const ownerResponse = await handleOwnerAuth(request, env);
+    if (ownerResponse) return ownerResponse;
+
     const origin = request.headers.get("Origin") || "";
     const url = new URL(request.url);
 
