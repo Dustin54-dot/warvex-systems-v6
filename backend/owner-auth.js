@@ -1,5 +1,6 @@
 const enc = new TextEncoder();
 const OWNER_ORIGIN = "https://dustin54-dot.github.io";
+const PRIMARY_OWNER_EMAIL = "dustina952@gmail.com";
 const PASSWORD_ITERATIONS = 310000;
 const SESSION_MS = 7 * 24 * 60 * 60 * 1000;
 const CHALLENGE_MS = 5 * 60 * 1000;
@@ -172,7 +173,7 @@ export async function handleOwnerAuth(request, env) {
       const owner = await env.DB.prepare(
         "SELECT id,email,role,status FROM owner_accounts WHERE role='primary_owner' AND status='active' LIMIT 1"
       ).first();
-      return ownerJson({ success: true, initialized: !!owner });
+      return ownerJson({ success: true, initialized: !!owner, primaryOwnerEmail: PRIMARY_OWNER_EMAIL });
     }
 
     if (path === "/api/owner/bootstrap" && request.method === "POST") {
@@ -182,7 +183,7 @@ export async function handleOwnerAuth(request, env) {
       const bootstrapCode = body.bootstrapCode;
       const deviceLabel = String(body.deviceLabel || "WARVEX-Gerät").slice(0, 80);
       const publicKey = body.publicKey;
-      if (!validEmail(email) || typeof password !== "string" || password.length < 12 || password.length > 128 ||
+      if (!validEmail(email) || email !== PRIMARY_OWNER_EMAIL || typeof password !== "string" || password.length < 12 || password.length > 128 ||
           typeof bootstrapCode !== "string" || bootstrapCode.length < 30 || !validPublicKey(publicKey)) {
         return ownerJson({ success: false, error: "E-Mail, Passwort (mindestens 12 Zeichen), Einrichtungscode oder Geräteschlüssel ungültig." }, 400);
       }
