@@ -207,6 +207,7 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
 .sec-intro p,.sec-note{margin:0;color:#c9c1b2;font-size:12px;line-height:1.6}
 .sec-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
 .sec-panel{background:linear-gradient(145deg,#202331,#111722);border:1px solid #4a4650;border-radius:12px;padding:14px;min-width:0}
+#ownerAccessPanel[hidden]{display:none!important}
 .sec-panel h3{margin:0 0 10px;color:#ffd27a;font-size:12px;letter-spacing:.7px}
 .sec-row{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #ffffff14;font-size:13px}
 .sec-row:last-child{border-bottom:0}
@@ -2512,7 +2513,11 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
      await setSession(token);await refreshOwner();setStatus("OWNER angemeldet. Sicherheitsfach synchronisiert.",false);
      pollHandle=setInterval(()=>refreshOwner().catch(()=>{}),30000);
      return;
-    }catch(e){await vaultDelete("sessionToken");}
+    }catch(e){
+     await vaultDelete("sessionToken");
+     const panel=$o("ownerAccessPanel");if(panel)delete panel.dataset.authenticated;
+     updateOwnerPanelVisibility();
+    }
    }
    showBox("ownerSetupBox",!status.initialized);
    showBox("ownerLoginBox",status.initialized);
