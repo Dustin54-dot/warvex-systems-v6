@@ -195,6 +195,27 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
 .call-hangup{background:#d92742;border-color:#ff7182}
 .call-caption{position:absolute;left:14px;right:125px;bottom:20px;z-index:2;padding:10px 12px;border-radius:12px;background:#080d16bb;color:white;font-size:12px;line-height:1.4;backdrop-filter:blur(10px)}
 .call-log{max-height:150px;overflow:auto;background:#0b1420;border:1px solid #2a3a50;border-radius:12px;padding:10px;font-size:13px;white-space:pre-wrap}
+
+/* WARVEX SECURITY MODULE */
+.security-page{color:#edf3ff}
+.security-shell{background:radial-gradient(ellipse at 50% 0%,#33200a 0%,#171b25 48%,#090d15 100%);border:1px solid #8a6428;border-radius:18px;padding:clamp(12px,2vw,22px);box-shadow:0 14px 42px #0007}
+.sec-topline{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid #705326}
+.sec-brand{font-size:clamp(20px,3vw,28px);font-weight:900;letter-spacing:1px;color:#ffd27a}
+.sec-pill{font-size:11px;font-weight:800;color:#ffe2a6;border:1px solid #8a6428;background:#38290f;padding:8px 11px;border-radius:99px}
+.sec-intro{margin:14px 0;padding:14px 16px;background:linear-gradient(110deg,#38280f,#1b1d24);border:1px solid #705326;border-left:4px solid #e6aa42;border-radius:10px}
+.sec-intro strong{display:block;color:#ffd27a;margin-bottom:5px}
+.sec-intro p,.sec-note{margin:0;color:#c9c1b2;font-size:12px;line-height:1.6}
+.sec-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
+.sec-panel{background:linear-gradient(145deg,#202331,#111722);border:1px solid #4a4650;border-radius:12px;padding:14px;min-width:0}
+.sec-panel h3{margin:0 0 10px;color:#ffd27a;font-size:12px;letter-spacing:.7px}
+.sec-row{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #ffffff14;font-size:13px}
+.sec-row:last-child{border-bottom:0}
+.sec-state{font-weight:800;text-align:right;color:#ffd27a}
+.sec-state.good{color:#8ee0a6}.sec-state.warn{color:#ffca75}.sec-state.off{color:#ff8797}
+.sec-alert-demo{display:none;margin-top:12px;padding:14px;border:1px solid #ff8797;border-radius:10px;background:#35121c;color:#ffe3e7}
+.sec-alert-demo.visible{display:block}
+@media(max-width:620px){.sec-grid{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -216,6 +237,7 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
 <nav>
   <button class="active" data-page="start">START</button>
   <button data-page="medical">MEDICAL</button>
+  <button data-page="security">SECURITY</button>
   <button data-page="chat">KI CHAT</button>
   <button data-page="communication">KOMMUNIKATION</button>
   <button data-page="vision">LIVE VISION</button>
@@ -581,6 +603,41 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
     <div id="locationShareDetails" class="muted" style="margin-top:8px">Deine Koordinaten erscheinen hier erst nach deiner Freigabe.</div>
     <p class="muted">Hinweis: Android/Chrome kann Standortupdates im Hintergrund oder bei gesperrtem Bildschirm pausieren. Keine heimliche Hintergrund-Ortung.</p>
   </div>
+</section>
+
+
+<section id="security" class="page security-page">
+ <div class="security-shell">
+  <div class="sec-topline"><div class="sec-brand">⬡ WARVEX SECURITY</div><div class="sec-pill" id="secOverallPill">● BASIS-CHECK</div></div>
+  <div class="sec-intro"><strong>Sicherheitszentrale</strong><p>Hier siehst du den bekannten Schutzstand und die wichtigsten Risiken. Ein Status wird nur als aktiv angezeigt, wenn er technisch belegt ist. Dieses Modul ist keine Garantie gegen Angriffe.</p></div>
+  <div class="sec-grid">
+   <div class="sec-panel"><h3>SYSTEM-SCHUTZSTATUS</h3>
+    <div class="sec-row"><span>HTTPS-Verbindung</span><span class="sec-state" id="secHttps">Prüfe …</span></div>
+    <div class="sec-row"><span>API-Anfragebegrenzung</span><span class="sec-state warn">Best-effort</span></div>
+    <div class="sec-row"><span>Origin-Prüfung</span><span class="sec-state warn">Begrenzt</span></div>
+    <div class="sec-row"><span>Serverseitige Ereignisablage</span><span class="sec-state off">Nicht eingerichtet</span></div>
+    <div class="sec-row"><span>Owner-Benachrichtigung</span><span class="sec-state off">Nicht aktiv</span></div>
+   </div>
+   <div class="sec-panel"><h3>BEDROHUNGSMODELL</h3>
+    <div class="sec-row"><span>Missbrauch der KI-API</span><span class="sec-state warn">Zu überwachen</span></div>
+    <div class="sec-row"><span>Versuche, Schutzregeln zu umgehen</span><span class="sec-state warn">Zu überwachen</span></div>
+    <div class="sec-row"><span>Sexuelle Ausbeutung Minderjähriger</span><span class="sec-state warn">Hohes Schutzrisiko</span></div>
+    <div class="sec-row"><span>Sexuelle Gewalt / Zwang</span><span class="sec-state warn">Hohes Schutzrisiko</span></div>
+    <div class="sec-row"><span>Konkrete Gewalt- oder Straftatplanung</span><span class="sec-state warn">Hohes Schutzrisiko</span></div>
+   </div>
+  </div>
+  <div class="sec-panel" style="margin-top:12px">
+   <h3>OWNER-SICHERHEITSPOSTFACH</h3>
+   <p class="sec-note">Noch nicht verbunden. Damit du Warnungen auch dann erhältst, wenn eine andere Person WARVEX benutzt, braucht es eine geschützte serverseitige Ereignisablage und eine Owner-Anmeldung. Das ist aktuell nicht eingerichtet. Es werden hier deshalb keine fremden Nachrichten heimlich mitgelesen oder als Straftat protokolliert.</p>
+   <div class="sec-alert-demo" id="secDemoAlert" role="status"><strong>TESTWARNUNG · NUR SIMULATION</strong><p>Beispiel: Eine Nachricht wurde zur Sicherheitsprüfung markiert. Das ist kein Beweis für eine Straftat. Inhalt und Identität werden in diesem Test nicht gespeichert.</p></div>
+   <div class="actions"><button type="button" class="primary" id="secTestAlertBtn">TESTWARNUNG ANZEIGEN</button><button type="button" id="secHideAlertBtn">AUSBLENDEN</button></div>
+  </div>
+  <div class="sec-panel" style="margin-top:12px">
+   <h3>WANN SOLL WARVEX PRÜFEN?</h3>
+   <p class="sec-note">Sicherheitsprüfung soll auf konkrete Hinweise auf sexuelle Ausbeutung oder Missbrauch von Minderjährigen, sexuelle Gewalt oder Zwang, konkrete Gewalt-/Straftatplanung und schwere Missbrauchsversuche reagieren. Sachliche Aufklärung, Nachrichten, Präventionsfragen, Hilfeersuchen oder eine Aussage über ein erlittenes Unrecht dürfen nicht automatisch als Täterverhalten eingestuft werden. Ein Treffer wäre nur ein Prüfhinweis, kein Schuldurteil.</p>
+  </div>
+  <p class="sec-note" style="margin-top:12px">Datenschutz-Grundsatz: möglichst nur Kategorie, Zeitpunkt und technische Ereignis-ID speichern – keine vollständigen Chattexte oder unnötigen personenbezogenen Daten. Nutzer müssen vor einer solchen Verarbeitung klar informiert werden.</p>
+ </div>
 </section>
 
 </main>
@@ -2161,6 +2218,24 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
   if(c)c.addEventListener("click",check);
   if(v)v.addEventListener("click",check);
   check();
+ });
+})();
+</script>
+
+
+<script>
+(()=>{"use strict";
+ const https=document.getElementById("secHttps");
+ const pill=document.getElementById("secOverallPill");
+ if(https){https.textContent=window.isSecureContext?"AKTIV":"NICHT AKTIV";https.classList.add(window.isSecureContext?"good":"off");}
+ if(pill)pill.textContent=window.isSecureContext?"● BASIS-CHECK · TEILSCHUTZ":"● VERBINDUNG PRÜFEN";
+ document.getElementById("secTestAlertBtn")?.addEventListener("click",()=>{
+  const box=document.getElementById("secDemoAlert");
+  if(box)box.classList.add("visible");
+ });
+ document.getElementById("secHideAlertBtn")?.addEventListener("click",()=>{
+  const box=document.getElementById("secDemoAlert");
+  if(box)box.classList.remove("visible");
  });
 })();
 </script>
