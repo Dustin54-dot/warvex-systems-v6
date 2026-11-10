@@ -634,10 +634,54 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
     <div class="sec-row"><span>Konkrete Gewalt- oder Straftatplanung</span><span class="sec-state warn">Hohes Schutzrisiko</span></div>
    </div>
   </div>
+  <div class="sec-panel" style="margin-top:12px" id="ownerAccessPanel">
+   <h3>OWNER-ZUGANG & SICHERHEITSPOSTFACH</h3>
+   <p class="sec-note">Geschützter Owner-Bereich. Die erste Einrichtung benötigt einen einmaligen Einrichtungscode. Neue Browser-Geräte müssen von einem bereits angemeldeten Owner-Gerät freigegeben werden.</p>
+   <div id="ownerSetupBox" hidden>
+    <strong>HAUPT-OWNER EINRICHTEN</strong>
+    <label for="ownerSetupEmail">Owner-E-Mail</label>
+    <input id="ownerSetupEmail" type="email" autocomplete="username" placeholder="E-Mail-Adresse">
+    <label for="ownerSetupPassword">Neues Owner-Passwort (mindestens 12 Zeichen)</label>
+    <input id="ownerSetupPassword" type="password" autocomplete="new-password" placeholder="Neues Passwort">
+    <label for="ownerBootstrapCode">Einmaliger Einrichtungscode</label>
+    <input id="ownerBootstrapCode" type="password" autocomplete="off" placeholder="Einrichtungscode">
+    <div class="actions"><button type="button" class="primary" id="ownerBootstrapBtn">OWNER SICHER EINRICHTEN</button></div>
+   </div>
+   <div id="ownerLoginBox" hidden>
+    <strong>OWNER ANMELDUNG</strong>
+    <label for="ownerLoginEmail">E-Mail</label>
+    <input id="ownerLoginEmail" type="email" autocomplete="username" placeholder="Owner-E-Mail">
+    <label for="ownerLoginPassword">Passwort</label>
+    <input id="ownerLoginPassword" type="password" autocomplete="current-password" placeholder="Owner-Passwort">
+    <div class="actions">
+     <button type="button" class="primary" id="ownerLoginBtn">ANMELDEN</button>
+     <button type="button" id="ownerRequestDeviceBtn">NEUES GERÄT ANFRAGEN</button>
+    </div>
+   </div>
+   <div id="ownerPendingBox" hidden>
+    <strong>GERÄTEFREIGABE AUSSTEHEND</strong>
+    <p class="sec-note">Bitte öffne WARVEX auf einem bereits angemeldeten Owner-Gerät und bestätige die Anfrage dort.</p>
+    <div class="actions"><button type="button" class="primary" id="ownerCheckRequestBtn">FREIGABE PRÜFEN</button></div>
+   </div>
+   <div id="ownerSessionBox" hidden>
+    <div class="sec-row"><span>Angemeldet als</span><strong id="ownerSessionEmail">—</strong></div>
+    <div class="actions">
+     <button type="button" class="primary" id="ownerRefreshBtn">SICHERHEITSPOSTFACH AKTUALISIEREN</button>
+     <button type="button" id="ownerLogoutBtn">ABMELDEN</button>
+    </div>
+    <h4>OFFENE GERÄTEANFRAGEN</h4>
+    <div id="ownerRequestsList" class="sec-note">Noch nicht geladen.</div>
+    <h4>REGISTRIERTE OWNER-GERÄTE</h4>
+    <div id="ownerDevicesList" class="sec-note">Noch nicht geladen.</div>
+    <h4>SICHERHEITSPROTOKOLL</h4>
+    <div id="ownerEventsList" class="sec-note">Noch nicht geladen.</div>
+   </div>
+   <div id="ownerAuthStatus" class="status" style="margin-top:12px" role="status">OWNER-Dienst wird geprüft …</div>
+  </div>
   <div class="sec-panel" style="margin-top:12px">
-   <h3>OWNER-SICHERHEITSPOSTFACH</h3>
-   <p class="sec-note">Noch nicht verbunden. Damit du Warnungen auch dann erhältst, wenn eine andere Person WARVEX benutzt, braucht es eine geschützte serverseitige Ereignisablage und eine Owner-Anmeldung. Das ist aktuell nicht eingerichtet. Es werden hier deshalb keine fremden Nachrichten heimlich mitgelesen oder als Straftat protokolliert.</p>
-   <div class="sec-alert-demo" id="secDemoAlert" role="status"><strong>TESTWARNUNG · NUR SIMULATION</strong><p>Beispiel: Eine Nachricht wurde zur Sicherheitsprüfung markiert. Das ist kein Beweis für eine Straftat. Inhalt und Identität werden in diesem Test nicht gespeichert.</p></div>
+   <h3>LOKALER ALARMTEST</h3>
+   <p class="sec-note">Dieser Alarmtest läuft nur auf diesem geöffneten Gerät. Er ist keine echte Push-Benachrichtigung und meldet keine fremden Aktivitäten.</p>
+   <div class="sec-alert-demo" id="secDemoAlert" role="status"><strong>TESTWARNUNG · NUR SIMULATION</strong><p>Beispiel: Eine lokale Testwarnung wurde ausgelöst. Das ist kein Beweis für eine Straftat.</p></div>
    <div class="actions"><button type="button" class="primary" id="secTestAlertBtn">TESTWARNUNG ANZEIGEN</button><button type="button" id="secHideAlertBtn">AUSBLENDEN</button></div>
   </div>
   <div class="sec-panel" style="margin-top:12px">
@@ -2314,6 +2358,238 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
  window.addEventListener("pagehide",stopAlarm);
 })();
 </script>>
+
+
+<script>
+(function(){
+ "use strict";
+ const API="https://warvex-systems-v6.dustina952.workers.dev";
+ const DB_NAME="warvex-owner-v1";
+ const STORE="vault";
+ const $o=id=>document.getElementById(id);
+ let currentDeviceId=null;
+ let pollHandle=null;
+
+ function openDb(){
+  return new Promise((resolve,reject)=>{
+   const req=indexedDB.open(DB_NAME,1);
+   req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(STORE))req.result.createObjectStore(STORE);};
+   req.onsuccess=()=>resolve(req.result);
+   req.onerror=()=>reject(req.error);
+  });
+ }
+ async function vaultGet(key){
+  const db=await openDb();
+  return new Promise((resolve,reject)=>{
+   const tx=db.transaction(STORE,"readonly");
+   const req=tx.objectStore(STORE).get(key);
+   req.onsuccess=()=>resolve(req.result);
+   req.onerror=()=>reject(req.error);
+   tx.oncomplete=()=>db.close();
+  });
+ }
+ async function vaultSet(key,value){
+  const db=await openDb();
+  return new Promise((resolve,reject)=>{
+   const tx=db.transaction(STORE,"readwrite");
+   tx.objectStore(STORE).put(value,key);
+   tx.oncomplete=()=>{db.close();resolve(true);};
+   tx.onerror=()=>{db.close();reject(tx.error);};
+  });
+ }
+ async function vaultDelete(key){
+  const db=await openDb();
+  return new Promise((resolve,reject)=>{
+   const tx=db.transaction(STORE,"readwrite");
+   tx.objectStore(STORE).delete(key);
+   tx.oncomplete=()=>{db.close();resolve(true);};
+   tx.onerror=()=>{db.close();reject(tx.error);};
+  });
+ }
+ function b64u(buffer){
+  return btoa(String.fromCharCode.apply(null,new Uint8Array(buffer))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,"");
+ }
+ function canonicalKey(key){return JSON.stringify({kty:"EC",crv:"P-256",x:key.x,y:key.y});}
+ async function keyHash(key){
+  const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(canonicalKey(key)));
+  return b64u(digest);
+ }
+ async function deviceKey(){
+  let saved=await vaultGet("deviceKey");
+  if(saved&&saved.privateKey&&saved.publicKey)return saved;
+  const pair=await crypto.subtle.generateKey({name:"ECDSA",namedCurve:"P-256"},false,["sign","verify"]);
+  const publicKey=await crypto.subtle.exportKey("jwk",pair.publicKey);
+  saved={privateKey:pair.privateKey,publicKey:{kty:"EC",crv:"P-256",x:publicKey.x,y:publicKey.y}};
+  await vaultSet("deviceKey",saved);
+  return saved;
+ }
+ async function signChallenge(key,challenge){
+  const signature=await crypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},key.privateKey,new TextEncoder().encode(challenge));
+  return b64u(signature);
+ }
+ function deviceLabel(){
+  const ua=navigator.userAgent||"";
+  if(/Android/i.test(ua))return "Android-Browser";
+  if(/iPhone|iPad/i.test(ua))return "Apple-Browser";
+  return "Browser-Gerät";
+ }
+ function setStatus(message,isError){
+  const el=$o("ownerAuthStatus");
+  if(el){el.textContent=message;el.style.color=isError?"#ff8b98":"#b9f5c7";}
+ }
+ function showBox(id,show){const el=$o(id);if(el)el.hidden=!show;}
+ async function api(path,body,auth){
+  const headers={"Content-Type":"application/json"};
+  if(auth)headers.Authorization="Bearer "+auth;
+  const response=await fetch(API+path,{method:body?"POST":"GET",headers,body:body?JSON.stringify(body):undefined,cache:"no-store"});
+  let data={};
+  try{data=await response.json();}catch(e){}
+  if(!response.ok||data.success===false)throw new Error(data.error||("HTTP "+response.status));
+  return data;
+ }
+ async function setSession(token){
+  await vaultSet("sessionToken",token);
+  showBox("ownerSetupBox",false);showBox("ownerLoginBox",false);showBox("ownerPendingBox",false);showBox("ownerSessionBox",true);
+ }
+ function addText(parent,text){
+  const el=document.createElement("div");el.textContent=text;el.style.padding="6px 0";parent.appendChild(el);return el;
+ }
+ function actionButton(label,callback){
+  const button=document.createElement("button");button.type="button";button.textContent=label;button.addEventListener("click",callback);return button;
+ }
+ async function refreshOwner(){
+  const token=await vaultGet("sessionToken");
+  if(!token)throw new Error("Keine Owner-Sitzung vorhanden.");
+  const me=await api("/api/owner/me",null,token);
+  currentDeviceId=me.currentDeviceId;
+  $o("ownerSessionEmail").textContent=me.owner.email+" · "+me.owner.role;
+  const reqs=await api("/api/owner/requests",null,token);
+  const reqBox=$o("ownerRequestsList");reqBox.textContent="";
+  if(!reqs.requests.length)addText(reqBox,"Keine offenen Geräteanfragen.");
+  reqs.requests.forEach(item=>{
+   const line=document.createElement("div");line.style.padding="9px 0";line.style.borderBottom="1px solid #ffffff22";
+   addText(line,item.device_summary+" · "+(item.city||item.country_code||"Standort unbekannt"));
+   const approve=actionButton("FREIGEBEN",async()=>{try{await api("/api/owner/requests/decision",{requestId:item.id,approve:true},token);await refreshOwner();setStatus("Gerät wurde freigegeben.",false);}catch(e){setStatus(e.message,true);}});
+   const deny=actionButton("ABLEHNEN",async()=>{try{await api("/api/owner/requests/decision",{requestId:item.id,approve:false},token);await refreshOwner();setStatus("Anfrage abgelehnt.",false);}catch(e){setStatus(e.message,true);}});
+   line.appendChild(approve);line.appendChild(deny);reqBox.appendChild(line);
+  });
+  const deviceBox=$o("ownerDevicesList");deviceBox.textContent="";
+  (me.devices||[]).forEach(item=>{
+   const line=document.createElement("div");line.style.padding="7px 0";line.style.borderBottom="1px solid #ffffff22";
+   addText(line,item.device_label+" · "+(item.revoked_at?"Widerrufen":item.id===currentDeviceId?"Dieses Gerät":"Aktiv"));
+   if(!item.revoked_at&&item.id!==currentDeviceId){
+    line.appendChild(actionButton("GERÄT WIDERRUFEN",async()=>{try{await api("/api/owner/devices/revoke",{deviceId:item.id},token);await refreshOwner();setStatus("Gerät wurde widerrufen.",false);}catch(e){setStatus(e.message,true);}}));
+   }
+   deviceBox.appendChild(line);
+  });
+  const eventBox=$o("ownerEventsList");eventBox.textContent="";
+  (me.events||[]).forEach(item=>{
+   const date=new Date(item.created_at).toLocaleString("de-DE");
+   addText(eventBox,date+" · "+item.action);
+  });
+  if(!(me.events||[]).length)addText(eventBox,"Noch keine Sicherheitsereignisse.");
+ }
+ async function init(){
+  try{
+   const status=await api("/api/owner/status",null,null);
+   const token=await vaultGet("sessionToken");
+   if(token){
+    try{
+     await setSession(token);await refreshOwner();setStatus("OWNER angemeldet. Sicherheitsfach synchronisiert.",false);
+     pollHandle=setInterval(()=>refreshOwner().catch(()=>{}),30000);
+     return;
+    }catch(e){await vaultDelete("sessionToken");}
+   }
+   showBox("ownerSetupBox",!status.initialized);
+   showBox("ownerLoginBox",status.initialized);
+   showBox("ownerPendingBox",false);showBox("ownerSessionBox",false);
+   const pending=await vaultGet("pendingRequest");
+   if(pending){showBox("ownerPendingBox",true);showBox("ownerSetupBox",false);showBox("ownerLoginBox",false);}
+   setStatus(status.initialized?"OWNER-Zugang bereit. Bitte anmelden.":"Noch kein Haupt-OWNER eingerichtet.",false);
+  }catch(e){setStatus("OWNER-Dienst nicht erreichbar: "+e.message,true);}
+ }
+ $o("ownerBootstrapBtn")?.addEventListener("click",async()=>{
+  try{
+   setStatus("Sichere Owner-Einrichtung läuft …",false);
+   const key=await deviceKey();
+   const result=await api("/api/owner/bootstrap",{
+    email:$o("ownerSetupEmail").value.trim(),
+    password:$o("ownerSetupPassword").value,
+    bootstrapCode:$o("ownerBootstrapCode").value,
+    publicKey:key.publicKey,
+    deviceLabel:deviceLabel()
+   });
+   await setSession(result.sessionToken);await refreshOwner();
+   $o("ownerSetupPassword").value="";$o("ownerBootstrapCode").value="";
+   setStatus("Haupt-OWNER wurde eingerichtet und dieses Gerät ist registriert.",false);
+  }catch(e){setStatus(e.message,true);}
+ });
+ $o("ownerLoginBtn")?.addEventListener("click",async()=>{
+  try{
+   setStatus("Anmeldung wird geprüft …",false);
+   const email=$o("ownerLoginEmail").value.trim();
+   const password=$o("ownerLoginPassword").value;
+   const challenge=await api("/api/owner/challenge",{email,purpose:"login"},null);
+   const key=await deviceKey();
+   const signature=await signChallenge(key,challenge.challenge);
+   const result=await api("/api/owner/login",{
+    email,password,challengeId:challenge.challengeId,challenge:challenge.challenge,
+    signature,deviceKeyHash:await keyHash(key.publicKey)
+   },null);
+   await setSession(result.sessionToken);await refreshOwner();
+   $o("ownerLoginPassword").value="";
+   setStatus("OWNER-Anmeldung erfolgreich.",false);
+   if(pollHandle)clearInterval(pollHandle);
+   pollHandle=setInterval(()=>refreshOwner().catch(()=>{}),30000);
+  }catch(e){setStatus(e.message,true);}
+ });
+ $o("ownerRequestDeviceBtn")?.addEventListener("click",async()=>{
+  try{
+   setStatus("Gerätefreigabe wird angefordert …",false);
+   const email=$o("ownerLoginEmail").value.trim();
+   const password=$o("ownerLoginPassword").value;
+   const challenge=await api("/api/owner/challenge",{email,purpose:"device_change"},null);
+   const key=await deviceKey();
+   const signature=await signChallenge(key,challenge.challenge);
+   const result=await api("/api/owner/request-device",{
+    email,password,challengeId:challenge.challengeId,challenge:challenge.challenge,
+    signature,publicKey:key.publicKey,deviceLabel:deviceLabel(),
+    browserSummary:"Web-App"
+   },null);
+   await vaultSet("pendingRequest",{requestId:result.requestId,requestToken:result.requestToken});
+   showBox("ownerLoginBox",false);showBox("ownerPendingBox",true);
+   setStatus("Anfrage gesendet. Bitte auf einem bestehenden Owner-Gerät bestätigen.",false);
+  }catch(e){setStatus(e.message,true);}
+ });
+ $o("ownerCheckRequestBtn")?.addEventListener("click",async()=>{
+  try{
+   const pending=await vaultGet("pendingRequest");
+   if(!pending)throw new Error("Keine offene Geräteanfrage gefunden.");
+   const result=await api("/api/owner/request-status",pending,null);
+   if(result.sessionToken){
+    await vaultDelete("pendingRequest");await setSession(result.sessionToken);await refreshOwner();
+    setStatus("Gerät freigegeben. OWNER-Zugang aktiv.",false);
+    if(pollHandle)clearInterval(pollHandle);
+    pollHandle=setInterval(()=>refreshOwner().catch(()=>{}),30000);
+   }else setStatus("Status: "+result.status+". Bitte später erneut prüfen.",false);
+  }catch(e){setStatus(e.message,true);}
+ });
+ $o("ownerRefreshBtn")?.addEventListener("click",async()=>{
+  try{await refreshOwner();setStatus("Sicherheitsfach aktualisiert.",false);}catch(e){setStatus(e.message,true);}
+ });
+ $o("ownerLogoutBtn")?.addEventListener("click",async()=>{
+  try{
+   const token=await vaultGet("sessionToken");
+   if(token)await api("/api/owner/logout",{},token);
+   await vaultDelete("sessionToken");
+   if(pollHandle)clearInterval(pollHandle);
+   showBox("ownerSessionBox",false);showBox("ownerLoginBox",true);
+   setStatus("OWNER wurde auf diesem Gerät abgemeldet.",false);
+  }catch(e){setStatus(e.message,true);}
+ });
+ init();
+})();
+</script>
 
 </body>
 </html>
