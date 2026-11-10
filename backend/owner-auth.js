@@ -135,6 +135,12 @@ async function consumeChallenge(env, row, purpose) {
   ).bind(Date.now(), row.id, purpose, Date.now()).run();
   return result.meta?.changes === 1;
 }
+async function failedChallenge(env, row) {
+  if (!row?.id) return;
+  await env.DB.prepare(
+    "UPDATE owner_challenges SET failed_attempts=failed_attempts+1, locked_until=CASE WHEN failed_attempts+1>=5 THEN ? ELSE locked_until END WHERE id=? AND consumed_at IS NULL"
+  ).bind(Date.now() + CHALLENGE_MS, row.id).run();
+}
 async function requireOwner(request, env) {
   const session = await ownerSession(request, env);
   if (!session) return { error: ownerJson({ success: false, error: "OWNER-Anmeldung erforderlich." }, 401) };
@@ -246,6 +252,9 @@ export async function handleOwnerAuth(request, env) {
       if (!challenge || !same(await sha(String(body.challenge || "")), challenge.challenge_hash)) {
         return ownerJson({ success: false, error: "Anmelde-Challenge ungültig oder abgelaufen." }, 403);
       }
+      if (challenge.locked_until && challenge.locked_until > now) {
+        return ownerJson({ success: false, error: "Zu viele Fehlversuche. Bitte eine neue Challenge anfordern." }, 429);
+      }
       const owner = await env.DB.prepare(
         "SELECT id,email,role FROM owner_accounts WHERE email=? COLLATE NOCASE AND status='active'"
       ).bind(email).first();
@@ -253,6 +262,7 @@ export async function handleOwnerAuth(request, env) {
         "SELECT salt,password_hash,iterations FROM owner_passwords WHERE owner_id=?"
       ).bind(owner.id).first() : null;
       if (!owner || !(await verifyPassword(body.password, pass))) {
+        await failedChallenge(env, challenge);
         return ownerJson({ success: false, error: "E-Mail oder Passwort falsch." }, 401);
       }
       const deviceHash = String(body.deviceKeyHash || "");
@@ -262,6 +272,7 @@ export async function handleOwnerAuth(request, env) {
       if (!device) return ownerJson({ success: false, error: "Dieses Gerät ist noch nicht freigegeben. Bitte Gerätefreigabe anfordern." }, 403);
       const publicKey = JSON.parse(device.credential_public_key);
       if (!(await verifySignature(publicKey, String(body.challenge), body.signature))) {
+        await failedChallenge(env, challenge);
         return ownerJson({ success: false, error: "Geräte-Signatur ungültig." }, 403);
       }
       if (!(await consumeChallenge(env, challenge, "login"))) return ownerJson({ success: false, error: "Challenge wurde bereits verwendet." }, 409);
@@ -280,6 +291,9 @@ export async function handleOwnerAuth(request, env) {
       if (!challenge || !same(await sha(String(body.challenge || "")), challenge.challenge_hash)) {
         return ownerJson({ success: false, error: "Geräte-Challenge ungültig oder abgelaufen." }, 403);
       }
+      if (challenge.locked_until && challenge.locked_until > now) {
+        return ownerJson({ success: false, error: "Zu viele Fehlversuche. Bitte eine neue Challenge anfordern." }, 429);
+      }
       const owner = await env.DB.prepare(
         "SELECT id FROM owner_accounts WHERE email=? COLLATE NOCASE AND status='active'"
       ).bind(email).first();
@@ -287,9 +301,11 @@ export async function handleOwnerAuth(request, env) {
         "SELECT salt,password_hash,iterations FROM owner_passwords WHERE owner_id=?"
       ).bind(owner.id).first() : null;
       if (!owner || !(await verifyPassword(body.password, pass))) {
+        await failedChallenge(env, challenge);
         return ownerJson({ success: false, error: "E-Mail oder Passwort falsch." }, 401);
       }
       if (!validPublicKey(body.publicKey) || !(await verifySignature(body.publicKey, String(body.challenge), body.signature))) {
+        await failedChallenge(env, challenge);
         return ownerJson({ success: false, error: "Geräteschlüssel oder Signatur ungültig." }, 403);
       }
       const deviceHash = await keyHash(body.publicKey);
