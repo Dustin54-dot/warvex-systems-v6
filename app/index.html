@@ -215,7 +215,7 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
 .sec-alert-demo{display:none;margin-top:12px;padding:14px;border:1px solid #ff8797;border-radius:10px;background:#35121c;color:#ffe3e7}
 .sec-alert-demo.visible{display:block}
 #secOwnerAlarm{display:none;position:fixed;inset:0;z-index:100000;background:#240610f5;color:#fff;align-items:center;justify-content:center;padding:18px;text-align:left}
-#secOwnerAlarm.active{display:flex;animation:secFlash .8s steps(2,end) 3}
+#secOwnerAlarm.active{display:flex;animation:secFlash .8s steps(2,end) infinite}
 #secOwnerAlarm .sec-alarm-card{width:min(100%,480px);background:#35101b;border:3px solid #ff536b;border-radius:18px;padding:20px;box-shadow:0 0 35px #ff304877}
 #secOwnerAlarm h2{color:#ff9eaa;font-size:clamp(22px,5vw,30px);margin:0 0 12px}
 #secOwnerAlarm .sec-alarm-row{padding:9px 0;border-bottom:1px solid #ffffff22;font-size:13px;overflow-wrap:anywhere}
@@ -2252,49 +2252,68 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
  const https=$("secHttps"),pill=$("secOverallPill");
  if(https){https.textContent=window.isSecureContext?"AKTIV":"NICHT AKTIV";https.classList.add(window.isSecureContext?"good":"off");}
  if(pill)pill.textContent=window.isSecureContext?"● BASIS-CHECK · TEILSCHUTZ":"● VERBINDUNG PRÜFEN";
- let alarmAudio=null;
- function playTestBeep(){
+ let alarmAudio=null,beepLoop=null,voiceLoop=null,alarmActive=false;
+ function playUrgentPattern(){
   try{
    const AudioCtx=window.AudioContext||window.webkitAudioContext;
    if(!AudioCtx)return;
    alarmAudio=alarmAudio||new AudioCtx();
    if(alarmAudio.state==="suspended")alarmAudio.resume();
-   [0,0.42,0.84].forEach(delay=>{
+   const base=alarmAudio.currentTime;
+   // Eigene, wiederholte Cybersecurity-Warnfolge – kein nachgeahmter Schul-/Notfallalarm.
+   [760,1040,760,1040].forEach((hz,index)=>{
+    const at=base+index*.24;
     const osc=alarmAudio.createOscillator(),gain=alarmAudio.createGain();
-    osc.type="sine";osc.frequency.value=880;
-    gain.gain.setValueAtTime(0.0001,alarmAudio.currentTime+delay);
-    gain.gain.exponentialRampToValueAtTime(0.16,alarmAudio.currentTime+delay+0.025);
-    gain.gain.exponentialRampToValueAtTime(0.0001,alarmAudio.currentTime+delay+0.22);
+    osc.type="triangle";osc.frequency.value=hz;
+    gain.gain.setValueAtTime(.0001,at);
+    gain.gain.exponentialRampToValueAtTime(.12,at+.025);
+    gain.gain.setValueAtTime(.12,at+.13);
+    gain.gain.exponentialRampToValueAtTime(.0001,at+.18);
     osc.connect(gain);gain.connect(alarmAudio.destination);
-    osc.start(alarmAudio.currentTime+delay);osc.stop(alarmAudio.currentTime+delay+0.24);
+    osc.start(at);osc.stop(at+.19);
    });
-  }catch(e){console.warn("SECURITY-Testton nicht verfügbar:",e);}
+  }catch(e){console.warn("SECURITY-Warnton nicht verfügbar:",e);}
  }
- function speakTest(){
-  if(!("speechSynthesis" in window))return;
+ function speakWarning(){
+  if(!alarmActive||!("speechSynthesis" in window))return;
   try{
    speechSynthesis.cancel();
-   const u=new SpeechSynthesisUtterance("Verstoß im System festgestellt. Testwarnung. Dies ist nur eine Simulation.");
-   u.lang="de-DE";u.rate=.92;u.volume=1;speechSynthesis.speak(u);
+   const u=new SpeechSynthesisUtterance("Achtung. WARVEX Sicherheitswarnung. Verdächtiger Inhalt erkannt. Prüfung erforderlich. Dies ist ein Testalarm.");
+   u.lang="de-DE";u.rate=.9;u.volume=1;
+   speechSynthesis.speak(u);
   }catch(e){console.warn("SECURITY-Sprachausgabe nicht verfügbar:",e);}
  }
- $("secTestAlertBtn")?.addEventListener("click",()=>{
-  const box=$("secDemoAlert"),overlay=$("secOwnerAlarm");
-  if(box)box.classList.add("visible");
-  if($("secAlarmEventId"))$("secAlarmEventId").textContent="DEMO-"+Date.now().toString().slice(-8);
-  if(overlay){overlay.classList.add("active");playTestBeep();speakTest();}
- });
- const close=()=>{
+ function startAlarm(){
+  if(alarmActive)return;
+  alarmActive=true;
+  const overlay=$("secOwnerAlarm");
+  if(overlay)overlay.classList.add("active");
+  playUrgentPattern();
+  beepLoop=window.setInterval(playUrgentPattern,1550);
+  speakWarning();
+  voiceLoop=window.setInterval(speakWarning,11000);
+ }
+ function stopAlarm(){
+  alarmActive=false;
+  if(beepLoop!==null){clearInterval(beepLoop);beepLoop=null;}
+  if(voiceLoop!==null){clearInterval(voiceLoop);voiceLoop=null;}
   $("secOwnerAlarm")?.classList.remove("active");
   if("speechSynthesis" in window)speechSynthesis.cancel();
- };
- $("secAlarmAck")?.addEventListener("click",close);
- $("secHideAlertBtn")?.addEventListener("click",()=>{
-  $("secDemoAlert")?.classList.remove("visible");close();
+ }
+ $("secTestAlertBtn")?.addEventListener("click",()=>{
+  $("secDemoAlert")?.classList.add("visible");
+  if($("secAlarmEventId"))$("secAlarmEventId").textContent="DEMO-"+Date.now().toString().slice(-8);
+  startAlarm();
  });
- document.addEventListener("keydown",e=>{if(e.key==="Escape")close();});
+ $("secAlarmAck")?.addEventListener("click",stopAlarm);
+ $("secHideAlertBtn")?.addEventListener("click",()=>{
+  $("secDemoAlert")?.classList.remove("visible");
+  stopAlarm();
+ });
+ document.addEventListener("keydown",e=>{if(e.key==="Escape")stopAlarm();});
+ window.addEventListener("pagehide",stopAlarm);
 })();
-</script>
+</script>>
 
 </body>
 </html>
