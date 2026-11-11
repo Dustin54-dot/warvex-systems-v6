@@ -2672,6 +2672,10 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
    }
    showBox("ownerSetupBox",!status.initialized);
    showBox("ownerLoginBox",status.initialized);
+   const setupButton=$o("ownerBootstrapBtn");
+   if(setupButton)setupButton.hidden=!!status.initialized;
+   const ownerEntry=$o("ownerOpenBtn");
+   if(ownerEntry)ownerEntry.textContent=status.initialized?"OWNER ANMELDEN":"OWNER ANMELDEN / EINRICHTEN";
    showBox("ownerPendingBox",false);showBox("ownerSessionBox",false);
    const pending=await vaultGet("pendingRequest");
    if(pending){showBox("ownerPendingBox",true);showBox("ownerSetupBox",false);showBox("ownerLoginBox",false);}
@@ -2692,7 +2696,11 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
    });
    await setSession(result.sessionToken);await refreshOwner();
    $o("ownerSetupPassword").value="";$o("ownerBootstrapCode").value="";
-   setStatus("Haupt-OWNER wurde eingerichtet und dieses Gerät ist registriert.",false);
+   showBox("ownerSetupBox",false);
+   showBox("ownerLoginBox",false);
+   const setupButton=$o("ownerBootstrapBtn");if(setupButton)setupButton.hidden=true;
+   const ownerEntry=$o("ownerOpenBtn");if(ownerEntry)ownerEntry.textContent="OWNER ANMELDEN";
+   setStatus("Haupt-OWNER wurde eingerichtet. Die einmalige Einrichtung ist jetzt dauerhaft geschlossen.",false);
   }catch(e){setStatus(e.message,true);}
  });
  $o("ownerLoginBtn")?.addEventListener("click",async()=>{
