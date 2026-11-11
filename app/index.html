@@ -302,6 +302,11 @@ body:not(.user-authenticated) #userSessionBadge,body:not(.user-authenticated) #u
     <div id="date">Datum wird geladen …</div>
   </div>
 
+  <div class="card" id="accountNotificationsCard" hidden>
+    <h2>Kontobenachrichtigungen</h2>
+    <div id="accountNotificationsList" aria-live="polite"></div>
+  </div>
+
   <div class="grid">
     <div class="card">
       <div class="muted">AKKU</div>
@@ -701,6 +706,7 @@ body:not(.user-authenticated) #userSessionBadge,body:not(.user-authenticated) #u
     <input id="ownerBootstrapCode" type="password" autocomplete="off" placeholder="Einrichtungscode">
     <div class="actions"><button type="button" class="primary" id="ownerBootstrapBtn">OWNER SICHER EINRICHTEN</button></div>
    </div>
+   <div id="ownerRestrictedInfo" class="sec-note" hidden>Die Haupt-Owner-Ersteinrichtung ist ausschließlich für das festgelegte Hauptkonto verfügbar. Melde dich mit diesem Konto an, um die einmalige Einrichtung zu sehen.</div>
    <div id="ownerLoginBox" hidden>
     <strong>OWNER ANMELDUNG</strong>
     <label for="ownerLoginEmail">E-Mail</label>
@@ -2568,8 +2574,11 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
  }
  async function init(){
   updateOwnerPanelVisibility();
+  if(pollHandle){clearInterval(pollHandle);pollHandle=null;}
   try{
    const status=await api("/api/owner/status",null,null);
+   const publicToken=(()=>{try{return localStorage.getItem("warvex-public-session-v1")||"";}catch(e){return "";}})();
+   const eligibility=publicToken?await api("/api/owner/eligibility",null,publicToken):{eligible:false};
    const token=await vaultGet("sessionToken");
    if(token){
     try{
@@ -2582,16 +2591,18 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
      updateOwnerPanelVisibility();
     }
    }
-   showBox("ownerSetupBox",!status.initialized);
+   const canClaim=!status.initialized&&eligibility.eligible===true;
+   showBox("ownerSetupBox",canClaim);
+   showBox("ownerRestrictedInfo",!status.initialized&&!canClaim);
    showBox("ownerLoginBox",status.initialized);
    const setupButton=$o("ownerBootstrapBtn");
-   if(setupButton)setupButton.hidden=!!status.initialized;
+   if(setupButton)setupButton.hidden=!canClaim;
    const ownerEntry=$o("ownerOpenBtn");
-   if(ownerEntry)ownerEntry.textContent=status.initialized?"OWNER ANMELDEN":"OWNER ANMELDEN / EINRICHTEN";
+   if(ownerEntry)ownerEntry.textContent=status.initialized?"OWNER ANMELDEN":canClaim?"HAUPT-OWNER EINRICHTEN":"OWNER-ZUGANG";
    showBox("ownerPendingBox",false);showBox("ownerSessionBox",false);
    const pending=await vaultGet("pendingRequest");
    if(pending){showBox("ownerPendingBox",true);showBox("ownerSetupBox",false);showBox("ownerLoginBox",false);}
-   setStatus(status.initialized?"OWNER-Zugang bereit. Bitte anmelden.":"Ersteinrichtung des Haupt-Owners noch offen.",false);
+   setStatus(status.initialized?"OWNER-Zugang bereit. Bitte anmelden.":canClaim?"Deine einmalige Haupt-Owner-Ersteinrichtung ist verfügbar.":"Haupt-Owner-Ersteinrichtung für dieses Konto gesperrt.",false);
   }catch(e){setStatus("OWNER-Dienst nicht erreichbar: "+e.message,true);}
  }
  $o("ownerBootstrapBtn")?.addEventListener("click",async()=>{
@@ -2667,6 +2678,8 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
  $o("ownerRefreshBtn")?.addEventListener("click",async()=>{
   try{await refreshOwner();setStatus("Sicherheitsfach aktualisiert.",false);}catch(e){setStatus(e.message,true);}
  });
+ window.addEventListener("warvex-user-authenticated",()=>{init();});
+ window.addEventListener("warvex-user-logged-out",()=>{init();});
  $o("ownerLogoutBtn")?.addEventListener("click",async()=>{
   try{
    const token=await vaultGet("sessionToken");
@@ -2711,6 +2724,8 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
   $("userAuthGate").hidden=true;
   const badge=$("userSessionBadge");
   if(badge)badge.textContent=user.email+" · "+(user.roleLabel||"Benutzer");
+  window.dispatchEvent(new Event("warvex-user-authenticated"));
+  loadNotifications().catch(()=>{});
  }
  async function request(path,body,auth){
   const headers={"Content-Type":"application/json"};
@@ -2720,6 +2735,39 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
   if(!response.ok||data.success===false)throw new Error(data.error||("HTTP "+response.status));
   return data;
  }
+ async function loadNotifications(){
+  const saved=token();
+  const card=$("accountNotificationsCard");
+  const list=$("accountNotificationsList");
+  if(!saved||!card||!list)return;
+  const data=await request("/api/auth/notifications",null,saved);
+  list.textContent="";
+  const rows=Array.isArray(data.notifications)?data.notifications:[];
+  card.hidden=rows.length===0;
+  rows.forEach(item=>{
+   const row=document.createElement("div");
+   row.className="message";
+   const heading=document.createElement("strong");
+   heading.textContent=item.title||"WARVEX-Mitteilung";
+   const body=document.createElement("div");
+   body.textContent=item.message||"";
+   const date=document.createElement("div");
+   date.className="muted";
+   date.textContent=new Date(item.created_at).toLocaleString("de-DE")+(item.read_at?" · Gelesen":" · Neu");
+   row.appendChild(heading);row.appendChild(body);row.appendChild(date);
+   if(!item.read_at){
+    const button=document.createElement("button");
+    button.type="button";button.textContent="ALS GELESEN MARKIEREN";
+    button.addEventListener("click",async()=>{
+     try{await request("/api/auth/notifications/read",{id:item.id},saved);await loadNotifications();}
+     catch(e){body.textContent+=" (Konnte nicht als gelesen markiert werden.)";}
+    });
+    row.appendChild(button);
+   }
+   list.appendChild(row);
+  });
+ } 
+
  async function submit(){
   if(busy)return;
   const email=$("userAuthEmail").value.trim();
