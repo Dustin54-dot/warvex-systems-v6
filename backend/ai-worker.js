@@ -1,4 +1,5 @@
 import { handleOwnerAuth } from "./owner-auth.js";
+import { handleUserAuth } from "./user-auth.js";
 
 const MODEL = "@cf/zai-org/glm-4.7-flash";
 const ALLOWED_ORIGIN = "https://dustin54-dot.github.io";
@@ -71,6 +72,9 @@ function extractAnswer(result) {
 
 export default {
   async fetch(request, env) {
+    const userResponse = await handleUserAuth(request, env);
+    if (userResponse) return userResponse;
+
     const ownerResponse = await handleOwnerAuth(request, env);
     if (ownerResponse) return ownerResponse;
 
