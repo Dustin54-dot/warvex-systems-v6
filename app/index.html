@@ -688,10 +688,6 @@ body:not(.user-authenticated) #userSessionBadge,body:not(.user-authenticated) #u
     <div class="sec-row"><span>Konkrete Gewalt- oder Straftatplanung</span><span class="sec-state warn">Hohes Schutzrisiko</span></div>
    </div>
   </div>
-  <div class="sec-panel" style="margin-top:12px">
-   <h3>OWNER-ANMELDUNG</h3>
-   <p class="sec-note">Die Anmeldung und Ersteinrichtung sind hier erreichbar. Nach erfolgreicher Anmeldung erscheint oben die separate OWNER-Schaltfläche.</p>
-   <div class="actions"><button type="button" class="primary" id="ownerOpenBtn">OWNER ANMELDEN / EINRICHTEN</button></div>
   </div>
   <div class="sec-panel" style="margin-top:12px">
    <h3>WANN SOLL WARVEX PRÜFEN?</h3>
@@ -764,15 +760,22 @@ body:not(.user-authenticated) #userSessionBadge,body:not(.user-authenticated) #u
     </div>
     <h4>ALLE BENUTZERKONTEN & OWNER-ROLLEN</h4>
     <div id="ownerUsersList" class="sec-note">Noch nicht geladen.</div>
+    <div class="sec-panel" style="margin-top:14px">
+     <h3>OWNER-FUNKTIONSTESTS</h3>
+     <p class="sec-note">Prüft Owner-Dienst, Sitzung, Geräteverwaltung, Protokoll und Rollenliste ohne Änderungen an Konten oder Geräten.</p>
+     <div class="actions"><button type="button" class="primary" id="ownerRunTestsBtn">ALLE OWNER-FUNKTIONEN TESTEN</button></div>
+     <div id="ownerFunctionTests" class="sec-note" aria-live="polite">Noch kein Test durchgeführt.</div>
+    </div>
+    <div class="sec-panel" style="margin-top:14px">
+     <h3>SICHERHEITS-WARNTEST</h3>
+     <p class="sec-note">Nur harmlose Simulationen mit Platzhalter-Eingaben. Es werden keine echten gefährlichen oder illegalen Inhalte erzeugt oder an andere Nutzer gesendet.</p>
+     <div class="actions"><button type="button" class="primary" id="ownerRunSafetyTestsBtn">SICHERHEITS-WARNTEST STARTEN</button></div>
+     <div id="ownerSafetyTests" class="sec-note" aria-live="polite">Noch kein Warn-Test durchgeführt.</div>
+    </div>
    </div>
    <div id="ownerAuthStatus" class="status" style="margin-top:12px" role="status">OWNER-Dienst wird geprüft …</div>
   </div>
-  <div class="sec-panel" style="margin-top:12px">
-   <h3>OWNER-FUNKTIONSTESTS</h3>
-   <p class="sec-note">Die Tests prüfen Erreichbarkeit, Anmeldung, Geräteverwaltung, Sicherheitsprotokoll und Benutzerverwaltung. Es werden keine Rollen geändert, Geräte widerrufen oder Anfragen freigegeben.</p>
-   <div class="actions"><button type="button" class="primary" id="ownerRunTestsBtn">ALLE OWNER-FUNKTIONEN TESTEN</button></div>
-   <div id="ownerFunctionTests" class="sec-note" aria-live="polite">Noch kein Test durchgeführt.</div>
-  </div>
+  
  </div>
 </section>
 </main>
@@ -2767,7 +2770,29 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
   }catch(e){output.textContent="Test konnte nicht gestartet werden: "+(e.message||String(e));}
   finally{button.disabled=false;}
  });
- $o("ownerRefreshBtn")?.addEventListener("click",async()=>{
+   $o("ownerRunSafetyTestsBtn")?.addEventListener("click",()=>{
+   const output=$o("ownerSafetyTests"),button=$o("ownerRunSafetyTestsBtn");
+   if(!output)return;
+   if($o("ownerAccessPanel")?.dataset.authenticated!=="true"){output.textContent="Zugriff verweigert: Owner-Anmeldung erforderlich.";return;}
+   button.disabled=true;output.textContent="Sicherheits-Warnsimulation läuft …";
+   const cases=[
+    ["Gesperrte Inhalte","[SIMULATION: Anfrage nach nicht erlaubten Inhalten]","Blockierhinweis erwartet"],
+    ["Sexuelle Inhalte","[SIMULATION: nicht jugendfreie sexuelle Anfrage]","Jugendschutz-Hinweis erwartet"],
+    ["Illegale Aktivitäten","[SIMULATION: Bitte um Anleitung zu einer Straftat]","Ablehnungshinweis erwartet"],
+    ["Gefährliche Handlungen","[SIMULATION: Bitte um konkrete gefährliche Anleitung]","Sicherheitshinweis erwartet"],
+    ["Unbedenkliche Anfrage","[SIMULATION: Bitte erkläre Datenschutz allgemein]","Normale Antwort zulässig"]
+   ];
+   output.textContent="";
+   cases.forEach(([label,sample,expected])=>{
+    const line=document.createElement("div");line.className="sec-row";
+    const left=document.createElement("span");left.textContent=label+" · "+sample;
+    const right=document.createElement("strong");right.className="sec-state warn";right.textContent="SIMULATION · "+expected;
+    line.append(left,right);output.appendChild(line);
+   });
+   addText(output,"Wichtig: Dies ist ein UI-Test-Simulator, kein Nachweis, dass das KI-Modell jede Kategorie zuverlässig blockiert. Es wurden keine echten problematischen Inhalte an das Modell gesendet.");
+   button.disabled=false;
+  });
+$o("ownerRefreshBtn")?.addEventListener("click",async()=>{
   try{await refreshOwner();setStatus("Sicherheitsfach aktualisiert.",false);}catch(e){setStatus(e.message,true);}
  });
  window.addEventListener("warvex-user-authenticated",()=>{init();});
