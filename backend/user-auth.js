@@ -190,6 +190,27 @@ export async function handleUserAuth(request, env) {
       });
     }
 
+    if (path === "/api/auth/notifications" && request.method === "GET") {
+      const session = await sessionOf(request, env);
+      if (!session) return json({ success: false, error: "Bitte melde dich an." }, 401);
+      const rows = await env.DB.prepare(
+        "SELECT id,kind,title,message,created_at,read_at FROM app_notifications WHERE account_id=? ORDER BY created_at DESC LIMIT 30"
+      ).bind(session.account_id).all();
+      return json({ success: true, notifications: rows.results || [] });
+    }
+
+    if (path === "/api/auth/notifications/read" && request.method === "POST") {
+      const session = await sessionOf(request, env);
+      if (!session) return json({ success: false, error: "Bitte melde dich an." }, 401);
+      const body = await bodyOf(request);
+      const id = String(body.id || "");
+      if (!id || id.length > 80) return json({ success: false, error: "Ungültige Nachricht." }, 400);
+      await env.DB.prepare(
+        "UPDATE app_notifications SET read_at=? WHERE id=? AND account_id=? AND read_at IS NULL"
+      ).bind(Date.now(), id, session.account_id).run();
+      return json({ success: true });
+    }
+
     if (path === "/api/auth/logout" && request.method === "POST") {
       const auth = request.headers.get("Authorization") || "";
       const raw = auth.startsWith("Bearer ") ? auth.slice(7) : "";
