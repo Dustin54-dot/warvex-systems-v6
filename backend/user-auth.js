@@ -1,6 +1,7 @@
 const enc = new TextEncoder();
 const ORIGIN = "https://dustin54-dot.github.io";
-const ITERATIONS = 310000;
+// Cloudflare Workers WebCrypto PBKDF2 limit is 100,000 iterations.
+const ITERATIONS = 100000;
 const SESSION_MS = 30 * 24 * 60 * 60 * 1000;
 const attempts = new Map();
 
