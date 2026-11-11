@@ -115,13 +115,22 @@ async function ownerSession(request, env) {
   const token = header.startsWith("Bearer ") ? header.slice(7) : "";
   if (token.length < 30 || token.length > 200) return null;
   const tokenHash = await sha(token);
-  return await env.DB.prepare(
+  const now = Date.now();
+  const deviceSession = await env.DB.prepare(
     "SELECT s.token_hash,s.owner_id,s.device_id,s.expires_at,o.email,o.role,o.status,d.device_label " +
     "FROM owner_sessions s JOIN owner_accounts o ON o.id=s.owner_id " +
     "JOIN owner_devices d ON d.id=s.device_id " +
     "WHERE s.token_hash=? AND s.revoked_at IS NULL AND s.expires_at>? " +
     "AND o.status='active' AND d.revoked_at IS NULL"
-  ).bind(tokenHash, Date.now()).first();
+  ).bind(tokenHash, now).first();
+  if (deviceSession) return deviceSession;
+  return await env.DB.prepare(
+    "SELECT s.token_hash,oa.id AS owner_id,NULL AS device_id,s.expires_at,a.email,a.role,oa.status,'WARVEX-Kontositzung' AS device_label " +
+    "FROM app_user_sessions s JOIN app_accounts a ON a.id=s.account_id " +
+    "JOIN owner_accounts oa ON oa.email=a.email COLLATE NOCASE AND oa.role='owner' " +
+    "WHERE s.token_hash=? AND s.revoked_at IS NULL AND s.expires_at>? " +
+    "AND a.status='active' AND a.role IN ('owner','admin') AND oa.status='active'"
+  ).bind(tokenHash, now).first();
 }
 async function newSession(env, ownerId, deviceId) {
   const token = randomToken(32);
@@ -537,13 +546,40 @@ export async function handleOwnerAuth(request, env) {
       const body = await readBody(request);
       const email = String(body.email || "").trim().toLowerCase();
       const role = body.role;
-      if (!validEmail(email) || !["user", "team_member", "admin"].includes(role)) {
+      if (!validEmail(email) || !["user", "team_member", "admin", "owner"].includes(role)) {
         return ownerJson({ success: false, error: "E-Mail oder Rolle ungültig." }, 400);
       }
       const target = await env.DB.prepare(
         "SELECT id,email,role FROM app_accounts WHERE email=? COLLATE NOCASE AND status='active'"
       ).bind(email).first();
       if (!target) return ownerJson({ success: false, error: "Aktives Benutzerkonto nicht gefunden." }, 404);
+      if (target.email.toLowerCase() === primaryOwnerEmail) {
+        return ownerJson({ success: false, error: "Die Haupt-Owner-Rolle kann hier nicht geändert oder entzogen werden." }, 403);
+      }
+      if (["owner", "admin"].includes(role)) {
+        const existingOwner = await env.DB.prepare(
+          "SELECT id,role FROM owner_accounts WHERE email=? COLLATE NOCASE LIMIT 1"
+        ).bind(target.email).first();
+        if (existingOwner?.role === "primary_owner") {
+          return ownerJson({ success: false, error: "Ein Haupt-Owner-Konto kann nicht als Teamrolle überschrieben werden." }, 409);
+        }
+        if (existingOwner) {
+          await env.DB.prepare("UPDATE owner_accounts SET role='owner',status='active' WHERE id=?").bind(existingOwner.id).run();
+        } else {
+          await env.DB.prepare("INSERT INTO owner_accounts (id,email,role,status,created_at) VALUES (?,?, 'owner','active',?)")
+            .bind(crypto.randomUUID(), target.email, now).run();
+        }
+      } else {
+        const ownerRow = await env.DB.prepare(
+          "SELECT id FROM owner_accounts WHERE email=? COLLATE NOCASE AND role='owner' LIMIT 1"
+        ).bind(target.email).first();
+        if (ownerRow) {
+          await env.DB.batch([
+            env.DB.prepare("UPDATE owner_accounts SET status='revoked' WHERE id=?").bind(ownerRow.id),
+            env.DB.prepare("UPDATE owner_sessions SET revoked_at=? WHERE owner_id=? AND revoked_at IS NULL").bind(now, ownerRow.id)
+          ]);
+        }
+      }
       await env.DB.prepare("UPDATE app_accounts SET role=? WHERE id=?").bind(role, target.id).run();
       await audit(env, auth.session.owner_id, "user_role_changed", target.email, { from: target.role, to: role });
       return ownerJson({ success: true, email: target.email, role });
