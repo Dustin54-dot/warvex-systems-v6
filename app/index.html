@@ -505,18 +505,31 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
 <section id="voice" class="page">
   <div class="card">
     <h2>Sprachsteuerung</h2>
-    <p class="muted">
-      Online-Stimme: VEXARA · WARVEX Sprach-KI. Ersatzstimme: NOVA.
-    </p>
+    <p class="muted">Online-Stimme: VEXARA · Browser-Ersatzstimmen können unten einzeln getestet werden.</p>
     <div class="actions">
       <button class="primary" id="directBtn">SPRACHBEFEHL</button>
       <button id="wakeBtn">HEY WARVEX</button>
       <button id="stopBtn">STOP</button>
-      <button id="testVoiceBtn">STIMME TESTEN</button>
     </div>
     <div class="status" id="voiceStatus">Sprachsteuerung ausgeschaltet.</div>
     <p class="muted" id="ttsStatus">Sprachsystem wird geprüft …</p>
     <p class="muted" id="diagnosticStatus">Diagnose noch nicht gestartet.</p>
+  </div>
+  <div class="card" id="voiceTestPanel">
+    <h2>🎙️ STIMMEN-LABOR</h2>
+    <label for="voiceTestText">Testtext</label>
+    <textarea id="voiceTestText" rows="3">Hallo Dustin. Ich bin die Sprach-Ausgabe von WARVEX SYSTEMS. Dies ist ein Test meiner Stimme.</textarea>
+    <label for="browserVoiceSelect">Deutsche Browser-Stimme</label>
+    <select id="browserVoiceSelect" style="width:100%;padding:12px;border-radius:10px;background:#0c121c;color:white;border:1px solid var(--line);margin:6px 0 10px">
+      <option value="">Stimmen werden geladen …</option>
+    </select>
+    <div class="actions">
+      <button type="button" class="primary" id="browserVoiceTestBtn">AUSGEWÄHLTE STIMME TESTEN</button>
+      <button type="button" id="onlineVoiceTestBtn">VEXARA ONLINE TESTEN</button>
+      <button type="button" id="reloadVoicesBtn">STIMMEN NEU LADEN</button>
+    </div>
+    <div class="status" id="voiceLabStatus" role="status">Lade verfügbare deutsche Stimmen …</div>
+    <p class="muted">Die Liste zeigt nur Stimmen, die dein Browser bzw. Android bereitstellt. Welche davon tatsächlich hörbar sind, prüfst du mit „Ausgewählte Stimme testen“.</p>
   </div>
 </section>
 
@@ -634,6 +647,11 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
     <div class="sec-row"><span>Sexuelle Gewalt / Zwang</span><span class="sec-state warn">Hohes Schutzrisiko</span></div>
     <div class="sec-row"><span>Konkrete Gewalt- oder Straftatplanung</span><span class="sec-state warn">Hohes Schutzrisiko</span></div>
    </div>
+  </div>
+  <div class="sec-panel" style="margin-top:12px">
+   <h3>HAUPT-OWNER</h3>
+   <p class="sec-note">Öffne hier die geschützte OWNER-Anmeldung, Gerätefreigaben und das Sicherheitsprotokoll.</p>
+   <div class="actions"><button type="button" class="primary" id="ownerOpenBtn">OWNER-BEREICH ÖFFNEN</button></div>
   </div>
   <div class="sec-panel" style="margin-top:12px" id="ownerAccessPanel" hidden>
    <h3>OWNER-ZUGANG & SICHERHEITSPOSTFACH</h3>
@@ -850,32 +868,52 @@ updateBattery();
 
 /* DEUTSCHE ERSATZSTIMME */
 
+function populateGermanVoiceOptions(){
+  const select=$("browserVoiceSelect");
+  if(!select||!("speechSynthesis" in window))return;
+  const voices=window.speechSynthesis.getVoices()||[];
+  const german=voices.filter(v=>/^de([_-]|$)/i.test(v.lang||""));
+  const previous=select.value;
+  select.textContent="";
+  if(!german.length){
+    const option=document.createElement("option");
+    option.value="";option.textContent="Keine deutsche Browser-Stimme gefunden";
+    select.appendChild(option);
+    $("voiceLabStatus").textContent="Keine deutsche Stimme gefunden. Prüfe Android-Text-zu-Sprache und lade die Liste neu.";
+    return;
+  }
+  german.forEach((voice,index)=>{
+    const option=document.createElement("option");
+    option.value=voice.voiceURI||String(index);
+    option.textContent=voice.name+" · "+voice.lang+(voice.localService?" · lokal":" · online");
+    select.appendChild(option);
+  });
+  if(german.some(v=>(v.voiceURI||"")===previous))select.value=previous;
+  else if(germanVoice)select.value=germanVoice.voiceURI||"";
+  $("voiceLabStatus").textContent=german.length+" deutsche Stimme(n) gefunden. Wähle eine aus und teste sie.";
+}
+function selectedGermanVoice(){
+  const select=$("browserVoiceSelect");
+  const voices=window.speechSynthesis?.getVoices?.()||[];
+  return voices.find(v=>v.voiceURI===select?.value)||germanVoice||null;
+}
 function chooseGermanVoice(){
   if(!("speechSynthesis" in window)) return;
-
   const voices=window.speechSynthesis.getVoices()||[];
-
-  const list=voices.filter(v =>
-    /^de([_-]|$)/i.test(v.lang||"")
-  );
-
+  const list=voices.filter(v=>/^de([_-]|$)/i.test(v.lang||""));
   list.sort((a,b)=>{
     const score=v=>{
-      let n=0;
-      const name=(v.name||"").toLowerCase();
-
-      if(/^de[-_]de/i.test(v.lang)) n+=8;
-      if(name.includes("google")) n+=6;
-      if(name.includes("german")||name.includes("deutsch")) n+=4;
-      if(v.localService) n+=2;
-
+      let n=0;const name=(v.name||"").toLowerCase();
+      if(/^de[-_]de/i.test(v.lang))n+=8;
+      if(name.includes("google"))n+=6;
+      if(name.includes("german")||name.includes("deutsch"))n+=4;
+      if(v.localService)n+=2;
       return n;
     };
-
     return score(b)-score(a);
   });
-
   germanVoice=list[0]||null;
+  populateGermanVoiceOptions();
 }
 
 if("speechSynthesis" in window){
@@ -894,7 +932,7 @@ function prepareSpeechText(text){
     .replace(/\bVEXARA\b/gi,"Vexara");
 }
 
-function speakWithBrowser(text){
+function speakWithBrowser(text,voiceOverride){
   return new Promise((resolve,reject)=>{
     if(!("speechSynthesis" in window) ||
        typeof SpeechSynthesisUtterance==="undefined"){
@@ -910,7 +948,8 @@ function speakWithBrowser(text){
     utterance.pitch=1;
     utterance.volume=1;
 
-    if(germanVoice) utterance.voice=germanVoice;
+    const voice=voiceOverride||germanVoice;
+    if(voice) utterance.voice=voice;
 
     utterance.onend=()=>resolve();
     utterance.onerror=e=>
@@ -1474,7 +1513,32 @@ function stopListening(){
 $("directBtn").addEventListener("click",()=>startListening("direct"));
 $("wakeBtn").addEventListener("click",()=>startListening("wake"));
 $("stopBtn").addEventListener("click",stopListening);
-$("testVoiceBtn").addEventListener("click",()=>say("Hallo. Ich bin VEXARA, die Online-Sprach-KI von WARVEX SYSTEMS."));
+$("testVoiceBtn")?.addEventListener("click",()=>say("Hallo. Ich bin VEXARA, die Online-Sprach-KI von WARVEX SYSTEMS."));
+$("browserVoiceTestBtn")?.addEventListener("click",async()=>{
+  const text=$("voiceTestText")?.value?.trim();
+  if(!text){$("voiceLabStatus").textContent="Bitte gib zuerst einen Testtext ein.";return;}
+  if(!("speechSynthesis" in window)){ $("voiceLabStatus").textContent="Browser-Sprachausgabe wird nicht unterstützt.";return; }
+  const voice=selectedGermanVoice();
+  if(!voice){$("voiceLabStatus").textContent="Keine deutsche Stimme ausgewählt oder verfügbar.";return;}
+  try{
+    speechSynthesis.cancel();
+    $("voiceLabStatus").textContent="Teste: "+voice.name+" ("+voice.lang+") …";
+    await speakWithBrowser(text,voice);
+    $("voiceLabStatus").textContent="Test abgeschlossen: "+voice.name+".";
+  }catch(error){$("voiceLabStatus").textContent="Stimmtest fehlgeschlagen: "+error.message;}
+});
+$("onlineVoiceTestBtn")?.addEventListener("click",()=>{
+  const text=$("voiceTestText")?.value?.trim();
+  if(!text){$("voiceLabStatus").textContent="Bitte gib zuerst einen Testtext ein.";return;}
+  $("voiceLabStatus").textContent="VEXARA-Online-Stimme wird getestet …";
+  say(text).then(()=>{$("voiceLabStatus").textContent="Online-Test abgeschlossen. Details stehen im Sprachsystem-Status.";})
+    .catch(error=>{$("voiceLabStatus").textContent="Online-Test fehlgeschlagen: "+error.message;});
+});
+$("reloadVoicesBtn")?.addEventListener("click",()=>{
+  if("speechSynthesis" in window){speechSynthesis.getVoices();chooseGermanVoice();populateGermanVoiceOptions();}
+});
+$("ownerOpenBtn")?.addEventListener("click",()=>{window.location.hash="owner";});
+
 
 
 /* WARVEX MEDICAL · BLE-DATEN UND SENSORALARME
