@@ -694,7 +694,7 @@ body:not(.user-authenticated) #userSessionBadge,body:not(.user-authenticated) #u
    <div id="ownerSetupBox" hidden>
     <strong>HAUPT-OWNER EINRICHTEN</strong>
     <label for="ownerSetupEmail">Owner-E-Mail</label>
-    <input id="ownerSetupEmail" type="email" autocomplete="username" value="dustina952@gmail.com" readonly aria-readonly="true">
+    <input id="ownerSetupEmail" type="email" autocomplete="username" placeholder="Owner-E-Mail">
     <label for="ownerSetupPassword">Neues Owner-Passwort (mindestens 12 Zeichen)</label>
     <input id="ownerSetupPassword" type="password" autocomplete="new-password" placeholder="Neues Passwort">
     <label for="ownerBootstrapCode">Einmaliger Einrichtungscode</label>
@@ -2591,8 +2591,7 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
    showBox("ownerPendingBox",false);showBox("ownerSessionBox",false);
    const pending=await vaultGet("pendingRequest");
    if(pending){showBox("ownerPendingBox",true);showBox("ownerSetupBox",false);showBox("ownerLoginBox",false);}
-   if(!status.initialized && $o("ownerSetupEmail")) $o("ownerSetupEmail").value=status.primaryOwnerEmail||"dustina952@gmail.com";
-   setStatus(status.initialized?"OWNER-Zugang bereit. Bitte anmelden.":"Haupt-OWNER ist für dustina952@gmail.com reserviert. Ersteinrichtung noch offen.",false);
+   setStatus(status.initialized?"OWNER-Zugang bereit. Bitte anmelden.":"Ersteinrichtung des Haupt-Owners noch offen.",false);
   }catch(e){setStatus("OWNER-Dienst nicht erreichbar: "+e.message,true);}
  }
  $o("ownerBootstrapBtn")?.addEventListener("click",async()=>{
