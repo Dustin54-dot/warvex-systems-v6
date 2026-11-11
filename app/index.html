@@ -2807,6 +2807,8 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
   const saved=token();
   try{if(saved)await request("/api/auth/logout",{},saved);}catch(e){}
   setToken("");
+  window.dispatchEvent(new Event("warvex-user-logged-out"));
+  const noticeCard=$("accountNotificationsCard");if(noticeCard)noticeCard.hidden=true;
   document.body.classList.remove("user-authenticated");
   $("userAuthGate").hidden=false;
   $("userAuthPassword").value="";
