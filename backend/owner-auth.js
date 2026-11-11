@@ -429,6 +429,36 @@ export async function handleOwnerAuth(request, env) {
       return ownerJson({ success: true });
     }
 
+    if (path === "/api/owner/users" && request.method === "GET") {
+      const auth = await requireOwner(request, env);
+      if (auth.error) return auth.error;
+      const users = await env.DB.prepare(
+        "SELECT id,email,role,status,created_at,email_verified_at FROM app_accounts ORDER BY created_at DESC LIMIT 250"
+      ).all();
+      return ownerJson({ success: true, users: users.results || [] });
+    }
+
+    if (path === "/api/owner/users/role" && request.method === "POST") {
+      const auth = await requireOwner(request, env);
+      if (auth.error) return auth.error;
+      if (auth.session.role !== "primary_owner") {
+        return ownerJson({ success: false, error: "Nur der Haupt-Owner darf Teamrollen vergeben oder entziehen." }, 403);
+      }
+      const body = await readBody(request);
+      const email = String(body.email || "").trim().toLowerCase();
+      const role = body.role;
+      if (!validEmail(email) || !["user", "team_member", "admin"].includes(role)) {
+        return ownerJson({ success: false, error: "E-Mail oder Rolle ungültig." }, 400);
+      }
+      const target = await env.DB.prepare(
+        "SELECT id,email,role FROM app_accounts WHERE email=? COLLATE NOCASE AND status='active'"
+      ).bind(email).first();
+      if (!target) return ownerJson({ success: false, error: "Aktives Benutzerkonto nicht gefunden." }, 404);
+      await env.DB.prepare("UPDATE app_accounts SET role=? WHERE id=?").bind(role, target.id).run();
+      await audit(env, auth.session.owner_id, "user_role_changed", target.email, { from: target.role, to: role });
+      return ownerJson({ success: true, email: target.email, role });
+    }
+
     if (path === "/api/owner/logout" && request.method === "POST") {
       const auth = await requireOwner(request, env);
       if (auth.error) return auth.error;
