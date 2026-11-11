@@ -1,7 +1,8 @@
 const enc = new TextEncoder();
 const OWNER_ORIGIN = "https://dustin54-dot.github.io";
 const PRIMARY_OWNER_EMAIL = "dustina952@gmail.com";
-const PASSWORD_ITERATIONS = 310000;
+// Cloudflare Workers WebCrypto PBKDF2 limit is 100,000 iterations.
+const PASSWORD_ITERATIONS = 100000;
 const SESSION_MS = 7 * 24 * 60 * 60 * 1000;
 const CHALLENGE_MS = 5 * 60 * 1000;
 const REQUEST_MS = 10 * 60 * 1000;
