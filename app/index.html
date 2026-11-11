@@ -619,12 +619,32 @@ body:not(.user-authenticated) #userSessionBadge,body:not(.user-authenticated) #u
 
 <section id="home" class="page">
   <div class="card">
-    <h2>SMART HOME · GERÄTE KOPPELN</h2>
-    <p class="muted">Der Fernseher zeigt den achtstelligen Kopplungscode an. Gib diesen Code hier ein. Die Kopplung wird ausschließlich in Smart Home gestartet.</p>
-    <label for="deviceJoinCode">KOPPLUNGSCODE VOM FERNSEHER</label>
+    <h2>UNIVERSELLE GERÄTE-KOPPLUNG</h2>
+    <p class="muted">Verbinde WARVEX auf Handy, Tablet oder PC: Erstelle auf einem Gerät einen einmaligen Code und gib ihn auf dem anderen Gerät ein. Der Code gilt 10 Minuten.</p>
+    <div class="actions">
+      <button id="universalCreatePairBtn" class="primary" type="button">CODE AUF DIESEM GERÄT ERSTELLEN</button>
+    </div>
+    <div id="universalCodePanel" hidden style="margin-top:14px;padding:14px;border:1px solid var(--line);border-radius:12px">
+      <div class="muted">KOPPLUNGSCODE FÜR DAS ANDERE GERÄT</div>
+      <div id="universalPairCode" style="font-size:clamp(28px,8vw,42px);font-weight:900;letter-spacing:5px;margin:8px 0">----------</div>
+      <div class="status" id="universalCreateStatus">Warte auf das zweite Gerät …</div>
+    </div>
+    <label for="universalJoinCode" style="display:block;margin-top:18px">CODE VOM ANDEREN GERÄT EINGEBEN</label>
+    <input id="universalJoinCode" type="text" maxlength="10" minlength="10" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="10-STELLIGER CODE" style="width:100%;max-width:420px;text-transform:uppercase;letter-spacing:4px;font-size:22px;font-weight:800;margin:10px 0">
+    <div class="actions">
+      <button id="universalJoinPairBtn" class="primary" type="button">GERÄT KOPPELN</button>
+    </div>
+    <div class="status" id="universalPairStatus">Noch keine universelle Kopplung aktiv.</div>
+    <div class="status" id="universalPairList" style="margin-top:10px">Noch keine verbundenen WARVEX-Geräte gespeichert.</div>
+    <p class="muted">Das verbindet zunächst WARVEX auf mehreren Bildschirmen. Echte Lampen, Steckdosen und andere Smart-Home-Geräte benötigen zusätzlich eine passende Geräte- oder Hersteller-Anbindung; die vorhandenen Demo-Schalter steuern noch keine echte Hardware.</p>
+  </div>
+  <div class="card">
+    <h2>ROKU-TV-KOPPLUNG · BESTAND</h2>
+    <p class="muted">Für die bisherige Roku-TV-Verbindung: Der Fernseher zeigt den achtstelligen Code an. Gib ihn hier ein.</p>
+    <label for="deviceJoinCode">ROKU-TV-KOPPLUNGSCODE</label>
     <input id="deviceJoinCode" type="text" maxlength="8" minlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="8-STELLIGER CODE" style="width:100%;max-width:420px;text-transform:uppercase;letter-spacing:4px;font-size:22px;font-weight:800;margin:10px 0">
     <div class="actions">
-      <button id="joinDeviceBtn" class="primary" type="button">FERNSEHER KOPPELN</button>
+      <button id="joinDeviceBtn" class="primary" type="button">ROKU-TV KOPPELN</button>
     </div>
     <div class="status" id="deviceJoinStatus">Warte auf den Code vom Roku-Fernseher.</div>
     <div class="status" id="devicePairState" style="margin-top:12px">TV-STATUS: NICHT VERBUNDEN</div>
@@ -2177,6 +2197,79 @@ if(joinDeviceBtn){
   });
 }
 updatePairUi();
+
+/* WARVEX UNIVERSAL DEVICE PAIRING · PHONE / TABLET / PC */
+const UNIVERSAL_PAIR_STORAGE="warvex_universal_device_pairs_v1";
+let universalPairPoll=null;
+let universalActiveCode="";
+function universalDeviceName(){
+  const ua=navigator.userAgent||"";
+  if(/iPad/i.test(ua))return "iPad";
+  if(/iPhone/i.test(ua))return "iPhone";
+  if(/Android/i.test(ua))return "Android-Gerät";
+  if(/Windows/i.test(ua))return "Windows-PC";
+  if(/Macintosh|Mac OS/i.test(ua))return "Mac";
+  return "Browser-Gerät";
+}
+function getUniversalPairs(){
+  try{const a=JSON.parse(localStorage.getItem(UNIVERSAL_PAIR_STORAGE)||"[]");return Array.isArray(a)?a:[];}catch(_){return [];}
+}
+function saveUniversalPair(item){
+  const items=getUniversalPairs().filter(x=>x&&x.id!==item.id);
+  items.push({...item,savedAt:Date.now()});
+  try{localStorage.setItem(UNIVERSAL_PAIR_STORAGE,JSON.stringify(items.slice(-20)));}catch(_){}
+  renderUniversalPairs();
+}
+function renderUniversalPairs(){
+  const el=$("universalPairList");if(!el)return;
+  const items=getUniversalPairs();
+  el.textContent=items.length?"VERBUNDENE WARVEX-GERÄTE: "+items.map(x=>x.peerName||"WARVEX-Gerät").join(" · "):"Noch keine verbundenen WARVEX-Geräte gespeichert.";
+}
+function stopUniversalPairPoll(){
+  if(universalPairPoll!==null){clearInterval(universalPairPoll);universalPairPoll=null;}
+}
+$("universalCreatePairBtn")?.addEventListener("click",async()=>{
+  const btn=$("universalCreatePairBtn"),panel=$("universalCodePanel"),status=$("universalCreateStatus");
+  if(!btn||!panel||!status)return;
+  stopUniversalPairPoll();btn.disabled=true;status.textContent="Sicherer Kopplungscode wird erstellt …";
+  try{
+    const response=await fetch(DEVICE_CLOUD+"/api/device/pair/start",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({deviceName:universalDeviceName()})});
+    const data=await response.json();
+    if(!response.ok||!data.code)throw new Error(data.error||"Code konnte nicht erstellt werden.");
+    universalActiveCode=data.code;$("universalPairCode").textContent=data.code;panel.hidden=false;
+    status.textContent="Warte auf das zweite Gerät … Der Code läuft in 10 Minuten ab.";
+    universalPairPoll=window.setInterval(async()=>{
+      try{
+        const check=await fetch(DEVICE_CLOUD+"/api/device/pair/status?code="+encodeURIComponent(universalActiveCode),{cache:"no-store"});
+        const result=await check.json();
+        if(result.status==="paired"&&result.token){
+          stopUniversalPairPoll();
+          saveUniversalPair({id:result.id,token:result.token,role:"peer",deviceName:universalDeviceName(),peerName:result.peerName||"WARVEX-Gerät"});
+          status.textContent="ERFOLGREICH GEKOPPELT · "+(result.peerName||"Zweites Gerät");
+          $("universalPairStatus").textContent="Dieses Gerät ist jetzt mit "+(result.peerName||"einem weiteren WARVEX-Gerät")+" verbunden.";
+          btn.disabled=false;
+        }else if(result.status==="expired"||!check.ok){
+          stopUniversalPairPoll();status.textContent="Code abgelaufen. Erstelle einen neuen Code.";btn.disabled=false;
+        }
+      }catch(_){status.textContent="Verbindung wird erneut geprüft …";}
+    },2500);
+  }catch(error){status.textContent="Fehler: "+(error.message||String(error));btn.disabled=false;}
+});
+$("universalJoinPairBtn")?.addEventListener("click",async()=>{
+  const btn=$("universalJoinPairBtn"),input=$("universalJoinCode"),status=$("universalPairStatus");
+  const code=(input?.value||"").trim().toUpperCase();
+  if(!/^[A-HJ-NP-Z2-9]{10}$/.test(code)){status.textContent="Bitte den vollständigen 10-stelligen Code eingeben.";return;}
+  btn.disabled=true;status.textContent="Kopplung wird angefragt …";
+  try{
+    const response=await fetch(DEVICE_CLOUD+"/api/device/pair/claim",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code,deviceName:universalDeviceName()})});
+    const data=await response.json();
+    if(!response.ok||!data.ok||!data.token)throw new Error(data.error||"Code ungültig, abgelaufen oder bereits verwendet.");
+    saveUniversalPair({id:data.id,token:data.token,role:"peer",deviceName:universalDeviceName(),peerName:data.peerName||"WARVEX-Gerät"});
+    input.value="";status.textContent="ERFOLGREICH GEKOPPELT · "+(data.peerName||"Anderes Gerät");
+  }catch(error){status.textContent="Kopplung fehlgeschlagen: "+(error.message||String(error));}
+  finally{btn.disabled=false;}
+});
+renderUniversalPairs();
 
 /* WARVEX LIVE LOCATION — explicit foreground opt-in, no background tracking */
 let warvexLocationWatchId = null;
