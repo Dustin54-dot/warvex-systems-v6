@@ -532,7 +532,10 @@ export async function handleOwnerAuth(request, env) {
       const auth = await requireOwner(request, env);
       if (auth.error) return auth.error;
       const users = await env.DB.prepare(
-        "SELECT id,email,role,status,created_at,email_verified_at FROM app_accounts ORDER BY created_at DESC LIMIT 250"
+        "SELECT a.id,a.email,CASE WHEN oa.role='primary_owner' AND oa.status='active' THEN 'primary_owner' ELSE a.role END AS role," +
+        "a.status,a.created_at,a.email_verified_at FROM app_accounts a " +
+        "LEFT JOIN owner_accounts oa ON oa.email=a.email COLLATE NOCASE AND oa.status='active' " +
+        "ORDER BY a.created_at DESC LIMIT 250"
       ).all();
       return ownerJson({ success: true, users: users.results || [] });
     }
