@@ -748,7 +748,21 @@ body:not(.user-authenticated) #userSessionBadge,body:not(.user-authenticated) #u
     <div id="ownerDevicesList" class="sec-note">Noch nicht geladen.</div>
     <h4>SICHERHEITSPROTOKOLL</h4>
     <div id="ownerEventsList" class="sec-note">Noch nicht geladen.</div>
-    <h4>BENUTZERROLLEN · NUR HAUPT-OWNER</h4>
+    <div id="ownerTeamManager" hidden>
+     <h4>TEAMMITGLIED / OWNER HINZUFÜGEN ODER ROLLE ÄNDERN</h4>
+     <p class="sec-note">Gib die E-Mail-Adresse eines bereits bestehenden WARVEX-Kontos ein. Neue Konten müssen sich zuerst selbst registrieren; ein E-Mail-Einladungsversand ist derzeit nicht eingerichtet.</p>
+     <label for="ownerNewMemberEmail">E-Mail-Adresse des Kontos</label>
+     <input id="ownerNewMemberEmail" type="email" maxlength="254" autocomplete="off" placeholder="name@example.com">
+     <label for="ownerNewMemberRole">Neue Rolle</label>
+     <select id="ownerNewMemberRole">
+      <option value="admin">Admin</option>
+      <option value="owner">Owner</option>
+      <option value="team_member">Teammitglied</option>
+      <option value="user">Benutzer (keine Sonderrechte)</option>
+     </select>
+     <div class="actions"><button type="button" class="primary" id="ownerAddMemberBtn">ROLLE ZUWEISEN</button></div>
+    </div>
+    <h4>ALLE BENUTZERKONTEN & OWNER-ROLLEN</h4>
     <div id="ownerUsersList" class="sec-note">Noch nicht geladen.</div>
    </div>
    <div id="ownerAuthStatus" class="status" style="margin-top:12px" role="status">OWNER-Dienst wird geprüft …</div>
@@ -2553,6 +2567,7 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
   if(!(me.events||[]).length)addText(eventBox,"Noch keine Sicherheitsereignisse.");
 
   const userBox=$o("ownerUsersList");
+  showBox("ownerTeamManager",me.owner.role==="primary_owner");
   if(userBox){
    userBox.textContent="";
    if(me.owner.role!=="primary_owner"){
@@ -2705,6 +2720,20 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
     pollHandle=setInterval(()=>refreshOwner().catch(()=>{}),30000);
    }else setStatus("Status: "+result.status+". Bitte später erneut prüfen.",false);
   }catch(e){setStatus(e.message,true);}
+ });
+ $o("ownerAddMemberBtn")?.addEventListener("click",async()=>{
+  const email=$o("ownerNewMemberEmail")?.value.trim()||"";
+  const role=$o("ownerNewMemberRole")?.value||"user";
+  if(!email){setStatus("Bitte die E-Mail-Adresse eines bestehenden WARVEX-Kontos eingeben.",true);return;}
+  const button=$o("ownerAddMemberBtn");button.disabled=true;
+  try{
+   const token=await getOwnerToken();
+   await api("/api/owner/users/role",{email,role},token);
+   $o("ownerNewMemberEmail").value="";
+   await refreshOwner();
+   setStatus("Rolle für "+email+" wurde auf "+role+" gesetzt.",false);
+  }catch(e){setStatus(e.message||String(e),true);}
+  finally{button.disabled=false;}
  });
  $o("ownerRunTestsBtn")?.addEventListener("click",async()=>{
   const output=$o("ownerFunctionTests"),button=$o("ownerRunTestsBtn");
