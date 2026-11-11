@@ -225,9 +225,43 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
 @keyframes secFlash{50%{background:#6d071df5}}
 @media(max-width:620px){.sec-grid{grid-template-columns:1fr}}
 
+
+/* Öffentliche WARVEX-Kontoanmeldung */
+#userAuthGate{position:fixed;inset:0;z-index:100001;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(3,6,12,.96);backdrop-filter:blur(12px)}
+#userAuthGate[hidden]{display:none!important}
+#userAuthGate .auth-card{width:min(100%,430px);background:#141b27;border:1px solid #39475c;border-radius:18px;padding:22px;box-shadow:0 22px 70px #000b}
+#userAuthGate h2{color:#ff5268;font-size:23px;letter-spacing:1px;margin:0 0 7px}
+#userAuthGate label{display:block;color:#c9d3e0;font-size:13px;margin-top:10px}
+#userAuthGate .auth-note{font-size:12px;line-height:1.55;color:#aab5c4;margin:10px 0}
+#userAuthGate .auth-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}
+#userAuthGate .auth-actions button{width:100%}
+#userAuthMessage{min-height:20px;margin-top:12px;font-size:13px;color:#ffd27a;overflow-wrap:anywhere}
+#userSessionBadge{font-size:12px;color:#cbd5e1}
+#userLogoutBtn{padding:8px 10px;font-size:12px}
+body:not(.user-authenticated) #userSessionBadge,body:not(.user-authenticated) #userLogoutBtn{display:none}
+#ownerUsersList select{max-width:180px;margin:6px 8px 6px 0}
+#ownerUsersList .owner-user-row{padding:9px 0;border-bottom:1px solid #ffffff20;overflow-wrap:anywhere}
+
 </style>
 </head>
 <body>
+<div id="userAuthGate" role="dialog" aria-modal="true" aria-labelledby="userAuthTitle">
+ <div class="auth-card">
+  <div style="font-size:11px;font-weight:900;letter-spacing:2px;color:#aab5c4;margin-bottom:9px">WARVEX SYSTEMS · PUBLIC ACCOUNT</div>
+  <h2 id="userAuthTitle">WILLKOMMEN BEI WARVEX</h2>
+  <p class="auth-note">Melde dich an oder erstelle kostenlos ein Konto. Neue Konten erhalten automatisch die Rolle <strong>Benutzer</strong>.</p>
+  <label for="userAuthEmail">E-Mail-Adresse</label>
+  <input id="userAuthEmail" type="email" autocomplete="username" maxlength="254" placeholder="name@example.com">
+  <label for="userAuthPassword">Passwort · mindestens 12 Zeichen</label>
+  <input id="userAuthPassword" type="password" autocomplete="current-password" minlength="12" maxlength="128" placeholder="Dein Passwort">
+  <div class="auth-actions">
+   <button id="userAuthSubmit" type="button" class="primary">ANMELDEN</button>
+   <button id="userAuthSwitch" type="button">KONTO ERSTELLEN</button>
+  </div>
+  <div id="userAuthMessage" role="status">Bitte melde dich an, um WARVEX zu öffnen.</div>
+  <p class="auth-note">Hinweis: Die E-Mail-Adresse wird derzeit noch nicht per Bestätigungslink verifiziert. Sie wird deshalb im Konto als „nicht bestätigt“ markiert. Verwende kein Passwort, das du an anderer Stelle nutzt.</p>
+ </div>
+</div>
 
 <header>
   <div class="header-top">
@@ -240,7 +274,7 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
       </div>
     </div>
   </div>
-  <div class="header-tools"><button id="installAppBtn" type="button" hidden>WARVEX INSTALLIEREN</button><span id="installHelp">Installierbare Web-App · Chrome-Menü → „App installieren“, falls kein Button erscheint.</span></div>
+  <div class="header-tools"><button id="installAppBtn" type="button" hidden>WARVEX INSTALLIEREN</button><span id="installHelp">Installierbare Web-App · Chrome-Menü → „App installieren“, falls kein Button erscheint.</span><span id="userSessionBadge" aria-live="polite"></span><button id="userLogoutBtn" type="button">ABMELDEN</button></div>
 </header>
 
 <nav>
@@ -695,6 +729,8 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
     <div id="ownerDevicesList" class="sec-note">Noch nicht geladen.</div>
     <h4>SICHERHEITSPROTOKOLL</h4>
     <div id="ownerEventsList" class="sec-note">Noch nicht geladen.</div>
+    <h4>BENUTZERROLLEN · NUR HAUPT-OWNER</h4>
+    <div id="ownerUsersList" class="sec-note">Noch nicht geladen.</div>
    </div>
    <div id="ownerAuthStatus" class="status" style="margin-top:12px" role="status">OWNER-Dienst wird geprüft …</div>
   </div>
@@ -2429,7 +2465,7 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
 <script>
 (function(){
  "use strict";
- const API="https://warvex-systems-v6.dustina952.workers.dev";
+ const API="https://warvex-ai-api.dustina952.workers.dev";
  const DB_NAME="warvex-owner-v1";
  const STORE="vault";
  const $o=id=>document.getElementById(id);
@@ -2582,6 +2618,41 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
    addText(eventBox,date+" · "+item.action);
   });
   if(!(me.events||[]).length)addText(eventBox,"Noch keine Sicherheitsereignisse.");
+
+  const userBox=$o("ownerUsersList");
+  if(userBox){
+   userBox.textContent="";
+   if(me.owner.role!=="primary_owner"){
+    addText(userBox,"Nur der Haupt-Owner darf Benutzerrollen ändern.");
+   }else{
+    try{
+     const userData=await api("/api/owner/users",null,token);
+     if(!userData.users.length)addText(userBox,"Noch keine registrierten Benutzerkonten.");
+     userData.users.forEach(user=>{
+      const line=document.createElement("div");line.className="owner-user-row";
+      const heading=document.createElement("div");
+      heading.textContent=user.email+" · "+(user.role==="admin"?"Admin":user.role==="team_member"?"Teammitglied":"Benutzer")+(user.email_verified_at?"":" · E-Mail nicht bestätigt");
+      line.appendChild(heading);
+      const select=document.createElement("select");
+      [["user","Benutzer"],["team_member","Teammitglied"],["admin","Admin"]].forEach(([value,label])=>{
+       const option=document.createElement("option");option.value=value;option.textContent=label;select.appendChild(option);
+      });
+      select.value=user.role;
+      const save=actionButton("ROLLE SPEICHERN",async()=>{
+       try{
+        save.disabled=true;
+        await api("/api/owner/users/role",{email:user.email,role:select.value},token);
+        setStatus("Rolle für "+user.email+" wurde aktualisiert.",false);
+        await refreshOwner();
+       }catch(e){setStatus(e.message,true);}
+       finally{save.disabled=false;}
+      });
+      line.appendChild(select);line.appendChild(save);userBox.appendChild(line);
+     });
+    }catch(e){addText(userBox,"Benutzerliste konnte nicht geladen werden: "+e.message);}
+   }
+  }
+
  }
  async function init(){
   updateOwnerPanelVisibility();
@@ -2688,6 +2759,90 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
    showBox("ownerSessionBox",false);showBox("ownerLoginBox",true);
    setStatus("OWNER wurde auf diesem Gerät abgemeldet.",false);
   }catch(e){setStatus(e.message,true);}
+ });
+ init();
+})();
+</script>
+
+
+<script>
+(function(){
+ "use strict";
+ const API="https://warvex-ai-api.dustina952.workers.dev";
+ const TOKEN_KEY="warvex-public-session-v1";
+ const $=id=>document.getElementById(id);
+ let mode="login";
+ let busy=false;
+ function token(){try{return localStorage.getItem(TOKEN_KEY)||"";}catch(e){return "";}}
+ function setToken(value){try{if(value)localStorage.setItem(TOKEN_KEY,value);else localStorage.removeItem(TOKEN_KEY);}catch(e){}}
+ function message(text,error){
+  const el=$("userAuthMessage");
+  if(el){el.textContent=text;el.style.color=error?"#ff8b98":"#ffd27a";}
+ }
+ function setMode(next){
+  mode=next;
+  $("userAuthTitle").textContent=mode==="login"?"WILLKOMMEN BEI WARVEX":"WARVEX-KONTO ERSTELLEN";
+  $("userAuthSubmit").textContent=mode==="login"?"ANMELDEN":"KONTO ERSTELLEN";
+  $("userAuthSwitch").textContent=mode==="login"?"KONTO ERSTELLEN":"ZUR ANMELDUNG";
+  $("userAuthPassword").autocomplete=mode==="login"?"current-password":"new-password";
+  message(mode==="login"?"Bitte melde dich mit deinem Konto an.":"Neues Konto: mindestens 12 Zeichen für das Passwort.",false);
+ }
+ function showUser(user){
+  document.body.classList.add("user-authenticated");
+  $("userAuthGate").hidden=true;
+  const badge=$("userSessionBadge");
+  if(badge)badge.textContent=user.email+" · "+(user.roleLabel||"Benutzer");
+ }
+ async function request(path,body,auth){
+  const headers={"Content-Type":"application/json"};
+  if(auth)headers.Authorization="Bearer "+auth;
+  const response=await fetch(API+path,{method:body?"POST":"GET",headers,body:body?JSON.stringify(body):undefined,cache:"no-store"});
+  let data={};try{data=await response.json();}catch(e){}
+  if(!response.ok||data.success===false)throw new Error(data.error||("HTTP "+response.status));
+  return data;
+ }
+ async function submit(){
+  if(busy)return;
+  const email=$("userAuthEmail").value.trim();
+  const password=$("userAuthPassword").value;
+  if(!email||!password){message("Bitte E-Mail und Passwort eingeben.",true);return;}
+  if(mode==="register"&&password.length<12){message("Das Passwort muss mindestens 12 Zeichen haben.",true);return;}
+  busy=true;$("userAuthSubmit").disabled=true;
+  try{
+   message(mode==="login"?"Anmeldung wird geprüft …":"Konto wird erstellt …",false);
+   const data=await request(mode==="login"?"/api/auth/login":"/api/auth/register",{email,password});
+   setToken(data.sessionToken);
+   $("userAuthPassword").value="";
+   showUser(data.user);
+   message("Angemeldet als "+data.user.roleLabel+".",false);
+  }catch(e){message(e.message,true);}
+  finally{busy=false;$("userAuthSubmit").disabled=false;}
+ }
+ async function init(){
+  const saved=token();
+  if(saved){
+   try{
+    const data=await request("/api/auth/me",null,saved);
+    showUser(data.user);
+    return;
+   }catch(e){setToken("");}
+  }
+  $("userAuthGate").hidden=false;
+  setMode("login");
+ }
+ $("userAuthSubmit")?.addEventListener("click",submit);
+ $("userAuthSwitch")?.addEventListener("click",()=>setMode(mode==="login"?"register":"login"));
+ $("userAuthPassword")?.addEventListener("keydown",e=>{if(e.key==="Enter")submit();});
+ $("userAuthEmail")?.addEventListener("keydown",e=>{if(e.key==="Enter")$("userAuthPassword").focus();});
+ $("userLogoutBtn")?.addEventListener("click",async()=>{
+  const saved=token();
+  try{if(saved)await request("/api/auth/logout",{},saved);}catch(e){}
+  setToken("");
+  document.body.classList.remove("user-authenticated");
+  $("userAuthGate").hidden=false;
+  $("userAuthPassword").value="";
+  setMode("login");
+  message("Du wurdest abgemeldet.",false);
  });
  init();
 })();
