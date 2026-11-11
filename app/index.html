@@ -2609,13 +2609,15 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
   try{
    setStatus("Sichere Owner-Einrichtung läuft …",false);
    const key=await deviceKey();
+   const publicToken=(()=>{try{return localStorage.getItem("warvex-public-session-v1")||"";}catch(e){return "";}})();
+   if(!publicToken)throw new Error("Bitte zuerst mit deinem festgelegten WARVEX-Konto anmelden.");
    const result=await api("/api/owner/bootstrap",{
     email:$o("ownerSetupEmail").value.trim(),
     password:$o("ownerSetupPassword").value,
     bootstrapCode:$o("ownerBootstrapCode").value,
     publicKey:key.publicKey,
     deviceLabel:deviceLabel()
-   });
+   },publicToken);
    await setSession(result.sessionToken);await refreshOwner();
    $o("ownerSetupPassword").value="";$o("ownerBootstrapCode").value="";
    showBox("ownerSetupBox",false);
