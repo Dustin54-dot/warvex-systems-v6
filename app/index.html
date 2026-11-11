@@ -256,6 +256,7 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
   <button data-page="notes">NOTIZEN</button>
   <button data-page="home">SMART HOME</button>
   <button data-page="tracking" id="trackingNav" hidden>TRACKING</button>
+  <button type="button" id="ownerNavButton" hidden aria-label="Geschützten OWNER-Bereich öffnen">OWNER</button>
 </nav>
 
 <main>
@@ -649,9 +650,9 @@ footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
    </div>
   </div>
   <div class="sec-panel" style="margin-top:12px">
-   <h3>HAUPT-OWNER</h3>
-   <p class="sec-note">Öffne hier die geschützte OWNER-Anmeldung, Gerätefreigaben und das Sicherheitsprotokoll.</p>
-   <div class="actions"><button type="button" class="primary" id="ownerOpenBtn">OWNER-BEREICH ÖFFNEN</button></div>
+   <h3>OWNER-ANMELDUNG</h3>
+   <p class="sec-note">Die Anmeldung und Ersteinrichtung sind hier erreichbar. Nach erfolgreicher Anmeldung erscheint oben die separate OWNER-Schaltfläche.</p>
+   <div class="actions"><button type="button" class="primary" id="ownerOpenBtn">OWNER ANMELDEN / EINRICHTEN</button></div>
   </div>
   <div class="sec-panel" style="margin-top:12px" id="ownerAccessPanel" hidden>
    <h3>OWNER-ZUGANG & SICHERHEITSPOSTFACH</h3>
@@ -2434,11 +2435,17 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
  const $o=id=>document.getElementById(id);
  function updateOwnerPanelVisibility(){
   const panel=$o("ownerAccessPanel");
+  const navButton=$o("ownerNavButton");
+  const authenticated=!!panel&&panel.dataset.authenticated==="true";
+  if(navButton)navButton.hidden=!authenticated;
   if(!panel)return;
   const ownerRoute=window.location.hash==="#owner";
-  panel.hidden=!(ownerRoute||panel.dataset.authenticated==="true");
+  panel.hidden=!(ownerRoute||authenticated);
   if(ownerRoute)showPage("security");
  }
+ $o("ownerNavButton")?.addEventListener("click",()=>{
+  if($o("ownerAccessPanel")?.dataset.authenticated==="true")window.location.hash="owner";
+ });
  window.addEventListener("hashchange",updateOwnerPanelVisibility);
  let currentDeviceId=null;
  let pollHandle=null;
@@ -2525,7 +2532,7 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
  }
  async function setSession(token){
   await vaultSet("sessionToken",token);
-  const panel=$o("ownerAccessPanel");if(panel)panel.dataset.authenticated="true";
+  const panel=$o("ownerAccessPanel");if(panel)delete panel.dataset.authenticated;
   updateOwnerPanelVisibility();
   showBox("ownerSetupBox",false);showBox("ownerLoginBox",false);showBox("ownerPendingBox",false);showBox("ownerSessionBox",true);
  }
@@ -2539,6 +2546,15 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
   const token=await vaultGet("sessionToken");
   if(!token)throw new Error("Keine Owner-Sitzung vorhanden.");
   const me=await api("/api/owner/me",null,token);
+  const role=String(me.owner?.role||"").toLowerCase();
+  const allowedRoles=["primary_owner","main_owner","owner","admin","administrator"];
+  if(!allowedRoles.includes(role)){
+   const panel=$o("ownerAccessPanel");if(panel)delete panel.dataset.authenticated;
+   updateOwnerPanelVisibility();
+   throw new Error("Dieses Konto besitzt keine Admin- oder OWNER-Berechtigung.");
+  }
+  const panel=$o("ownerAccessPanel");if(panel)panel.dataset.authenticated="true";
+  updateOwnerPanelVisibility();
   currentDeviceId=me.currentDeviceId;
   $o("ownerSessionEmail").textContent=me.owner.email+" · "+me.owner.role;
   const reqs=await api("/api/owner/requests",null,token);
