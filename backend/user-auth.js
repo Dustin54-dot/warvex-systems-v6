@@ -169,7 +169,7 @@ export async function handleUserAuth(request, env) {
           id: account.id,
           email: account.email,
           role: account.role,
-          roleLabel: account.role === "admin" ? "Admin" : account.role === "team_member" ? "Teammitglied" : "Benutzer",
+          roleLabel: account.role === "primary_owner" ? "Haupt-Owner" : account.role === "owner" ? "Owner" : account.role === "admin" ? "Admin" : account.role === "team_member" ? "Teammitglied" : "Benutzer",
           emailVerified: !!account.email_verified_at
         }
       });
@@ -184,7 +184,7 @@ export async function handleUserAuth(request, env) {
           id: session.account_id,
           email: session.email,
           role: session.role,
-          roleLabel: session.role === "admin" ? "Admin" : session.role === "team_member" ? "Teammitglied" : "Benutzer",
+          roleLabel: session.role === "primary_owner" ? "Haupt-Owner" : session.role === "owner" ? "Owner" : session.role === "admin" ? "Admin" : session.role === "team_member" ? "Teammitglied" : "Benutzer",
           emailVerified: !!session.email_verified_at
         }
       });
