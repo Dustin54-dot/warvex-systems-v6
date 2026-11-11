@@ -735,12 +735,6 @@ body:not(.user-authenticated) #userSessionBadge,body:not(.user-authenticated) #u
    <div id="ownerAuthStatus" class="status" style="margin-top:12px" role="status">OWNER-Dienst wird geprüft …</div>
   </div>
   <div class="sec-panel" style="margin-top:12px">
-   <h3>LOKALER ALARMTEST</h3>
-   <p class="sec-note">Dieser Alarmtest läuft nur auf diesem geöffneten Gerät. Er ist keine echte Push-Benachrichtigung und meldet keine fremden Aktivitäten.</p>
-   <div class="sec-alert-demo" id="secDemoAlert" role="status"><strong>TESTWARNUNG · NUR SIMULATION</strong><p>Beispiel: Eine lokale Testwarnung wurde ausgelöst. Das ist kein Beweis für eine Straftat.</p></div>
-   <div class="actions"><button type="button" class="primary" id="secTestAlertBtn">TESTWARNUNG ANZEIGEN</button><button type="button" id="secHideAlertBtn">AUSBLENDEN</button></div>
-  </div>
-  <div class="sec-panel" style="margin-top:12px">
    <h3>WANN SOLL WARVEX PRÜFEN?</h3>
    <p class="sec-note">Sicherheitsprüfung soll auf konkrete Hinweise auf sexuelle Ausbeutung oder Missbrauch von Minderjährigen, sexuelle Gewalt oder Zwang, konkrete Gewalt-/Straftatplanung und schwere Missbrauchsversuche reagieren. Sachliche Aufklärung, Nachrichten, Präventionsfragen, Hilfeersuchen oder eine Aussage über ein erlittenes Unrecht dürfen nicht automatisch als Täterverhalten eingestuft werden. Ein Treffer wäre nur ein Prüfhinweis, kein Schuldurteil.</p>
   </div>
@@ -750,20 +744,6 @@ body:not(.user-authenticated) #userSessionBadge,body:not(.user-authenticated) #u
 
 </main>
 
-<div id="secOwnerAlarm" role="alertdialog" aria-modal="true" aria-labelledby="secAlarmTitle">
- <div class="sec-alarm-card">
-  <div style="font-size:12px;font-weight:900;letter-spacing:1.5px;color:#ffd27a">WARVEX · SECURITY OWNER-TEST</div>
-  <h2 id="secAlarmTitle">VERSTOSS IM SYSTEM FESTGESTELLT</h2>
-  <p style="font-size:13px;line-height:1.5">TESTWARNUNG – dies ist nur eine Simulation. Es wurde keine echte Person erkannt und kein Vorfall gemeldet.</p>
-  <div class="sec-alarm-row"><b>Ereignis-ID:</b> <span id="secAlarmEventId">DEMO-000000</span></div>
-  <div class="sec-alarm-row"><b>Risikokategorie:</b> <span>Beispiel: schwerer Sicherheitsverstoß</span></div>
-  <div class="sec-alarm-row"><b>Name:</b> <span>Demo-Konto (fiktiv)</span></div>
-  <div class="sec-alarm-row"><b>E-Mail:</b> <span>demo@example.invalid (keine echte Adresse)</span></div>
-  <div class="sec-alarm-row"><b>Personen-ID:</b> <span>DEMO-USER-001 (fiktiv)</span></div>
-  <div class="sec-alarm-row"><b>Status:</b> <span>Nur Test · keine Rückverfolgung · keine Polizei-Meldung</span></div>
-  <button type="button" id="secAlarmAck">TESTWARNUNG SCHLIESSEN</button>
- </div>
-</div>
 <footer>WARVEX SYSTEMS V6 · Web-App</footer>
 
 <script>
@@ -2391,75 +2371,7 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
 </script>
 
 
-<script>
-(()=>{
- "use strict";
- const $=id=>document.getElementById(id);
- const https=$("secHttps"),pill=$("secOverallPill");
- if(https){https.textContent=window.isSecureContext?"AKTIV":"NICHT AKTIV";https.classList.add(window.isSecureContext?"good":"off");}
- if(pill)pill.textContent=window.isSecureContext?"● BASIS-CHECK · TEILSCHUTZ":"● VERBINDUNG PRÜFEN";
- let alarmAudio=null,beepLoop=null,voiceLoop=null,alarmActive=false;
- function playUrgentPattern(){
-  try{
-   const AudioCtx=window.AudioContext||window.webkitAudioContext;
-   if(!AudioCtx)return;
-   alarmAudio=alarmAudio||new AudioCtx();
-   if(alarmAudio.state==="suspended")alarmAudio.resume();
-   const base=alarmAudio.currentTime;
-   // Eigene, wiederholte Cybersecurity-Warnfolge – kein nachgeahmter Schul-/Notfallalarm.
-   [760,1040,760,1040].forEach((hz,index)=>{
-    const at=base+index*.24;
-    const osc=alarmAudio.createOscillator(),gain=alarmAudio.createGain();
-    osc.type="triangle";osc.frequency.value=hz;
-    gain.gain.setValueAtTime(.0001,at);
-    gain.gain.exponentialRampToValueAtTime(.12,at+.025);
-    gain.gain.setValueAtTime(.12,at+.13);
-    gain.gain.exponentialRampToValueAtTime(.0001,at+.18);
-    osc.connect(gain);gain.connect(alarmAudio.destination);
-    osc.start(at);osc.stop(at+.19);
-   });
-  }catch(e){console.warn("SECURITY-Warnton nicht verfügbar:",e);}
- }
- function speakWarning(){
-  if(!alarmActive||!("speechSynthesis" in window))return;
-  try{
-   speechSynthesis.cancel();
-   const u=new SpeechSynthesisUtterance("Achtung. WARVEX Sicherheitswarnung. Verdächtiger Inhalt erkannt. Prüfung erforderlich. Dies ist ein Testalarm.");
-   u.lang="de-DE";u.rate=.9;u.volume=1;
-   speechSynthesis.speak(u);
-  }catch(e){console.warn("SECURITY-Sprachausgabe nicht verfügbar:",e);}
- }
- function startAlarm(){
-  if(alarmActive)return;
-  alarmActive=true;
-  const overlay=$("secOwnerAlarm");
-  if(overlay)overlay.classList.add("active");
-  playUrgentPattern();
-  beepLoop=window.setInterval(playUrgentPattern,1550);
-  speakWarning();
-  voiceLoop=window.setInterval(speakWarning,11000);
- }
- function stopAlarm(){
-  alarmActive=false;
-  if(beepLoop!==null){clearInterval(beepLoop);beepLoop=null;}
-  if(voiceLoop!==null){clearInterval(voiceLoop);voiceLoop=null;}
-  $("secOwnerAlarm")?.classList.remove("active");
-  if("speechSynthesis" in window)speechSynthesis.cancel();
- }
- $("secTestAlertBtn")?.addEventListener("click",()=>{
-  $("secDemoAlert")?.classList.add("visible");
-  if($("secAlarmEventId"))$("secAlarmEventId").textContent="DEMO-"+Date.now().toString().slice(-8);
-  startAlarm();
- });
- $("secAlarmAck")?.addEventListener("click",stopAlarm);
- $("secHideAlertBtn")?.addEventListener("click",()=>{
-  $("secDemoAlert")?.classList.remove("visible");
-  stopAlarm();
- });
- document.addEventListener("keydown",e=>{if(e.key==="Escape")stopAlarm();});
- window.addEventListener("pagehide",stopAlarm);
-})();
-</script>>
+>
 
 
 <script>
