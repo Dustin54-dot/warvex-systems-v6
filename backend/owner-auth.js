@@ -149,6 +149,26 @@ async function requireOwner(request, env) {
   return { session };
 }
 
+async function recordPrimaryOwnerAttempt(env, primaryOwnerEmail, now) {
+  if (!primaryOwnerEmail) return;
+  const account = await env.DB.prepare(
+    "SELECT id FROM app_accounts WHERE email=? COLLATE NOCASE AND status='active' LIMIT 1"
+  ).bind(primaryOwnerEmail).first();
+  if (!account) return;
+  const eventKey = "primary-owner-attempt:" + Math.floor(now / 300000);
+  await env.DB.prepare(
+    "INSERT OR IGNORE INTO app_notifications (id,account_id,kind,title,message,created_at,event_key) VALUES (?,?,?,?,?,?,?)"
+  ).bind(
+    crypto.randomUUID(),
+    account.id,
+    "primary_owner_attempt",
+    "Versuch der Haupt-Owner-Einrichtung",
+    "WARVEX hat einen Versuch erkannt, die Haupt-Owner-Ersteinrichtung aufzurufen. Es wurden dadurch keine Rechte vergeben.",
+    now,
+    eventKey
+  ).run();
+}
+
 export async function handleOwnerAuth(request, env) {
   const url = new URL(request.url);
   if (!url.pathname.startsWith("/api/owner/")) return null;
@@ -178,7 +198,25 @@ export async function handleOwnerAuth(request, env) {
       return ownerJson({ success: true, initialized: !!owner });
     }
 
+    if (path === "/api/owner/eligibility" && request.method === "GET") {
+      const header = request.headers.get("Authorization") || "";
+      const publicToken = header.startsWith("Bearer ") ? header.slice(7) : "";
+      if (publicToken.length < 30 || publicToken.length > 200 || !primaryOwnerEmail) {
+        return ownerJson({ success: true, eligible: false });
+      }
+      const account = await env.DB.prepare(
+        "SELECT a.id,a.email FROM app_user_sessions s JOIN app_accounts a ON a.id=s.account_id " +
+        "WHERE s.token_hash=? AND s.revoked_at IS NULL AND s.expires_at>? AND a.status='active'"
+      ).bind(await sha(publicToken), now).first();
+      const existing = await env.DB.prepare(
+        "SELECT id FROM owner_accounts WHERE role='primary_owner' AND status='active' LIMIT 1"
+      ).first();
+      const eligible = !!account && account.email.toLowerCase() === primaryOwnerEmail && !existing;
+      return ownerJson({ success: true, eligible });
+    }
+
     if (path === "/api/owner/bootstrap" && request.method === "POST") {
+      await recordPrimaryOwnerAttempt(env, primaryOwnerEmail, now);
       const body = await readBody(request);
       const email = String(body.email || "").trim().toLowerCase();
       const password = body.password;
