@@ -2424,7 +2424,7 @@ function showAlarm(event){
   }
   $("wxAlarmOverlay").classList.add("active");
   beep();stopBeeps();beepTimer=setInterval(beep,2200);
-  if(typeof say==="function")say("Achtung! Dustin braucht Hilfe! Ein WARVEX-Testalarm wurde ausgelöst. Dies ist kein echter Notruf.").catch(()=>{});
+  if(typeof say==="function")say("Achtung! Dustin braucht Hilfe! Eine interne WARVEX-SOS-Meldung wurde ausgelöst. Dies ist kein Notruf an 112.").catch(()=>{});
 }
 async function pollAlarm(){
   const connection=(typeof getUniversalPairs==="function"&&getUniversalPairs()[0])|| (typeof phoneWriteConnection==="function"?phoneWriteConnection():null);
