@@ -290,7 +290,7 @@ body:not(.user-authenticated) #userSessionBadge,body:not(.user-authenticated) #u
   <button data-page="notes">NOTIZEN</button>
   <button data-page="home">SMART HOME</button>
   <button data-page="tracking" id="trackingNav" hidden>TRACKING</button>
-  <button type="button" id="ownerNavButton" hidden aria-label="Geschützten OWNER-Bereich öffnen">OWNER</button>
+  <button type="button" id="ownerNavButton" data-page="owner" hidden aria-label="Geschützten OWNER-Bereich öffnen">OWNER</button>
 </nav>
 
 <main>
@@ -693,7 +693,20 @@ body:not(.user-authenticated) #userSessionBadge,body:not(.user-authenticated) #u
    <p class="sec-note">Die Anmeldung und Ersteinrichtung sind hier erreichbar. Nach erfolgreicher Anmeldung erscheint oben die separate OWNER-Schaltfläche.</p>
    <div class="actions"><button type="button" class="primary" id="ownerOpenBtn">OWNER ANMELDEN / EINRICHTEN</button></div>
   </div>
-  <div class="sec-panel" style="margin-top:12px" id="ownerAccessPanel" hidden>
+  <div class="sec-panel" style="margin-top:12px">
+   <h3>WANN SOLL WARVEX PRÜFEN?</h3>
+   <p class="sec-note">Sicherheitsprüfung soll auf konkrete Hinweise auf sexuelle Ausbeutung oder Missbrauch von Minderjährigen, sexuelle Gewalt oder Zwang, konkrete Gewalt-/Straftatplanung und schwere Missbrauchsversuche reagieren. Sachliche Aufklärung, Nachrichten, Präventionsfragen, Hilfeersuchen oder eine Aussage über ein erlittenes Unrecht dürfen nicht automatisch als Täterverhalten eingestuft werden. Ein Treffer wäre nur ein Prüfhinweis, kein Schuldurteil.</p>
+  </div>
+  <p class="sec-note" style="margin-top:12px">Datenschutz-Grundsatz: möglichst nur Kategorie, Zeitpunkt und technische Ereignis-ID speichern – keine vollständigen Chattexte oder unnötigen personenbezogenen Daten. Nutzer müssen vor einer solchen Verarbeitung klar informiert werden.</p>
+ </div>
+</section>
+
+
+<section id="owner" class="page">
+ <div class="card">
+  <h2>⬡ WARVEX OWNER-ZENTRALE</h2>
+  <p class="muted">Geschützter Verwaltungsbereich. Sichtbar nur für angemeldete Owner und Admins.</p>
+    <div class="sec-panel" style="margin-top:12px" id="ownerAccessPanel" hidden>
    <h3>OWNER-ZUGANG & SICHERHEITSPOSTFACH</h3>
    <p class="sec-note">Geschützter Owner-Bereich. Die erste Einrichtung benötigt einen einmaligen Einrichtungscode. Neue Browser-Geräte müssen von einem bereits angemeldeten Owner-Gerät freigegeben werden.</p>
    <div id="ownerSetupBox" hidden>
@@ -741,13 +754,13 @@ body:not(.user-authenticated) #userSessionBadge,body:not(.user-authenticated) #u
    <div id="ownerAuthStatus" class="status" style="margin-top:12px" role="status">OWNER-Dienst wird geprüft …</div>
   </div>
   <div class="sec-panel" style="margin-top:12px">
-   <h3>WANN SOLL WARVEX PRÜFEN?</h3>
-   <p class="sec-note">Sicherheitsprüfung soll auf konkrete Hinweise auf sexuelle Ausbeutung oder Missbrauch von Minderjährigen, sexuelle Gewalt oder Zwang, konkrete Gewalt-/Straftatplanung und schwere Missbrauchsversuche reagieren. Sachliche Aufklärung, Nachrichten, Präventionsfragen, Hilfeersuchen oder eine Aussage über ein erlittenes Unrecht dürfen nicht automatisch als Täterverhalten eingestuft werden. Ein Treffer wäre nur ein Prüfhinweis, kein Schuldurteil.</p>
+   <h3>OWNER-FUNKTIONSTESTS</h3>
+   <p class="sec-note">Die Tests prüfen Erreichbarkeit, Anmeldung, Geräteverwaltung, Sicherheitsprotokoll und Benutzerverwaltung. Es werden keine Rollen geändert, Geräte widerrufen oder Anfragen freigegeben.</p>
+   <div class="actions"><button type="button" class="primary" id="ownerRunTestsBtn">ALLE OWNER-FUNKTIONEN TESTEN</button></div>
+   <div id="ownerFunctionTests" class="sec-note" aria-live="polite">Noch kein Test durchgeführt.</div>
   </div>
-  <p class="sec-note" style="margin-top:12px">Datenschutz-Grundsatz: möglichst nur Kategorie, Zeitpunkt und technische Ereignis-ID speichern – keine vollständigen Chattexte oder unnötigen personenbezogenen Daten. Nutzer müssen vor einer solchen Verarbeitung klar informiert werden.</p>
  </div>
 </section>
-
 </main>
 
 <footer>WARVEX SYSTEMS V6 · Web-App</footer>
@@ -2392,15 +2405,11 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
   const navButton=$o("ownerNavButton");
   const authenticated=!!panel&&panel.dataset.authenticated==="true";
   if(navButton)navButton.hidden=!authenticated;
-  if(!panel)return;
-  const ownerRoute=window.location.hash==="#owner";
-  panel.hidden=!(ownerRoute||authenticated);
-  if(ownerRoute)showPage("security");
+  if(panel)panel.hidden=!authenticated;
  }
  $o("ownerNavButton")?.addEventListener("click",()=>{
-  if($o("ownerAccessPanel")?.dataset.authenticated==="true")window.location.hash="owner";
+  if($o("ownerAccessPanel")?.dataset.authenticated==="true")showPage("owner");
  });
- window.addEventListener("hashchange",updateOwnerPanelVisibility);
  let currentDeviceId=null;
  let pollHandle=null;
 
@@ -2496,9 +2505,14 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
  function actionButton(label,callback){
   const button=document.createElement("button");button.type="button";button.textContent=label;button.addEventListener("click",callback);return button;
  }
- async function refreshOwner(){
-  const token=await vaultGet("sessionToken");
-  if(!token)throw new Error("Keine Owner-Sitzung vorhanden.");
+ async function getOwnerToken(){
+  const stored=await vaultGet("sessionToken");
+  if(stored)return stored;
+  try{return localStorage.getItem("warvex-public-session-v1")||"";}catch(e){return "";}
+ }
+ async function refreshOwner(tokenOverride){
+  const token=tokenOverride||await getOwnerToken();
+  if(!token)throw new Error("Keine Owner- oder Admin-Sitzung vorhanden.");
   const me=await api("/api/owner/me",null,token);
   const role=String(me.owner?.role||"").toLowerCase();
   const allowedRoles=["primary_owner","main_owner","owner","admin","administrator"];
@@ -2549,10 +2563,10 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
      userData.users.forEach(user=>{
       const line=document.createElement("div");line.className="owner-user-row";
       const heading=document.createElement("div");
-      heading.textContent=user.email+" · "+(user.role==="admin"?"Admin":user.role==="team_member"?"Teammitglied":"Benutzer")+(user.email_verified_at?"":" · E-Mail nicht bestätigt");
+      heading.textContent=user.email+" · "+(user.role==="primary_owner"?"Haupt-Owner":user.role==="owner"?"Owner":user.role==="admin"?"Admin":user.role==="team_member"?"Teammitglied":"Benutzer")+(user.email_verified_at?"":" · E-Mail nicht bestätigt");
       line.appendChild(heading);
       const select=document.createElement("select");
-      [["user","Benutzer"],["team_member","Teammitglied"],["admin","Admin"]].forEach(([value,label])=>{
+      [["user","Benutzer"],["team_member","Teammitglied"],["admin","Admin"],["owner","Owner"]].forEach(([value,label])=>{
        const option=document.createElement("option");option.value=value;option.textContent=label;select.appendChild(option);
       });
       select.value=user.role;
@@ -2579,14 +2593,17 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
    const status=await api("/api/owner/status",null,null);
    const publicToken=(()=>{try{return localStorage.getItem("warvex-public-session-v1")||"";}catch(e){return "";}})();
    const eligibility=publicToken?await api("/api/owner/eligibility",null,publicToken):{eligible:false};
-   const token=await vaultGet("sessionToken");
+   const storedOwnerToken=await vaultGet("sessionToken");
+   const publicRoleToken=(()=>{try{return localStorage.getItem("warvex-public-session-v1")||"";}catch(e){return "";}})();
+   const token=storedOwnerToken||publicRoleToken;
    if(token){
     try{
-     await setSession(token);await refreshOwner();setStatus("OWNER angemeldet. Sicherheitsfach synchronisiert.",false);
+     if(storedOwnerToken)await setSession(storedOwnerToken);
+     await refreshOwner(token);setStatus("OWNER-/ADMIN-Sitzung bestätigt. Verwaltungsbereich synchronisiert.",false);
      pollHandle=setInterval(()=>refreshOwner().catch(()=>{}),30000);
      return;
     }catch(e){
-     await vaultDelete("sessionToken");
+     if(storedOwnerToken)await vaultDelete("sessionToken");
      const panel=$o("ownerAccessPanel");if(panel)delete panel.dataset.authenticated;
      updateOwnerPanelVisibility();
     }
@@ -2684,6 +2701,38 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
    }else setStatus("Status: "+result.status+". Bitte später erneut prüfen.",false);
   }catch(e){setStatus(e.message,true);}
  });
+ $o("ownerRunTestsBtn")?.addEventListener("click",async()=>{
+  const output=$o("ownerFunctionTests"),button=$o("ownerRunTestsBtn");
+  if(!output)return;
+  button.disabled=true;output.textContent="Owner-Funktionstests laufen …";
+  const rows=[];
+  const check=async(label,fn)=>{try{await fn();rows.push({label,ok:true,detail:"Erreichbar"});}catch(e){rows.push({label,ok:false,detail:e.message||String(e)});}};
+  try{
+   const token=await getOwnerToken();
+   if(!token)throw new Error("Keine Owner-/Admin-Sitzung.");
+   await check("Owner-Dienst / Status",()=>api("/api/owner/status",null,null));
+   await check("Owner-Anmeldung / Sitzung",()=>api("/api/owner/me",null,token));
+   await check("Geräteanfragen",()=>api("/api/owner/requests",null,token));
+   await check("Geräteverwaltung & Sicherheitsprotokoll",async()=>{
+    const me=await api("/api/owner/me",null,token);
+    if(!Array.isArray(me.devices)||!Array.isArray(me.events))throw new Error("Geräte- oder Protokolldaten fehlen.");
+   });
+   await check("Benutzer- und Rollenverwaltung",async()=>{
+    const data=await api("/api/owner/users",null,token);
+    if(!Array.isArray(data.users))throw new Error("Benutzerliste fehlt.");
+   });
+   output.textContent="";
+   rows.forEach(row=>{
+    const line=document.createElement("div");line.className="sec-row";
+    const name=document.createElement("span");name.textContent=row.label;
+    const result=document.createElement("strong");result.className="sec-state "+(row.ok?"good":"off");
+    result.textContent=(row.ok?"BESTANDEN":"FEHLER")+" · "+row.detail;
+    line.append(name,result);output.appendChild(line);
+   });
+   addText(output,rows.filter(x=>x.ok).length+" von "+rows.length+" Prüfungen bestanden. Schreibende Aktionen wurden nicht ausgeführt.");
+  }catch(e){output.textContent="Test konnte nicht gestartet werden: "+(e.message||String(e));}
+  finally{button.disabled=false;}
+ });
  $o("ownerRefreshBtn")?.addEventListener("click",async()=>{
   try{await refreshOwner();setStatus("Sicherheitsfach aktualisiert.",false);}catch(e){setStatus(e.message,true);}
  });
@@ -2691,8 +2740,16 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
  window.addEventListener("warvex-user-logged-out",()=>{init();});
  $o("ownerLogoutBtn")?.addEventListener("click",async()=>{
   try{
-   const token=await vaultGet("sessionToken");
-   if(token)await api("/api/owner/logout",{},token);
+   const token=await getOwnerToken();
+   const storedOwnerToken=await vaultGet("sessionToken");
+   if(storedOwnerToken&&token)await api("/api/owner/logout",{},token);
+   else if(token){
+    try{
+     await fetch(API+"/api/auth/logout",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+token},body:"{}"});
+     localStorage.removeItem("warvex-public-session-v1");
+     window.dispatchEvent(new Event("warvex-user-logged-out"));
+    }catch(e){}
+   }
    await vaultDelete("sessionToken");
    if(pollHandle)clearInterval(pollHandle);
    const panel=$o("ownerAccessPanel");if(panel)delete panel.dataset.authenticated;
