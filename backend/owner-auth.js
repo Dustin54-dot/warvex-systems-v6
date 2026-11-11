@@ -215,8 +215,39 @@ export async function handleOwnerAuth(request, env) {
       return ownerJson({ success: true, eligible });
     }
 
+    if (path === "/api/owner/bootstrap-code" && request.method === "POST") {
+      const header = request.headers.get("Authorization") || "";
+      const publicToken = header.startsWith("Bearer ") ? header.slice(7) : "";
+      const claimAccount = publicToken.length >= 30 && publicToken.length <= 200
+        ? await env.DB.prepare(
+            "SELECT a.id,a.email FROM app_user_sessions s JOIN app_accounts a ON a.id=s.account_id " +
+            "WHERE s.token_hash=? AND s.revoked_at IS NULL AND s.expires_at>? AND a.status='active'"
+          ).bind(await sha(publicToken), now).first()
+        : null;
+      if (!claimAccount || claimAccount.email.toLowerCase() !== primaryOwnerEmail) {
+        await recordPrimaryOwnerAttempt(env, primaryOwnerEmail, now);
+        return ownerJson({ success: false, error: "Nur das angemeldete festgelegte Hauptkonto darf einen Einrichtungscode anfordern." }, 403);
+      }
+      const existing = await env.DB.prepare(
+        "SELECT id FROM owner_accounts WHERE role='primary_owner' AND status='active' LIMIT 1"
+      ).first();
+      if (existing) return ownerJson({ success: false, error: "Der Haupt-OWNER wurde bereits eingerichtet." }, 409);
+      const liveCode = await env.DB.prepare(
+        "SELECT token_hash FROM owner_bootstrap_tokens WHERE email=? COLLATE NOCASE AND consumed_at IS NULL AND expires_at>? LIMIT 1"
+      ).bind(primaryOwnerEmail, now).first();
+      if (liveCode) return ownerJson({ success: false, error: "Es gibt bereits einen gültigen Einrichtungscode. Nutze ihn oder warte, bis er abläuft." }, 409);
+      await env.DB.prepare(
+        "DELETE FROM owner_bootstrap_tokens WHERE email=? COLLATE NOCASE AND (consumed_at IS NOT NULL OR expires_at<=?)"
+      ).bind(primaryOwnerEmail, now).run();
+      const bootstrapCode = randomToken(32);
+      const expiresAt = now + 5 * 60 * 1000;
+      await env.DB.prepare(
+        "INSERT INTO owner_bootstrap_tokens (token_hash,email,created_at,expires_at,consumed_at) VALUES (?,?,?,?,NULL)"
+      ).bind(await sha(bootstrapCode), primaryOwnerEmail, now, expiresAt).run();
+      return ownerJson({ success: true, bootstrapCode, expiresAt, validForSeconds: 300 });
+    }
+
     if (path === "/api/owner/bootstrap" && request.method === "POST") {
-      await recordPrimaryOwnerAttempt(env, primaryOwnerEmail, now);
       const body = await readBody(request);
       const email = String(body.email || "").trim().toLowerCase();
       const publicHeader = request.headers.get("Authorization") || "";
@@ -228,6 +259,7 @@ export async function handleOwnerAuth(request, env) {
           ).bind(await sha(publicToken), now).first()
         : null;
       if (!claimAccount || claimAccount.email.toLowerCase() !== primaryOwnerEmail) {
+        await recordPrimaryOwnerAttempt(env, primaryOwnerEmail, now);
         return ownerJson({ success: false, error: "Die Haupt-Owner-Einrichtung ist nur über das angemeldete festgelegte Hauptkonto möglich." }, 403);
       }
       const password = body.password;
