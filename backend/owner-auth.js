@@ -196,6 +196,15 @@ export async function handleOwnerAuth(request, env) {
       ).first();
       if (existing) return ownerJson({ success: false, error: "Der Haupt-OWNER wurde bereits eingerichtet." }, 409);
 
+      // Burn the bootstrap token immediately after it has been accepted.
+      // Even if a later setup step fails, this token can never be submitted again.
+      const consumedToken = await env.DB.prepare(
+        "UPDATE owner_bootstrap_tokens SET consumed_at=? WHERE token_hash=? AND email=? COLLATE NOCASE AND consumed_at IS NULL AND expires_at>?"
+      ).bind(now, bootstrap.token_hash, email, now).run();
+      if (consumedToken.meta?.changes !== 1) {
+        return ownerJson({ success: false, error: "Einrichtungscode wurde bereits verwendet oder ist abgelaufen." }, 409);
+      }
+
       const ownerId = crypto.randomUUID();
       const deviceId = crypto.randomUUID();
       const keyHashValue = await keyHash(publicKey);
@@ -204,8 +213,6 @@ export async function handleOwnerAuth(request, env) {
       const sessionToken = randomToken(32);
       const expiresAt = now + SESSION_MS;
       const batch = await env.DB.batch([
-        env.DB.prepare("UPDATE owner_bootstrap_tokens SET consumed_at=? WHERE token_hash=? AND consumed_at IS NULL AND expires_at>?")
-          .bind(now, bootstrap.token_hash, now),
         env.DB.prepare("INSERT INTO owner_accounts (id,email,role,status,created_at) VALUES (?,?, 'primary_owner','active',?)")
           .bind(ownerId, email, now),
         env.DB.prepare("INSERT INTO owner_passwords (owner_id,salt,password_hash,iterations,updated_at) VALUES (?,?,?,?,?)")
