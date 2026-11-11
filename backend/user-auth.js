@@ -81,7 +81,9 @@ async function sessionOf(request, env) {
   const raw = auth.startsWith("Bearer ") ? auth.slice(7) : "";
   if (raw.length < 30 || raw.length > 200) return null;
   return env.DB.prepare(
-    "SELECT s.token_hash,s.account_id,s.expires_at,a.email,a.role,a.status,a.email_verified_at " +
+    "SELECT s.token_hash,s.account_id,s.expires_at,a.email," +
+    "CASE WHEN EXISTS(SELECT 1 FROM owner_accounts oa WHERE oa.email=a.email COLLATE NOCASE AND oa.role='primary_owner' AND oa.status='active') THEN 'primary_owner' ELSE a.role END AS role," +
+    "a.status,a.email_verified_at " +
     "FROM app_user_sessions s JOIN app_accounts a ON a.id=s.account_id " +
     "WHERE s.token_hash=? AND s.revoked_at IS NULL AND s.expires_at>? AND a.status='active'"
   ).bind(await hash(raw), Date.now()).first();
@@ -150,7 +152,8 @@ export async function handleUserAuth(request, env) {
         return json({ success: false, error: "E-Mail oder Passwort falsch." }, 401);
       }
       const account = await env.DB.prepare(
-        "SELECT a.id,a.email,a.role,a.status,a.email_verified_at,p.salt,p.password_hash,p.iterations " +
+        "SELECT a.id,a.email,CASE WHEN EXISTS(SELECT 1 FROM owner_accounts oa WHERE oa.email=a.email COLLATE NOCASE AND oa.role='primary_owner' AND oa.status='active') THEN 'primary_owner' ELSE a.role END AS role," +
+        "a.status,a.email_verified_at,p.salt,p.password_hash,p.iterations " +
         "FROM app_accounts a JOIN app_account_passwords p ON p.account_id=a.id " +
         "WHERE a.email=? COLLATE NOCASE AND a.status='active'"
       ).bind(email).first();
