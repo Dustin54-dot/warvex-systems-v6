@@ -2246,7 +2246,7 @@ async function showUniversalDeviceDetail(index){
  $("universalRefreshStatus").onclick=async()=>{
   info.textContent="Systemstatus wird abgefragt …";
   await universalPostStatus(item);
-  try{const r=await fetch(DEVICE_CLOUD+"/api/device/status",{headers:{Authorization:"Bearer "+item.token},cache:"no-store"}),d=await r.json();info.textContent=d.available?"Online · "+(d.deviceName||"WARVEX-Gerät")+" · "+(d.platform||"Browser")+(d.battery!==null&&d.battery!==undefined?" · Akku "+d.battery+"%":"")+" · zuletzt aktiv "+new Date(d.updatedAt).toLocaleTimeString("de-DE"):"Kein aktueller Status gemeldet. Das andere Gerät muss WARVEX geöffnet haben.";}catch(e){info.textContent="Statusabfrage fehlgeschlagen: "+e.message;}
+  try{const r=await fetch(DEVICE_CLOUD+"/api/device/status",{headers:{Authorization:"Bearer "+item.token},cache:"no-store"}),d=await r.json(),peer=Array.isArray(d.devices)?d.devices[0]:(d.device||d);info.textContent=d.available&&peer?"Online · "+(peer.deviceName||"WARVEX-Gerät")+" · "+(peer.platform||"Browser")+(peer.battery!==null&&peer.battery!==undefined?" · Akku "+peer.battery+"%":"")+" · zuletzt aktiv "+new Date(peer.updatedAt).toLocaleTimeString("de-DE"):"Kein aktueller Status gemeldet. Das andere Gerät muss WARVEX geöffnet haben und online sein.";}catch(e){info.textContent="Statusabfrage fehlgeschlagen: "+e.message;}
  };
  $("universalShareLocation").onclick=()=>{
   if(!navigator.geolocation){info.textContent="Dieser Browser unterstützt keine Standortfreigabe.";return;}
@@ -2431,7 +2431,7 @@ async function pollAlarm(){
   if(!connection||!connection.token)return;
   try{
     const endpoint=connection.role==="peer"?"/api/device/alarm":"/api/roku/alarm";
-    const res=await fetch(cloud+endpoint,{headers:{Authorization:"Bearer "+connection.token},cache:"no-store"});
+    const res=await fetch(DEVICE_CLOUD+endpoint,{headers:{Authorization:"Bearer "+connection.token},cache:"no-store"});
     if(!res.ok)return;
     const data=await res.json();
     if(data.active&&data.event)showAlarm(data.event);
@@ -2445,7 +2445,7 @@ $("warvexAlarmTestBtn")?.addEventListener("click",async()=>{
   try{
     const endpoint=connection.role==="peer"?"/api/device/alarm":"/api/roku/alarm";
     const body=connection.role==="peer"?{message:"Eine SOS-Meldung wurde über WARVEX ausgelöst. Bitte prüfe, ob Hilfe benötigt wird."}:{mode:"test"};
-    const res=await fetch(cloud+endpoint,{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+connection.token},body:JSON.stringify(body)});
+    const res=await fetch(DEVICE_CLOUD+endpoint,{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+connection.token},body:JSON.stringify(body)});
     const data=await res.json();
     if(!res.ok||!data.ok)throw new Error(data.error||"Worker antwortet mit Fehler.");
     alarmStatus("SOS-Meldung wurde an die gekoppelte WARVEX-Verbindung übermittelt. Kein Notruf wurde ausgelöst.");
