@@ -1573,7 +1573,7 @@ $("onlineVoiceTestBtn")?.addEventListener("click",()=>{
 $("reloadVoicesBtn")?.addEventListener("click",()=>{
   if("speechSynthesis" in window){speechSynthesis.getVoices();chooseGermanVoice();populateGermanVoiceOptions();}
 });
-$("ownerOpenBtn")?.addEventListener("click",()=>{window.location.hash="owner";});
+$("ownerOpenBtn")?.addEventListener("click",()=>{showPage("owner");const panel=$("ownerAccessPanel");if(panel&&!panel.dataset.authenticated)panel.hidden=false;});
 
 
 
