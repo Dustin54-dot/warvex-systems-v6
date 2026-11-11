@@ -125,11 +125,12 @@ async function ownerSession(request, env) {
   ).bind(tokenHash, now).first();
   if (deviceSession) return deviceSession;
   return await env.DB.prepare(
-    "SELECT s.token_hash,oa.id AS owner_id,NULL AS device_id,s.expires_at,a.email,a.role,oa.status,'WARVEX-Kontositzung' AS device_label " +
+    "SELECT s.token_hash,oa.id AS owner_id,NULL AS device_id,s.expires_at,a.email," +
+    "CASE WHEN a.role='admin' THEN 'admin' ELSE oa.role END AS role,oa.status,'WARVEX-Kontositzung' AS device_label " +
     "FROM app_user_sessions s JOIN app_accounts a ON a.id=s.account_id " +
-    "JOIN owner_accounts oa ON oa.email=a.email COLLATE NOCASE AND oa.role='owner' " +
+    "JOIN owner_accounts oa ON oa.email=a.email COLLATE NOCASE AND oa.role IN ('owner','primary_owner') " +
     "WHERE s.token_hash=? AND s.revoked_at IS NULL AND s.expires_at>? " +
-    "AND a.status='active' AND a.role IN ('owner','admin') AND oa.status='active'"
+    "AND a.status='active' AND a.role IN ('user','owner','admin') AND oa.status='active'"
   ).bind(tokenHash, now).first();
 }
 async function newSession(env, ownerId, deviceId) {
