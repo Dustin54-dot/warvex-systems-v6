@@ -2611,10 +2611,17 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
    const key=await deviceKey();
    const publicToken=(()=>{try{return localStorage.getItem("warvex-public-session-v1")||"";}catch(e){return "";}})();
    if(!publicToken)throw new Error("Bitte zuerst mit deinem festgelegten WARVEX-Konto anmelden.");
+   let bootstrapCode=$o("ownerBootstrapCode").value.trim();
+   if(!bootstrapCode){
+    setStatus("Einmaliger Einrichtungscode wird sicher erstellt …",false);
+    const issued=await api("/api/owner/bootstrap-code",{},publicToken);
+    bootstrapCode=issued.bootstrapCode;
+    $o("ownerBootstrapCode").value=bootstrapCode;
+   }
    const result=await api("/api/owner/bootstrap",{
     email:$o("ownerSetupEmail").value.trim(),
     password:$o("ownerSetupPassword").value,
-    bootstrapCode:$o("ownerBootstrapCode").value,
+    bootstrapCode,
     publicKey:key.publicKey,
     deviceLabel:deviceLabel()
    },publicToken);
