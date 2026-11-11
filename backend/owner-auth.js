@@ -219,6 +219,17 @@ export async function handleOwnerAuth(request, env) {
       await recordPrimaryOwnerAttempt(env, primaryOwnerEmail, now);
       const body = await readBody(request);
       const email = String(body.email || "").trim().toLowerCase();
+      const publicHeader = request.headers.get("Authorization") || "";
+      const publicToken = publicHeader.startsWith("Bearer ") ? publicHeader.slice(7) : "";
+      const claimAccount = publicToken.length >= 30 && publicToken.length <= 200
+        ? await env.DB.prepare(
+            "SELECT a.id,a.email FROM app_user_sessions s JOIN app_accounts a ON a.id=s.account_id " +
+            "WHERE s.token_hash=? AND s.revoked_at IS NULL AND s.expires_at>? AND a.status='active'"
+          ).bind(await sha(publicToken), now).first()
+        : null;
+      if (!claimAccount || claimAccount.email.toLowerCase() !== primaryOwnerEmail) {
+        return ownerJson({ success: false, error: "Die Haupt-Owner-Einrichtung ist nur über das angemeldete festgelegte Hauptkonto möglich." }, 403);
+      }
       const password = body.password;
       const bootstrapCode = body.bootstrapCode;
       const deviceLabel = String(body.deviceLabel || "WARVEX-Gerät").slice(0, 80);
