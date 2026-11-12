@@ -201,8 +201,8 @@ export async function handleUserAuth(request, env) {
       const session = await sessionOf(request, env);
       if (!session) return json({ success: false, error: "Bitte melde dich an." }, 401);
       const body = await bodyOf(request);
-      const displayName = String(body.displayName || "").trim().replace(/\\s+/g, " ");
-      if (displayName.length < 1 || displayName.length > 32 || /[\\u0000-\\u001f\\u007f<>]/.test(displayName)) {
+      const displayName = String(body.displayName || "").trim().replace(/\s+/g, " ");
+      if (displayName.length < 1 || displayName.length > 32 || /[\u0000-\u001f\u007f<>]/.test(displayName)) {
         return json({ success: false, error: "Der Anredename muss 1 bis 32 Zeichen lang sein und darf keine Steuerzeichen enthalten." }, 400);
       }
       await env.DB.prepare("UPDATE app_accounts SET display_name=? WHERE id=?")
@@ -219,7 +219,7 @@ export async function handleUserAuth(request, env) {
       const district = String(body.district || "").trim();
       if (!["suspicious_content","possible_threat","security_issue","other"].includes(category) ||
           content.length < 8 || content.length > 3000 || district.length > 80 ||
-          /[\\u0000-\\u0008\\u000b\\u000c\\u000e-\\u001f\\u007f]/.test(content + district)) {
+          /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(content + district)) {
         return json({ success: false, error: "Bitte wähle eine Kategorie und gib eine Meldung mit 8 bis 3000 Zeichen ein. Die optionale Gegend darf höchstens 80 Zeichen haben." }, 400);
       }
       const id = crypto.randomUUID();
