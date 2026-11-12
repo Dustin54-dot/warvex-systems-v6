@@ -255,6 +255,16 @@ body:not(.user-authenticated) #userSessionBadge,body:not(.user-authenticated) #u
 #ownerReportAlarm .report-alarm-note{color:#ffe0e5;font-size:13px}
 #ownerReportAlarm .report-row{padding:9px 0;border-bottom:1px solid #ffffff22;overflow-wrap:anywhere;font-size:14px}
 #ownerReportAlarm .report-row b{display:block;color:#ffd27a;font-size:12px;margin-bottom:3px}
+#ownerSafetyTestOverlay{position:fixed;inset:0;z-index:100020;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(65,0,12,.97);animation:secFlash .8s steps(2,end) infinite}
+#ownerSafetyTestOverlay[hidden]{display:none!important}
+#ownerSafetyTestOverlay .report-alarm-card{width:min(100%,620px);max-height:88vh;overflow:auto;background:#35101b;border:3px solid #ff536b;border-radius:18px;padding:20px;box-shadow:0 0 45px #ff304899}
+#ownerSafetyTestOverlay h2{color:#ff9eaa;font-size:clamp(22px,5vw,30px);line-height:1.2;margin:8px 0 12px}
+#ownerSafetyTestOverlay .report-alarm-kicker{font-size:12px;font-weight:900;letter-spacing:2px;color:#ffd27a}
+#ownerSafetyTestOverlay .report-alarm-note{color:#ffe0e5;font-size:13px}
+#ownerSafetyTestOverlay .test-simulation-label{display:inline-block;margin:12px 0 4px;padding:7px 10px;border:1px solid #ffb5c0;border-radius:7px;background:#710f24;color:#fff;font-weight:900;letter-spacing:1px}
+#ownerSafetyTestOverlay .test-detail{padding:10px 0;border-bottom:1px solid #ffffff24;overflow-wrap:anywhere}
+#ownerSafetyTestOverlay .test-detail strong{display:block;color:#ffd27a;font-size:12px;margin-bottom:4px}
+#ownerSafetyTestOverlay button{margin-top:10px}
 #ownerReportAlarm button{margin-top:10px}
 #ownerSecurityReportsList .owner-report-row{padding:10px 0;border-bottom:1px solid #ffffff22;overflow-wrap:anywhere}
 
@@ -294,6 +304,16 @@ body:not(.user-authenticated) #userSessionBadge,body:not(.user-authenticated) #u
  </div>
 </div>
 
+<div id="ownerSafetyTestOverlay" hidden role="alertdialog" aria-modal="true" aria-labelledby="ownerSafetyTestTitle">
+ <div class="report-alarm-card">
+  <div class="report-alarm-kicker">WARVEX SECURITY · TESTALARM</div>
+  <div class="test-simulation-label">🔴 TESTALARM · NUR SIMULATION</div>
+  <h2 id="ownerSafetyTestTitle">VERDÄCHTIGER INHALT – ÜBERPRÜFUNG ERFORDERLICH</h2>
+  <p class="report-alarm-note">Vollständig erfundenes Testszenario. Keine echte Meldung und keine beschuldigte Person.</p>
+  <div id="ownerSafetyTestDetails"></div>
+  <div class="actions"><button type="button" id="ownerSafetyTestStop">TON UND SPRACHE STOPPEN</button><button type="button" class="primary" id="ownerSafetyTestClose">TESTFENSTER SCHLIESSEN</button></div>
+ </div>
+</div>
 <div id="ownerReportAlarm" hidden role="alertdialog" aria-modal="true" aria-labelledby="ownerReportAlarmTitle">
  <div class="report-alarm-card">
   <div class="report-alarm-kicker">WARVEX SECURITY · OWNER-ALARM</div>
@@ -3111,6 +3131,7 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
    function stopOwnerSafetyTestAlarm(){
     if(ownerSafetyAlarmTimer){clearInterval(ownerSafetyAlarmTimer);ownerSafetyAlarmTimer=null;}
     if(ownerSafetyAlarmAudio){try{ownerSafetyAlarmAudio.close();}catch(error){}ownerSafetyAlarmAudio=null;}
+    if("speechSynthesis" in window){try{speechSynthesis.cancel();}catch(error){}}
     const start=$o("ownerRunSafetyTestsBtn"),stop=$o("ownerStopSafetyAlarmBtn");
     if(start)start.disabled=false;if(stop)stop.disabled=true;
     const output=$o("ownerSafetyTests");
@@ -3119,6 +3140,10 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
      const note=document.createElement("p");note.textContent="TESTALARM BEENDET. Die Situation war vollständig simuliert.";output.appendChild(note);
     }
    }
+   $o("ownerSafetyTestStop")?.addEventListener("click",stopOwnerSafetyTestAlarm);
+   $o("ownerSafetyTestClose")?.addEventListener("click",()=>{
+    stopOwnerSafetyTestAlarm();const overlay=$o("ownerSafetyTestOverlay");if(overlay)overlay.hidden=true;
+   });
    function playOwnerSafetyBeep(){
     if(!ownerSafetyAlarmAudio)return;
     const ctx=ownerSafetyAlarmAudio;
@@ -3143,6 +3168,17 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
      message:{title:"FIKTIVE VERDÄCHTIGE NACHRICHT",detail:"In diesem Beispielszenario meldet eine Testperson eine verdächtige Nachricht."}
     };
     const scenario=scenarios[$o("ownerSafetyScenario")?.value]||scenarios.confession;
+    const overlay=$o("ownerSafetyTestOverlay"),details=$o("ownerSafetyTestDetails");
+    if(details){
+     details.replaceChildren();
+     [["SIMULATIONSFALL",scenario.title],["SITUATION",scenario.detail],["HINWEIS","Keine echte Person oder Tat. Keine Daten werden versendet. Es wird keine Behörde kontaktiert."]].forEach(([label,value])=>{
+      const row=document.createElement("div");row.className="test-detail";
+      const strong=document.createElement("strong");strong.textContent=label;
+      const content=document.createElement("div");content.textContent=value;
+      row.append(strong,content);details.appendChild(row);
+     });
+    }
+    if(overlay)overlay.hidden=false;
     output.replaceChildren();output.dataset.active="true";
     const alertBox=document.createElement("div");alertBox.className="sec-alert-demo visible";
     const title=document.createElement("strong");title.textContent="🔴 TESTALARM · NUR SIMULATION";
@@ -3155,6 +3191,10 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
      const AudioClass=window.AudioContext||window.webkitAudioContext;
      if(AudioClass){ownerSafetyAlarmAudio=new AudioClass();await ownerSafetyAlarmAudio.resume();playOwnerSafetyBeep();ownerSafetyAlarmTimer=setInterval(playOwnerSafetyBeep,1450);}
      else{const note=document.createElement("p");note.textContent="Dieser Browser unterstützt den Signalton nicht. Die visuelle Simulation läuft trotzdem.";output.appendChild(note);}
+     const spoken="Testalarm. Verdächtiger Inhalt. Überprüfung erforderlich. Nur Simulation. "+scenario.title+". "+scenario.detail+". Keine echte Person oder Tat. Es wird keine Meldung versendet.";
+     if(typeof speakWithBrowser==="function"){
+      speakWithBrowser(spoken).catch(error=>{const note=document.createElement("p");note.textContent="Sprachausgabe nicht verfügbar: "+(error.message||"Browser-TTS-Fehler");output.appendChild(note);});
+     }else{const note=document.createElement("p");note.textContent="Sprachausgabe ist in dieser Version nicht verfügbar.";output.appendChild(note);}
     }catch(error){
      ownerSafetyAlarmAudio=null;
      const note=document.createElement("p");note.textContent="Signalton konnte nicht gestartet werden. Prüfe die Medienlautstärke und Browser-Unterstützung.";output.appendChild(note);
@@ -3165,7 +3205,7 @@ $o("ownerRefreshBtn")?.addEventListener("click",async()=>{
   try{await refreshOwner();setStatus("Sicherheitsfach aktualisiert.",false);}catch(e){setStatus(e.message,true);}
  });
  window.addEventListener("warvex-user-authenticated",()=>{init();});
- window.addEventListener("warvex-user-logged-out",()=>{stopOwnerSafetyTestAlarm();init();});
+ window.addEventListener("warvex-user-logged-out",()=>{stopOwnerSafetyTestAlarm();const overlay=$o("ownerSafetyTestOverlay");if(overlay)overlay.hidden=true;init();});
  $o("ownerLogoutBtn")?.addEventListener("click",async()=>{
   try{
    const token=await getOwnerToken();
