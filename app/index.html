@@ -1895,7 +1895,7 @@ $("medDisconnectButton").addEventListener("click",disconnectMedicalDevice);
 $("medSaveVitalsLimits").addEventListener("click",saveMedicalVitalsLimits);
 $("medDisableVitalsLimits").addEventListener("click",disableMedicalVitalsLimits);
 
-$("medAlarmSeen").addEventListener("click",()=>{medicalAlertAcknowledged=true;if(medicalAlarmMode==="vitals")medicalVitalsAlarmAcknowledged=true;stopMedicalAlert();});
+$("medAlarmSeen").addEventListener("click",()=>{medicalAlertAcknowledged=true;if(medicalAlarmMode==="vitals"||medicalAlarmMode==="critical")medicalVitalsAlarmAcknowledged=true;stopMedicalAlert();});
 
 
 
