@@ -3271,6 +3271,7 @@ $o("ownerRefreshBtn")?.addEventListener("click",async()=>{
   message(mode==="login"?"Bitte melde dich mit deinem Konto an.":"Neues Konto: mindestens 12 Zeichen für das Passwort.",false);
  }
  function showUser(user){
+  activeProfileUser=user;
   document.body.classList.add("user-authenticated");
   $("userAuthGate").hidden=true;
   window.warvexDisplayName=user.displayName||"";
