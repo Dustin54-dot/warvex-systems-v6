@@ -1,4 +1,4 @@
-const CACHE_NAME="warvex-v6-shared-core-v11";
+const CACHE_NAME="warvex-v6-shared-core-v12";
 const APP_URL=new URL("./app/",self.registration.scope).href;
 const APP_PATH=new URL(APP_URL).pathname;
 
