@@ -608,7 +608,7 @@ body:not(.user-authenticated) #userSessionBadge,body:not(.user-authenticated) #u
   <div class="card" id="voiceTestPanel">
     <h2>🎙️ STIMMEN-LABOR</h2>
     <label for="voiceTestText">Testtext</label>
-    <textarea id="voiceTestText" rows="3">Hallo Dustin. Ich bin die Sprach-Ausgabe von WARVEX SYSTEMS. Dies ist ein Test meiner Stimme.</textarea>
+    <textarea id="voiceTestText" rows="3">Hallo! Ich bin die Sprach-Ausgabe von WARVEX SYSTEMS. Dies ist ein Test meiner Stimme.</textarea>
     <label for="browserVoiceSelect">Deutsche Browser-Stimme</label>
     <select id="browserVoiceSelect" style="width:100%;padding:12px;border-radius:10px;background:#0c121c;color:white;border:1px solid var(--line);margin:6px 0 10px">
       <option value="">Stimmen werden geladen …</option>
@@ -2519,7 +2519,7 @@ window.addEventListener("pagehide",()=>{if(warvexLocationWatchId!==null){navigat
 <div id="wxAlarmOverlay" role="alertdialog" aria-modal="true" aria-labelledby="wxAlarmTitle">
   <div class="wxAlarmCard">
     <div style="font-weight:900;letter-spacing:2px;color:#ffd1d8">WARVEX · SOS-MELDUNG</div>
-    <h2 id="wxAlarmTitle">DUSTIN BRAUCHT HILFE!</h2>
+    <h2 id="wxAlarmTitle">NUTZER BRAUCHT HILFE!</h2>
     <p id="wxAlarmMessage">Eine interne WARVEX-SOS-Meldung wurde ausgelöst. Dies ist KEIN Notruf an 112.</p>
     <p id="wxAlarmLocation"></p>
     <button type="button" id="wxAlarmAckBtn">MELDUNG BESTÄTIGEN</button>
@@ -2548,6 +2548,8 @@ function stopBeeps(){if(beepTimer){clearInterval(beepTimer);beepTimer=null;}}
 function showAlarm(event){
   if(!event||!event.id||event.id===dismissedId||event.id===activeId)return;
   activeId=event.id;
+  const accountName=String(window.warvexDisplayName||"Nutzer").trim()||"Nutzer";
+  $("wxAlarmTitle").textContent=accountName.toLocaleUpperCase("de-DE")+" BRAUCHT HILFE!";
   $("wxAlarmMessage").textContent=event.message||"Ein WARVEX-Notfallalarm wurde ausgelöst.";
   const loc=$("wxAlarmLocation");
   if(event.location&&Number.isFinite(event.location.latitude)&&Number.isFinite(event.location.longitude)){
@@ -2558,7 +2560,7 @@ function showAlarm(event){
   }
   $("wxAlarmOverlay").classList.add("active");
   beep();stopBeeps();beepTimer=setInterval(beep,2200);
-  if(typeof say==="function")say("Achtung! Dustin braucht Hilfe! Eine interne WARVEX-SOS-Meldung wurde ausgelöst. Dies ist kein Notruf an 112.").catch(()=>{});
+  if(typeof say==="function")say("Achtung! "+accountName+" braucht Hilfe! Eine interne WARVEX-SOS-Meldung wurde ausgelöst. Dies ist kein Notruf an 112.").catch(()=>{});
 }
 async function pollAlarm(){
   const connection=(typeof getUniversalPairs==="function"&&getUniversalPairs()[0])|| (typeof phoneWriteConnection==="function"?phoneWriteConnection():null);
