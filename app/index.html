@@ -781,10 +781,20 @@ body:not(.user-authenticated) #userSessionBadge,body:not(.user-authenticated) #u
     <div id="ownerUsersList" class="sec-note">Noch nicht geladen.</div>
         </div>
     <div class="sec-panel" style="margin-top:14px">
-     <h3>SICHERHEITS-WARNTEST</h3>
-     <p class="sec-note">Nur harmlose Simulationen mit Platzhalter-Eingaben. Es werden keine echten gefährlichen oder illegalen Inhalte erzeugt oder an andere Nutzer gesendet.</p>
-     <div class="actions"><button type="button" class="primary" id="ownerRunSafetyTestsBtn">SICHERHEITS-WARNTEST STARTEN</button></div>
-     <div id="ownerSafetyTests" class="sec-note" aria-live="polite">Noch kein Warn-Test durchgeführt.</div>
+     <h3>SICHERHEITS-WARNTEST · TESTALARM</h3>
+     <p class="sec-note">Fiktive Testfälle mit deutlich sichtbarer SIMULATIONS-Kennzeichnung. Der Testalarm piept wiederholt, bis du ihn stoppst. Es wird keine echte Meldung versendet und keine Behörde kontaktiert.</p>
+     <label for="ownerSafetyScenario">Simulierte Situation</label>
+     <select id="ownerSafetyScenario">
+      <option value="confession">Fiktive Testperson gibt eine Straftat zu</option>
+      <option value="threat">Eine mögliche Bedrohung wird gemeldet</option>
+      <option value="security">Ein Sicherheitsverstoß wird gemeldet</option>
+      <option value="message">Eine verdächtige Nachricht wird gemeldet</option>
+     </select>
+     <div class="actions">
+      <button type="button" class="primary" id="ownerRunSafetyTestsBtn">TESTALARM STARTEN</button>
+      <button type="button" id="ownerStopSafetyAlarmBtn" disabled>TESTALARM STOPPEN</button>
+     </div>
+     <div id="ownerSafetyTests" class="sec-note" aria-live="assertive">Noch kein Testalarm gestartet.</div>
     </div>
    </div>
    <div id="ownerAuthStatus" class="status" style="margin-top:12px" role="status">OWNER-Dienst wird geprüft …</div>
@@ -2912,28 +2922,60 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
   }catch(e){output.textContent="Test konnte nicht gestartet werden: "+(e.message||String(e));}
   finally{button.disabled=false;}
  });
-   $o("ownerRunSafetyTestsBtn")?.addEventListener("click",()=>{
-   const output=$o("ownerSafetyTests"),button=$o("ownerRunSafetyTestsBtn");
-   if(!output)return;
-   if($o("ownerAccessPanel")?.dataset.authenticated!=="true"){output.textContent="Zugriff verweigert: Owner-Anmeldung erforderlich.";return;}
-   button.disabled=true;output.textContent="Sicherheits-Warnsimulation läuft …";
-   const cases=[
-    ["Gesperrte Inhalte","[SIMULATION: Anfrage nach nicht erlaubten Inhalten]","Blockierhinweis erwartet"],
-    ["Sexuelle Inhalte","[SIMULATION: nicht jugendfreie sexuelle Anfrage]","Jugendschutz-Hinweis erwartet"],
-    ["Illegale Aktivitäten","[SIMULATION: Bitte um Anleitung zu einer Straftat]","Ablehnungshinweis erwartet"],
-    ["Gefährliche Handlungen","[SIMULATION: Bitte um konkrete gefährliche Anleitung]","Sicherheitshinweis erwartet"],
-    ["Unbedenkliche Anfrage","[SIMULATION: Bitte erkläre Datenschutz allgemein]","Normale Antwort zulässig"]
-   ];
-   output.textContent="";
-   cases.forEach(([label,sample,expected])=>{
-    const line=document.createElement("div");line.className="sec-row";
-    const left=document.createElement("span");left.textContent=label+" · "+sample;
-    const right=document.createElement("strong");right.className="sec-state warn";right.textContent="SIMULATION · "+expected;
-    line.append(left,right);output.appendChild(line);
+   let ownerSafetyAlarmTimer=null,ownerSafetyAlarmAudio=null;
+   function stopOwnerSafetyTestAlarm(){
+    if(ownerSafetyAlarmTimer){clearInterval(ownerSafetyAlarmTimer);ownerSafetyAlarmTimer=null;}
+    if(ownerSafetyAlarmAudio){try{ownerSafetyAlarmAudio.close();}catch(error){}ownerSafetyAlarmAudio=null;}
+    const start=$o("ownerRunSafetyTestsBtn"),stop=$o("ownerStopSafetyAlarmBtn");
+    if(start)start.disabled=false;if(stop)stop.disabled=true;
+    const output=$o("ownerSafetyTests");
+    if(output&&output.dataset.active==="true"){
+     output.dataset.active="false";
+     const note=document.createElement("p");note.textContent="TESTALARM BEENDET. Die Situation war vollständig simuliert.";output.appendChild(note);
+    }
+   }
+   function playOwnerSafetyBeep(){
+    if(!ownerSafetyAlarmAudio)return;
+    const ctx=ownerSafetyAlarmAudio;
+    const tone=(frequency,delay)=>{
+     const osc=ctx.createOscillator(),gain=ctx.createGain(),start=ctx.currentTime+delay;
+     osc.type="square";osc.frequency.setValueAtTime(frequency,start);
+     gain.gain.setValueAtTime(0,start);gain.gain.linearRampToValueAtTime(.075,start+.012);
+     gain.gain.setValueAtTime(.075,start+.13);gain.gain.linearRampToValueAtTime(0,start+.17);
+     osc.connect(gain);gain.connect(ctx.destination);osc.start(start);osc.stop(start+.18);
+    };
+    tone(880,0);tone(660,.22);
+   }
+   $o("ownerRunSafetyTestsBtn")?.addEventListener("click",async()=>{
+    const output=$o("ownerSafetyTests"),button=$o("ownerRunSafetyTestsBtn"),stop=$o("ownerStopSafetyAlarmBtn");
+    if(!output)return;
+    if($o("ownerAccessPanel")?.dataset.authenticated!=="true"){output.textContent="Zugriff verweigert: Owner-Anmeldung erforderlich.";return;}
+    if(ownerSafetyAlarmTimer)return;
+    const scenarios={
+     confession:{title:"FIKTIVE STRAFTAT-ZUGABE",detail:"Eine fiktive Testperson gibt in diesem Beispielszenario eine nicht näher bezeichnete Straftat zu."},
+     threat:{title:"FIKTIVE BEDROHUNGSMELDUNG",detail:"In diesem Beispielszenario meldet eine Testperson eine mögliche Bedrohung."},
+     security:{title:"FIKTISCHER SICHERHEITSVERSTOSS",detail:"In diesem Beispielszenario wird ein erfundener Sicherheitsverstoß gemeldet."},
+     message:{title:"FIKTIVE VERDÄCHTIGE NACHRICHT",detail:"In diesem Beispielszenario meldet eine Testperson eine verdächtige Nachricht."}
+    };
+    const scenario=scenarios[$o("ownerSafetyScenario")?.value]||scenarios.confession;
+    output.replaceChildren();output.dataset.active="true";
+    const alertBox=document.createElement("div");alertBox.className="sec-alert-demo visible";
+    const title=document.createElement("strong");title.textContent="🔴 TESTALARM · NUR SIMULATION";
+    const heading=document.createElement("h4");heading.textContent=scenario.title;
+    const detail=document.createElement("p");detail.textContent=scenario.detail;
+    const warning=document.createElement("p");warning.textContent="Keine echte Person oder Tat. Keine Daten werden versendet. Es wird keine Behörde kontaktiert.";
+    alertBox.append(title,heading,detail,warning);output.appendChild(alertBox);
+    button.disabled=true;stop.disabled=false;
+    try{
+     const AudioClass=window.AudioContext||window.webkitAudioContext;
+     if(AudioClass){ownerSafetyAlarmAudio=new AudioClass();await ownerSafetyAlarmAudio.resume();playOwnerSafetyBeep();ownerSafetyAlarmTimer=setInterval(playOwnerSafetyBeep,1450);}
+     else{const note=document.createElement("p");note.textContent="Dieser Browser unterstützt den Signalton nicht. Die visuelle Simulation läuft trotzdem.";output.appendChild(note);}
+    }catch(error){
+     ownerSafetyAlarmAudio=null;
+     const note=document.createElement("p");note.textContent="Signalton konnte nicht gestartet werden. Prüfe die Medienlautstärke und Browser-Unterstützung.";output.appendChild(note);
+    }
    });
-   addText(output,"Wichtig: Dies ist ein UI-Test-Simulator, kein Nachweis, dass das KI-Modell jede Kategorie zuverlässig blockiert. Es wurden keine echten problematischen Inhalte an das Modell gesendet.");
-   button.disabled=false;
-  });
+   $o("ownerStopSafetyAlarmBtn")?.addEventListener("click",stopOwnerSafetyTestAlarm);
 $o("ownerRefreshBtn")?.addEventListener("click",async()=>{
   try{await refreshOwner();setStatus("Sicherheitsfach aktualisiert.",false);}catch(e){setStatus(e.message,true);}
  });
