@@ -230,6 +230,119 @@ export async function handleUserAuth(request, env) {
       return json({ success: true, reportId: id, message: "Deine Meldung wurde an das geschützte WARVEX-Sicherheitspostfach übermittelt. Sie ist ein ungeprüfter Hinweis." }, 201);
     }
 
+    if (path === "/api/auth/friends" && request.method === "GET") {
+      const session = await sessionOf(request, env);
+      if (!session) return json({ success: false, error: "Bitte melde dich an." }, 401);
+      const incoming = await env.DB.prepare(
+        "SELECT r.id,r.requester_id AS warvex_id,COALESCE(a.display_name,'WARVEX-Nutzer') AS display_name,r.created_at " +
+        "FROM app_friend_requests r JOIN app_accounts a ON a.id=r.requester_id " +
+        "WHERE r.recipient_id=? AND r.status='pending' ORDER BY r.created_at DESC"
+      ).bind(session.account_id).all();
+      const outgoing = await env.DB.prepare(
+        "SELECT r.id,r.recipient_id AS warvex_id,COALESCE(a.display_name,'WARVEX-Nutzer') AS display_name,r.created_at " +
+        "FROM app_friend_requests r JOIN app_accounts a ON a.id=r.recipient_id " +
+        "WHERE r.requester_id=? AND r.status='pending' ORDER BY r.created_at DESC"
+      ).bind(session.account_id).all();
+      const friends = await env.DB.prepare(
+        "SELECT r.id,r.requester_id,r.recipient_id," +
+        "CASE WHEN r.requester_id=? THEN r.recipient_id ELSE r.requester_id END AS warvex_id," +
+        "COALESCE(a.display_name,'WARVEX-Nutzer') AS display_name," +
+        "CASE WHEN r.requester_id=? THEN COALESCE(s.enabled,0) ELSE 0 END AS share_enabled " +
+        "FROM app_friend_requests r " +
+        "JOIN app_accounts a ON a.id=CASE WHEN r.requester_id=? THEN r.recipient_id ELSE r.requester_id END " +
+        "LEFT JOIN app_friend_shares s ON s.sender_id=r.requester_id AND s.receiver_id=r.recipient_id " +
+        "WHERE (r.requester_id=? OR r.recipient_id=?) AND r.status='accepted' ORDER BY a.display_name"
+      ).bind(session.account_id,session.account_id,session.account_id,session.account_id,session.account_id).all();
+      return json({ success: true, incoming: incoming.results || [], outgoing: outgoing.results || [], friends: friends.results || [] });
+    }
+
+    if (path === "/api/auth/friends/request" && request.method === "POST") {
+      const session = await sessionOf(request, env);
+      if (!session) return json({ success: false, error: "Bitte melde dich an." }, 401);
+      const body = await bodyOf(request);
+      const friendId = String(body.warvexId || "").trim();
+      if (!friendId || friendId.length > 80 || friendId === session.account_id) {
+        return json({ success: false, error: "Bitte gib eine gültige WARVEX-ID eines anderen Kontos ein." }, 400);
+      }
+      const friend = await env.DB.prepare("SELECT id FROM app_accounts WHERE id=? AND status='active'").bind(friendId).first();
+      if (!friend) return json({ success: false, error: "Kein aktives WARVEX-Konto mit dieser ID gefunden." }, 404);
+      const exists = await env.DB.prepare(
+        "SELECT id,status FROM app_friend_requests WHERE (requester_id=? AND recipient_id=?) OR (requester_id=? AND recipient_id=?) LIMIT 1"
+      ).bind(session.account_id,friendId,friendId,session.account_id).first();
+      if (exists) return json({ success: false, error: exists.status === "accepted" ? "Ihr seid bereits verbunden." : "Für diese Konten besteht bereits eine Anfrage." }, 409);
+      const id=crypto.randomUUID(), now=Date.now();
+      await env.DB.prepare("INSERT INTO app_friend_requests (id,requester_id,recipient_id,status,created_at) VALUES (?,?,?,'pending',?)")
+        .bind(id,session.account_id,friendId,now).run();
+      return json({ success: true, requestId:id, message:"Freundschaftsanfrage wurde gesendet. Die andere Person muss sie selbst bestätigen." },201);
+    }
+
+    if (path === "/api/auth/friends/respond" && request.method === "POST") {
+      const session = await sessionOf(request, env);
+      if (!session) return json({ success: false, error: "Bitte melde dich an." }, 401);
+      const body = await bodyOf(request);
+      const requestId=String(body.requestId||"");
+      const accept=body.accept===true;
+      const invite=await env.DB.prepare("SELECT id,requester_id,recipient_id,status FROM app_friend_requests WHERE id=? AND recipient_id=? AND status='pending'")
+        .bind(requestId,session.account_id).first();
+      if(!invite)return json({success:false,error:"Anfrage nicht gefunden oder bereits bearbeitet."},404);
+      const now=Date.now();
+      if(accept){
+        await env.DB.batch([
+          env.DB.prepare("UPDATE app_friend_requests SET status='accepted',responded_at=? WHERE id=? AND recipient_id=?").bind(now,requestId,session.account_id),
+          env.DB.prepare("INSERT INTO app_friend_shares (sender_id,receiver_id,enabled,last_alert_at,created_at) VALUES (?,?,0,0,?)").bind(invite.requester_id,invite.recipient_id,now),
+          env.DB.prepare("INSERT INTO app_notifications (id,account_id,kind,title,message,created_at,event_key) VALUES (?,?, 'friend','WARVEX-Freundschaft bestätigt','Deine Freundschaftsanfrage wurde angenommen.',?,?)")
+            .bind(crypto.randomUUID(),invite.requester_id,now,"friend-accepted-"+requestId)
+        ]);
+      }else{
+        await env.DB.prepare("UPDATE app_friend_requests SET status='rejected',responded_at=? WHERE id=? AND recipient_id=?")
+          .bind(now,requestId,session.account_id).run();
+      }
+      return json({success:true,message:accept?"Freund hinzugefügt. Du hast die Anfrage bestätigt; der Alarmversand bleibt bis zur Freigabe durch die andere Person ausgeschaltet.":"Anfrage abgelehnt."});
+    }
+
+    if (path === "/api/auth/friends/share" && request.method === "POST") {
+      const session = await sessionOf(request, env);
+      if (!session) return json({ success: false, error: "Bitte melde dich an." }, 401);
+      const body=await bodyOf(request), friendId=String(body.friendId||""), enabled=body.enabled===true;
+      const relation=await env.DB.prepare(
+        "SELECT id FROM app_friend_requests WHERE requester_id=? AND recipient_id=? AND status='accepted'"
+      ).bind(session.account_id,friendId).first();
+      if(!relation)return json({success:false,error:"Nur bestätigte Freunde können freigegeben werden."},403);
+      await env.DB.prepare("UPDATE app_friend_shares SET enabled=? WHERE sender_id=? AND receiver_id=?")
+        .bind(enabled?1:0,session.account_id,friendId).run();
+      return json({success:true,enabled,message:enabled?"Kritische Pulsalarme werden für diesen Freund freigegeben.":"Alarmfreigabe ausgeschaltet."});
+    }
+
+    if (path === "/api/auth/friends/remove" && request.method === "POST") {
+      const session = await sessionOf(request, env);
+      if (!session) return json({ success: false, error: "Bitte melde dich an." }, 401);
+      const body=await bodyOf(request), friendId=String(body.friendId||"");
+      await env.DB.batch([
+        env.DB.prepare("DELETE FROM app_friend_shares WHERE (sender_id=? AND receiver_id=?) OR (sender_id=? AND receiver_id=?)").bind(session.account_id,friendId,friendId,session.account_id),
+        env.DB.prepare("DELETE FROM app_friend_requests WHERE status='accepted' AND ((requester_id=? AND recipient_id=?) OR (requester_id=? AND recipient_id=?))").bind(session.account_id,friendId,friendId,session.account_id)
+      ]);
+      return json({success:true,message:"Freundschaft und Alarmfreigabe entfernt."});
+    }
+
+    if (path === "/api/auth/friends/critical-alert" && request.method === "POST") {
+      const session = await sessionOf(request, env);
+      if (!session) return json({ success: false, error: "Bitte melde dich an." }, 401);
+      const body=await bodyOf(request), bpm=Number(body.bpm);
+      if(!Number.isInteger(bpm)||bpm<25||bpm>250)return json({success:false,error:"Ungültiger Pulswert."},400);
+      const shares=await env.DB.prepare(
+        "SELECT s.receiver_id FROM app_friend_shares s JOIN app_friend_requests r ON r.requester_id=s.sender_id AND r.recipient_id=s.receiver_id AND r.status='accepted' WHERE s.sender_id=? AND s.enabled=1 AND (? - s.last_alert_at)>=60000"
+      ).bind(session.account_id,Date.now()).all();
+      const now=Date.now(), rows=shares.results||[];
+      for(const item of rows){
+        await env.DB.batch([
+          env.DB.prepare("UPDATE app_friend_shares SET last_alert_at=? WHERE sender_id=? AND receiver_id=?").bind(now,session.account_id,item.receiver_id),
+          env.DB.prepare("INSERT OR IGNORE INTO app_notifications (id,account_id,kind,title,message,created_at,event_key) VALUES (?,?, 'critical_pulse','KRITISCHER PULSALARM',?,?,?)")
+            .bind(crypto.randomUUID(),item.receiver_id,"Eine befreundete Person hat einen kritischen Pulsalarm ausgelöst. Gemessener Puls: "+bpm+" BPM. Bitte prüfe, ob sie Unterstützung benötigt.",now,"critical-pulse-"+session.account_id+"-"+now)
+        ]);
+      }
+      return json({success:true,notified:rows.length,delivery:"in_app"});
+    }
+
     if (path === "/api/auth/notifications" && request.method === "GET") {
       const session = await sessionOf(request, env);
       if (!session) return json({ success: false, error: "Bitte melde dich an." }, 401);
