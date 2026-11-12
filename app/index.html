@@ -2917,7 +2917,7 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
      userData.users.forEach(user=>{
       const line=document.createElement("div");line.className="owner-user-row";
       const heading=document.createElement("div");
-      heading.textContent=user.email+" · "+(user.role==="primary_owner"?"Haupt-Owner":user.role==="owner"?"Owner":user.role==="admin"?"Admin":user.role==="team_member"?"Teammitglied":"Benutzer")+(user.email_verified_at?"":" · E-Mail nicht bestätigt");
+      heading.textContent=(user.display_name||"Name nicht angegeben")+" · "+user.email+" · WARVEX-ID: "+user.id+" · "+(user.role==="primary_owner"?"Haupt-Owner":user.role==="owner"?"Owner":user.role==="admin"?"Admin":user.role==="team_member"?"Teammitglied":"Benutzer")+(user.email_verified_at?"":" · E-Mail nicht bestätigt");
       line.appendChild(heading);
       if(user.role==="primary_owner"){
        const locked=document.createElement("div");locked.className="muted";locked.textContent="Geschützte Haupt-Owner-Rolle";line.appendChild(locked);
