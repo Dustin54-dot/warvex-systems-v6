@@ -730,6 +730,18 @@ body:not(.user-authenticated) #userSessionBadge,body:not(.user-authenticated) #u
     <div id="universalDeviceCards" style="display:grid;gap:10px;margin-top:12px"></div>
     <div id="universalDeviceDetail" class="status" style="margin-top:12px">Wähle ein verbundenes Gerät aus.</div>
   </div>
+  <div class="card" id="warvexFriendsCard">
+    <h2>FREUNDE & PULSALARM-FREIGABE</h2>
+    <p class="muted">Füge Freunde mit ihrer WARVEX-ID hinzu. Die andere Person muss die Anfrage selbst bestätigen. Kritische Pulswerte werden erst geteilt, wenn du die Freigabe zusätzlich aktivierst.</p>
+    <label for="friendWarvexId">WARVEX-ID DES FREUNDES</label>
+    <input id="friendWarvexId" type="text" maxlength="80" autocomplete="off" placeholder="WARVEX-ID einfügen">
+    <div class="actions"><button type="button" class="primary" id="friendRequestBtn">FREUNDSCHAFTSANFRAGE SENDEN</button><button type="button" id="friendsRefreshBtn">AKTUALISIEREN</button></div>
+    <div class="status" id="friendsStatus" role="status">Freundesliste wird nach der Anmeldung geladen.</div>
+    <h3>EINGEHENDE ANFRAGEN</h3><div id="friendsIncoming" class="status">Keine geladenen Anfragen.</div>
+    <h3>DEINE FREUNDE</h3><div id="friendsAccepted" class="status">Noch keine Freunde geladen.</div>
+    <h3>VERSENDETE ANFRAGEN</h3><div id="friendsOutgoing" class="status">Keine geladenen Anfragen.</div>
+    <p class="muted">Hinweis: Die aktuelle Version legt Alarmmeldungen zunächst im WARVEX-Konto des Freundes ab. Echte Push-Nachrichten bei geschlossener App benötigen zusätzlich einen konfigurierten Push-Schlüssel und einen Zustelldienst; sie sind noch nicht aktiv.</p>
+  </div>
   <div class="card">
     <h2>SMART-HOME-ANBINDUNGEN</h2>
     <p class="muted">Weitere Geräte wie Lampen, Steckdosen und Sensoren können später über passende Hersteller- oder Smart-Home-Schnittstellen ergänzt werden. Die folgenden Schalter sind weiterhin nur eine lokale Demo.</p>
@@ -1749,7 +1761,11 @@ function checkMedicalVitals(spo2,bpm){
  const issues=[];
  const validPulse=Number.isFinite(bpm)&&bpm>=25&&bpm<=250;
  if(validPulse&&medicalVitalsLimits.pulseCritical!==null&&bpm>=medicalVitalsLimits.pulseCritical){
+  const firstCriticalSample=!medicalCriticalPulseActive;
   medicalCriticalPulseActive=true;
+  if(firstCriticalSample&&typeof window.warvexSendCriticalPulseAlert==="function"){
+   window.warvexSendCriticalPulseAlert(bpm).catch(error=>console.warn("WARVEX Freundesalarm:",error));
+  }
   if(!medicalVitalsAlarmAcknowledged){
    startMedicalAlert("criticalPulse","Kritischer Alarm! Puls bei "+bpm+" BPM. Bitte sofort eine erwachsene Vertrauensperson informieren. Bei starken Beschwerden, Brustschmerz, Atemnot oder Ohnmacht 112.");
   }
@@ -3264,6 +3280,7 @@ $o("ownerRefreshBtn")?.addEventListener("click",async()=>{
   const nameEl=$("profileDisplayName");if(nameEl)nameEl.value=user.displayName||"";
   window.dispatchEvent(new Event("warvex-user-authenticated"));
   loadNotifications().catch(()=>{});
+  loadFriends().catch(()=>{});
   loadProfile(user).catch(e=>{const st=$("profileStatus");if(st)st.textContent="Profil konnte nicht geladen werden: "+e.message;});
  }
  async function request(path,body,auth){
@@ -3333,6 +3350,50 @@ $o("ownerRefreshBtn")?.addEventListener("click",async()=>{
  $("profileGateVoiceBtn")?.addEventListener("click",()=>startNameVoice(true));
  $("profileGateName")?.addEventListener("keydown",e=>{if(e.key==="Enter")saveProfileName($("profileGateName").value,true);});
 
+ async function loadFriends(){
+  const saved=token();if(!saved)return;
+  const data=await request("/api/auth/friends",null,saved);
+  const incoming=$("friendsIncoming"),accepted=$("friendsAccepted"),outgoing=$("friendsOutgoing");
+  [incoming,accepted,outgoing].forEach(el=>{if(el)el.replaceChildren();});
+  const makeText=(el,text)=>{if(!el)return;const p=document.createElement("p");p.textContent=text;el.appendChild(p);};
+  const makeRow=(el,label)=>{const row=document.createElement("div");row.className="message";const title=document.createElement("strong");title.textContent=label;row.appendChild(title);el.appendChild(row);return row;};
+  if(!(data.incoming||[]).length)makeText(incoming,"Keine offenen Anfragen.");
+  (data.incoming||[]).forEach(item=>{
+   const row=makeRow(incoming,(item.display_name||"WARVEX-Nutzer")+" · "+item.warvex_id);
+   ["ANNEHMEN","ABLEHNEN"].forEach((label,index)=>{const b=document.createElement("button");b.type="button";b.textContent=label;b.addEventListener("click",async()=>{try{await request("/api/auth/friends/respond",{requestId:item.id,accept:index===0},token());await loadFriends();}catch(e){$("friendsStatus").textContent=e.message;}});row.appendChild(b);});
+  });
+  if(!(data.friends||[]).length)makeText(accepted,"Noch keine bestätigten Freunde.");
+  (data.friends||[]).forEach(item=>{
+   const row=makeRow(accepted,(item.display_name||"WARVEX-Nutzer")+" · "+item.warvex_id);
+   if(item.requester_id===activeProfileUser?.id){
+    const toggle=document.createElement("button");toggle.type="button";toggle.textContent=item.share_enabled?"PULSALARM-FREIGABE: AN":"PULSALARM-FREIGABE: AUS";
+    toggle.addEventListener("click",async()=>{try{await request("/api/auth/friends/share",{friendId:item.warvex_id,enabled:!item.share_enabled},token());await loadFriends();}catch(e){$("friendsStatus").textContent=e.message;}});
+    row.appendChild(toggle);
+   }else{
+    const note=document.createElement("span");note.textContent=" · Du hast die Anfrage angenommen; die andere Person entscheidet über das Teilen.";row.appendChild(note);
+   }
+   const remove=document.createElement("button");remove.type="button";remove.textContent="ENTFERNEN";remove.addEventListener("click",async()=>{if(!confirm("Freundschaft wirklich entfernen?"))return;try{await request("/api/auth/friends/remove",{friendId:item.warvex_id},token());await loadFriends();}catch(e){$("friendsStatus").textContent=e.message;}});row.appendChild(remove);
+  });
+  if(!(data.outgoing||[]).length)makeText(outgoing,"Keine offenen gesendeten Anfragen.");
+  (data.outgoing||[]).forEach(item=>makeRow(outgoing,(item.display_name||"WARVEX-Nutzer")+" · Anfrage offen"));
+  $("friendsStatus").textContent="Freundesliste aktualisiert. Alarmfreigaben sind standardmäßig AUS.";
+ }
+ window.warvexSendCriticalPulseAlert=async function(bpm){
+  try{
+   const result=await request("/api/auth/friends/critical-alert",{bpm},token());
+   const status=$("friendsStatus");
+   if(status)status.textContent=result.notified>0?result.notified+" Freundeskonto(s) haben eine WARVEX-Kontobenachrichtigung erhalten.":"Kein Freund hat die Pulsalarm-Freigabe aktiviert.";
+   return result;
+  }catch(error){console.warn("WARVEX Pulsalarm konnte nicht übermittelt werden:",error);return null;}
+ };
+ $("friendRequestBtn")?.addEventListener("click",async()=>{
+  const id=$("friendWarvexId").value.trim(),status=$("friendsStatus");
+  if(!id){status.textContent="Bitte zuerst eine WARVEX-ID eingeben.";return;}
+  try{const result=await request("/api/auth/friends/request",{warvexId:id},token());status.textContent=result.message||"Anfrage gesendet."; $("friendWarvexId").value="";await loadFriends();}
+  catch(e){status.textContent="Anfrage fehlgeschlagen: "+e.message;}
+ });
+ $("friendsRefreshBtn")?.addEventListener("click",()=>loadFriends().catch(e=>{$("friendsStatus").textContent=e.message;}));
+ window.addEventListener("warvex-user-authenticated",()=>loadFriends().catch(e=>{$("friendsStatus").textContent=e.message;}));
  async function loadNotifications(){
   const saved=token();
   const card=$("accountNotificationsCard");
