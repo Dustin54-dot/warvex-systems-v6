@@ -83,7 +83,7 @@ async function sessionOf(request, env) {
   return env.DB.prepare(
     "SELECT s.token_hash,s.account_id,s.expires_at,a.email," +
     "CASE WHEN EXISTS(SELECT 1 FROM owner_accounts oa WHERE oa.email=a.email COLLATE NOCASE AND oa.role='primary_owner' AND oa.status='active') THEN 'primary_owner' ELSE a.role END AS role," +
-    "a.status,a.email_verified_at " +
+    "a.status,a.email_verified_at,a.display_name " +
     "FROM app_user_sessions s JOIN app_accounts a ON a.id=s.account_id " +
     "WHERE s.token_hash=? AND s.revoked_at IS NULL AND s.expires_at>? AND a.status='active'"
   ).bind(await hash(raw), Date.now()).first();
@@ -139,7 +139,7 @@ export async function handleUserAuth(request, env) {
       return json({
         success: true,
         sessionToken,
-        user: { id, email, role: "user", roleLabel: "Benutzer", emailVerified: false }
+        user: { id, warvexId: id, email, displayName: null, role: "user", roleLabel: "Benutzer", emailVerified: false }
       }, 201);
     }
 
@@ -153,7 +153,7 @@ export async function handleUserAuth(request, env) {
       }
       const account = await env.DB.prepare(
         "SELECT a.id,a.email,CASE WHEN EXISTS(SELECT 1 FROM owner_accounts oa WHERE oa.email=a.email COLLATE NOCASE AND oa.role='primary_owner' AND oa.status='active') THEN 'primary_owner' ELSE a.role END AS role," +
-        "a.status,a.email_verified_at,p.salt,p.password_hash,p.iterations " +
+        "a.status,a.email_verified_at,a.display_name,p.salt,p.password_hash,p.iterations " +
         "FROM app_accounts a JOIN app_account_passwords p ON p.account_id=a.id " +
         "WHERE a.email=? COLLATE NOCASE AND a.status='active'"
       ).bind(email).first();
@@ -170,7 +170,9 @@ export async function handleUserAuth(request, env) {
         sessionToken,
         user: {
           id: account.id,
+          warvexId: account.id,
           email: account.email,
+          displayName: account.display_name || null,
           role: account.role,
           roleLabel: account.role === "primary_owner" ? "Haupt-Owner" : account.role === "owner" ? "Owner" : account.role === "admin" ? "Admin" : account.role === "team_member" ? "Teammitglied" : "Benutzer",
           emailVerified: !!account.email_verified_at
@@ -185,12 +187,47 @@ export async function handleUserAuth(request, env) {
         success: true,
         user: {
           id: session.account_id,
+          warvexId: session.account_id,
           email: session.email,
+          displayName: session.display_name || null,
           role: session.role,
           roleLabel: session.role === "primary_owner" ? "Haupt-Owner" : session.role === "owner" ? "Owner" : session.role === "admin" ? "Admin" : session.role === "team_member" ? "Teammitglied" : "Benutzer",
           emailVerified: !!session.email_verified_at
         }
       });
+    }
+
+    if (path === "/api/auth/profile" && request.method === "POST") {
+      const session = await sessionOf(request, env);
+      if (!session) return json({ success: false, error: "Bitte melde dich an." }, 401);
+      const body = await bodyOf(request);
+      const displayName = String(body.displayName || "").trim().replace(/\\s+/g, " ");
+      if (displayName.length < 1 || displayName.length > 32 || /[\\u0000-\\u001f\\u007f<>]/.test(displayName)) {
+        return json({ success: false, error: "Der Anredename muss 1 bis 32 Zeichen lang sein und darf keine Steuerzeichen enthalten." }, 400);
+      }
+      await env.DB.prepare("UPDATE app_accounts SET display_name=? WHERE id=?")
+        .bind(displayName, session.account_id).run();
+      return json({ success: true, displayName, warvexId: session.account_id });
+    }
+
+    if (path === "/api/auth/security-report" && request.method === "POST") {
+      const session = await sessionOf(request, env);
+      if (!session) return json({ success: false, error: "Bitte melde dich an." }, 401);
+      const body = await bodyOf(request);
+      const category = String(body.category || "").trim();
+      const content = String(body.content || "").trim();
+      const district = String(body.district || "").trim();
+      if (!["suspicious_content","possible_threat","security_issue","other"].includes(category) ||
+          content.length < 8 || content.length > 3000 || district.length > 80 ||
+          /[\\u0000-\\u0008\\u000b\\u000c\\u000e-\\u001f\\u007f]/.test(content + district)) {
+        return json({ success: false, error: "Bitte wähle eine Kategorie und gib eine Meldung mit 8 bis 3000 Zeichen ein. Die optionale Gegend darf höchstens 80 Zeichen haben." }, 400);
+      }
+      const id = crypto.randomUUID();
+      const now = Date.now();
+      await env.DB.prepare(
+        "INSERT INTO app_security_reports (id,account_id,category,content,district,status,created_at) VALUES (?,?,?,?,?,'pending',?)"
+      ).bind(id, session.account_id, category, content, district || null, now).run();
+      return json({ success: true, reportId: id, message: "Deine Meldung wurde an das geschützte WARVEX-Sicherheitspostfach übermittelt. Sie ist ein ungeprüfter Hinweis." }, 201);
     }
 
     if (path === "/api/auth/notifications" && request.method === "GET") {
