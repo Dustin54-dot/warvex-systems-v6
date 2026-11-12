@@ -1,4 +1,4 @@
-const CACHE_NAME="warvex-v6-shared-core-v12";
+const CACHE_NAME="warvex-v6-shared-core-v13";
 const APP_URL=new URL("./app/",self.registration.scope).href;
 const APP_PATH=new URL(APP_URL).pathname;
 
@@ -51,4 +51,31 @@ self.addEventListener("fetch",event=>{
       return cached||network;
     })
   );
+});
+
+
+self.addEventListener("push",event=>{
+  let payload={};
+  try{payload=event.data?event.data.json():{};}catch(_){payload={title:"WARVEX SYSTEMS",body:event.data?event.data.text():"Neue WARVEX-Mitteilung"};}
+  const title=String(payload.title||"WARVEX SYSTEMS").slice(0,80);
+  const options={
+    body:String(payload.body||"Du hast eine neue WARVEX-Mitteilung.").slice(0,240),
+    icon:new URL("./app/icon.svg",self.registration.scope).href,
+    badge:new URL("./app/icon.svg",self.registration.scope).href,
+    tag:String(payload.tag||"warvex-alert").slice(0,80),
+    renotify:true,
+    data:{url:payload.url||APP_URL}
+  };
+  event.waitUntil(self.registration.showNotification(title,options));
+});
+self.addEventListener("notificationclick",event=>{
+  event.notification.close();
+  const target=new URL(event.notification.data?.url||APP_URL,self.location.origin).href;
+  event.waitUntil((async()=>{
+    const clientsList=await self.clients.matchAll({type:"window",includeUncontrolled:true});
+    for(const client of clientsList){
+      if("focus" in client){await client.focus();if("navigate" in client)await client.navigate(target);return;}
+    }
+    if(self.clients.openWindow)await self.clients.openWindow(target);
+  })());
 });
