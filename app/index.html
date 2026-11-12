@@ -3254,7 +3254,7 @@ $o("ownerRefreshBtn")?.addEventListener("click",async()=>{
   try{speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance("Wie soll ich dich nennen?");utterance.lang="de-DE";speechSynthesis.speak(utterance);}catch(e){}
  }
  async function saveProfileName(value,gate){
-  const displayName=String(value||"").trim().replace(/\\s+/g," ");
+  const displayName=String(value||"").trim().replace(/\s+/g," ");
   const status=$(gate?"profileGateStatus":"profileStatus");
   if(displayName.length<1||displayName.length>32){if(status)status.textContent="Bitte gib einen Namen mit 1 bis 32 Zeichen ein.";return;}
   try{
