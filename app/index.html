@@ -2980,7 +2980,7 @@ $o("ownerRefreshBtn")?.addEventListener("click",async()=>{
   try{await refreshOwner();setStatus("Sicherheitsfach aktualisiert.",false);}catch(e){setStatus(e.message,true);}
  });
  window.addEventListener("warvex-user-authenticated",()=>{init();});
- window.addEventListener("warvex-user-logged-out",()=>{init();});
+ window.addEventListener("warvex-user-logged-out",()=>{stopOwnerSafetyTestAlarm();init();});
  $o("ownerLogoutBtn")?.addEventListener("click",async()=>{
   try{
    const token=await getOwnerToken();
