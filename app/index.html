@@ -1654,6 +1654,31 @@ function checkMedicalVitals(spo2,bpm){
   if(medicalAlarmMode==="vitals")stopMedicalAlert();
  }
 }
+let medicalPreviousPulse=null,medicalLastPulseAnnouncementAt=0;
+function updateMedicalPulseTrend(bpm){
+ if(!Number.isFinite(bpm)||bpm<25||bpm>250)return;
+ const previous=medicalPreviousPulse;
+ medicalPreviousPulse=bpm;
+ const high=bpm>120||(medicalVitalsLimits.pulseHigh!==null&&bpm>medicalVitalsLimits.pulseHigh);
+ if(medicalAlarmMode==="vitals"&&high){
+  const title="⚠ PULS ZU HOCH";
+  const message="Aktueller Messwert: "+bpm+" BPM.";
+  $("medAlarmTitle").textContent=title;
+  $("medAlarmText").textContent=message;
+  showMedicalGlobalAlarm(title,message,false);
+ }
+ if(previous===null||!high||previous<=120)return;
+ const difference=bpm-previous;
+ if(Math.abs(difference)<3)return;
+ const now=Date.now();
+ if(now-medicalLastPulseAnnouncementAt<5000)return;
+ medicalLastPulseAnnouncementAt=now;
+ const announcement=difference>0
+  ?"Puls steigend. Neu gemessen: "+bpm+" BPM."
+  :"Puls gesunken. Neu gemessen: "+bpm+" BPM.";
+ try{Promise.resolve(say(announcement)).catch(error=>console.warn("WARVEX Puls-Trend-Sprachausgabe:",error));}
+ catch(error){console.warn("WARVEX Puls-Trend-Sprachausgabe:",error);}
+}
 function saveMedicalVitalsLimits(){
  const lowRaw=$("medPulseLowLimit").value,highRaw=$("medPulseHighLimit").value,oxygenRaw=$("medOxygenLowLimit").value;
  const low=lowRaw===""?null:Number(lowRaw),high=highRaw===""?null:Number(highRaw),oxygen=oxygenRaw===""?null:Number(oxygenRaw);
@@ -1670,7 +1695,7 @@ function disableMedicalVitalsLimits(){
  $("medVitalsLimitStatus").textContent="Automatische Grenzwertprüfung ist ausgeschaltet.";
 }
 function parseIEEE11073Float(view,offset){const raw=view.getUint32(offset,true);let mantissa=raw&0x00ffffff;if(mantissa&0x00800000)mantissa-=0x01000000;let exponent=(raw>>>24)&0xff;if(exponent&0x80)exponent-=0x100;return mantissa*Math.pow(10,exponent);}
-function onHeartRateMeasurement(event){const v=event.target.value,flags=v.getUint8(0),wide=!!(flags&1),bpm=wide?v.getUint16(1,true):v.getUint8(1);if(!Number.isFinite(bpm)||bpm<20||bpm>250)return;$("medHeartRateValue").textContent=bpm+" BPM";$("medHeartRateValue").classList.add("med-live-value");$("medical").classList.add("pulse-live");checkMedicalVitals(null,bpm);}
+function onHeartRateMeasurement(event){const v=event.target.value,flags=v.getUint8(0),wide=!!(flags&1),bpm=wide?v.getUint16(1,true):v.getUint8(1);if(!Number.isFinite(bpm)||bpm<20||bpm>250)return;$("medHeartRateValue").textContent=bpm+" BPM";$("medHeartRateValue").classList.add("med-live-value");$("medical").classList.add("pulse-live");checkMedicalVitals(null,bpm);updateMedicalPulseTrend(bpm);}
 function onTemperatureMeasurement(event){const v=event.target.value,flags=v.getUint8(0),raw=parseIEEE11073Float(v,1),celsius=(flags&1)?(raw-32)*5/9:raw;handleMedicalTemperature(celsius);}
 function showEcgFlatLine(message){const trace=$("medEcgTrace");if(trace)trace.setAttribute("d","M0 27H220");$("medEcgStatus").textContent=message;}
 function onWellueNusData(event){
@@ -1685,7 +1710,7 @@ function onWellueNusData(event){
  const spo2=p[3],bpm=p[4],pi=p[6];
  if(spo2>=70&&spo2<=100)$("medOxygenValue").textContent=spo2+" %";
  if(bpm>=25&&bpm<=250){$("medHeartRateValue").textContent=bpm+" BPM";$("medHeartRateValue").classList.add("med-live-value");$("medical").classList.add("pulse-live");}
- checkMedicalVitals(spo2,bpm);
+ checkMedicalVitals(spo2,bpm);updateMedicalPulseTrend(bpm);
  $("medDeviceDetails").textContent="Wellue/Viatom-Datenpaket empfangen · SpO₂/Puls nur bei plausiblen Rohwerten angezeigt.";
  $("medServices").textContent="Wellue BLE · Live-Datenstream aktiv"+(Number.isFinite(pi)?" · PI-Rohwert empfangen":"");
 }
