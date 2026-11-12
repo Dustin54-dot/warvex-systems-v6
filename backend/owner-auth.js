@@ -541,6 +541,32 @@ export async function handleOwnerAuth(request, env) {
       return ownerJson({ success: true, users: users.results || [] });
     }
 
+    if (path === "/api/owner/security-reports" && request.method === "GET") {
+      const auth = await requireOwner(request, env);
+      if (auth.error) return auth.error;
+      const reports = await env.DB.prepare(
+        "SELECT r.id,r.account_id,r.category,r.content,r.district,r.status,r.created_at,r.reviewed_at," +
+        "a.email,a.display_name FROM app_security_reports r " +
+        "JOIN app_accounts a ON a.id=r.account_id " +
+        "ORDER BY CASE WHEN r.status='pending' THEN 0 ELSE 1 END,r.created_at DESC LIMIT 100"
+      ).all();
+      return ownerJson({ success: true, reports: reports.results || [] });
+    }
+
+    if (path === "/api/owner/security-reports/review" && request.method === "POST") {
+      const auth = await requireOwner(request, env);
+      if (auth.error) return auth.error;
+      const body = await readBody(request);
+      const reportId = String(body.reportId || "");
+      if (!reportId || reportId.length > 80) return ownerJson({ success: false, error: "Ungültige Meldungs-ID." }, 400);
+      const result = await env.DB.prepare(
+        "UPDATE app_security_reports SET status='reviewed',reviewed_at=?,reviewed_by=? WHERE id=? AND status='pending'"
+      ).bind(now, auth.session.owner_id, reportId).run();
+      if (result.meta?.changes !== 1) return ownerJson({ success: false, error: "Offene Meldung nicht gefunden oder bereits geprüft." }, 404);
+      await audit(env, auth.session.owner_id, "security_report_reviewed", null, { reportId });
+      return ownerJson({ success: true });
+    }
+
     if (path === "/api/owner/users/role" && request.method === "POST") {
       const auth = await requireOwner(request, env);
       if (auth.error) return auth.error;
