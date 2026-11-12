@@ -1711,8 +1711,9 @@ function saveMedicalVitalsLimits(){
  $("medVitalsLimitStatus").textContent="Grenzwerte aktiviert. Die kritische Pulsschwelle ist separat und nur nach medizinischer Rücksprache festzulegen. Prüfung erfolgt nur bei neuen Bluetooth-Messwerten.";
 }
 function disableMedicalVitalsLimits(){
+ const hadCriticalPulseAlarm=medicalCriticalPulseActive;
  medicalVitalsLimits={pulseLow:null,pulseHigh:null,pulseCritical:null,oxygenLow:null};medicalVitalsAlarmAcknowledged=false;medicalCriticalPulseActive=false;
- if(medicalAlarmMode==="vitals"||(medicalAlarmMode==="critical"&&medicalCriticalPulseActive))stopMedicalAlert();
+ if(medicalAlarmMode==="vitals"||(medicalAlarmMode==="critical"&&hadCriticalPulseAlarm))stopMedicalAlert();
  $("medVitalsLimitStatus").textContent="Automatische Grenzwertprüfung ist ausgeschaltet.";
 }
 function parseIEEE11073Float(view,offset){const raw=view.getUint32(offset,true);let mantissa=raw&0x00ffffff;if(mantissa&0x00800000)mantissa-=0x01000000;let exponent=(raw>>>24)&0xff;if(exponent&0x80)exponent-=0x100;return mantissa*Math.pow(10,exponent);}
@@ -1853,7 +1854,7 @@ $("medMenuConnect").addEventListener("click",()=>{closeMedicalMenu();connectMedi
 function closeMedicalMenu(){const panel=$("medMenuPanel"),trigger=$("medMenuTrigger");panel.classList.remove("open");trigger.setAttribute("aria-expanded","false");}
 $("medMenuTrigger").addEventListener("click",()=>{const panel=$("medMenuPanel"),trigger=$("medMenuTrigger"),open=!panel.classList.contains("open");panel.classList.toggle("open",open);trigger.setAttribute("aria-expanded",String(open));});
 function ensureMedicalGlobalAlarm(){
- let overlay=$("medGlobalAlarm");if(!overlay){overlay=document.createElement("div");overlay.id="medGlobalAlarm";overlay.setAttribute("role","alertdialog");overlay.setAttribute("aria-live","assertive");const card=document.createElement("div");card.className="med-global-card";const title=document.createElement("strong");title.id="medGlobalAlarmTitle";const msg=document.createElement("p");msg.id="medGlobalAlarmText";const stop=document.createElement("button");stop.id="medGlobalAlarmStop";stop.type="button";stop.addEventListener("click",()=>{if(medicalDemoRunning)stopMedicalAlarmDemo("Demo beendet.");else{medicalAlertAcknowledged=true;if(medicalAlarmMode==="vitals")medicalVitalsAlarmAcknowledged=true;stopMedicalAlert();}});card.append(title,msg,stop);overlay.append(card);document.body.append(overlay);}return overlay;
+ let overlay=$("medGlobalAlarm");if(!overlay){overlay=document.createElement("div");overlay.id="medGlobalAlarm";overlay.setAttribute("role","alertdialog");overlay.setAttribute("aria-live","assertive");const card=document.createElement("div");card.className="med-global-card";const title=document.createElement("strong");title.id="medGlobalAlarmTitle";const msg=document.createElement("p");msg.id="medGlobalAlarmText";const stop=document.createElement("button");stop.id="medGlobalAlarmStop";stop.type="button";stop.addEventListener("click",()=>{if(medicalDemoRunning)stopMedicalAlarmDemo("Demo beendet.");else{medicalAlertAcknowledged=true;if(medicalAlarmMode==="vitals"||medicalAlarmMode==="critical")medicalVitalsAlarmAcknowledged=true;stopMedicalAlert();}});card.append(title,msg,stop);overlay.append(card);document.body.append(overlay);}return overlay;
 }
 function showMedicalGlobalAlarm(title,message,isTest,informational){const overlay=ensureMedicalGlobalAlarm();$("medGlobalAlarmTitle").textContent=title;$("medGlobalAlarmText").textContent=message;$("medGlobalAlarmStop").textContent=informational?"SCHLIESSEN":isTest?"TEST STOPPEN":"ALARM BESTÄTIGEN UND STOPPEN";overlay.classList.toggle("info",!!informational);overlay.classList.add("active");}
 function hideMedicalGlobalAlarm(){const overlay=$("medGlobalAlarm");if(overlay)overlay.classList.remove("active");}
