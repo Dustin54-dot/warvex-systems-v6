@@ -391,7 +391,8 @@ body:not(.user-authenticated) #userSessionBadge,body:not(.user-authenticated) #u
   <h3>AUTOMATISCHE VITALWERT-WARNUNG</h3>
   <p class="med-muted">Grenzwerte nur nach Rücksprache mit einer erwachsenen Bezugsperson und medizinischem Fachpersonal eintragen. Ohne eingetragene Grenzwerte bleibt die automatische Prüfung ausgeschaltet.</p>
   <div class="med-value-row"><label for="medPulseLowLimit">Puls-Untergrenze (BPM)</label><input id="medPulseLowLimit" type="number" inputmode="numeric" min="25" max="249" placeholder="Nicht festgelegt" style="width:130px"></div>
-  <div class="med-value-row"><label for="medPulseHighLimit">Puls-Obergrenze (BPM)</label><input id="medPulseHighLimit" type="number" inputmode="numeric" min="26" max="250" placeholder="Nicht festgelegt" style="width:130px"></div>
+  <div class="med-value-row"><label for="medPulseHighLimit">Puls-Warnschwelle (BPM)</label><input id="medPulseHighLimit" type="number" inputmode="numeric" min="26" max="250" placeholder="Nicht festgelegt" style="width:130px"></div>
+  <div class="med-value-row"><label for="medPulseCriticalLimit">Puls-Kritischschwelle (BPM)</label><input id="medPulseCriticalLimit" type="number" inputmode="numeric" min="27" max="250" placeholder="Nicht festgelegt" style="width:130px"></div>
   <div class="med-value-row"><label for="medOxygenLowLimit">SpO₂-Untergrenze (%)</label><input id="medOxygenLowLimit" type="number" inputmode="numeric" min="70" max="99" placeholder="Nicht festgelegt" style="width:130px"></div>
   <div class="actions"><button type="button" id="medSaveVitalsLimits">GRENZWERTE AKTIVIEREN</button><button type="button" id="medDisableVitalsLimits">DEAKTIVIEREN</button></div>
   <p class="med-muted" id="medVitalsLimitStatus">Automatische Grenzwertprüfung ist ausgeschaltet.</p>
@@ -416,7 +417,7 @@ body:not(.user-authenticated) #userSessionBadge,body:not(.user-authenticated) #u
 </div>
 <div class="med-test-modal" id="medAlarmDemoModal" role="dialog" aria-modal="true" aria-labelledby="medAlarmDemoTitle">
   <div class="med-test-dialog"><h3 id="medAlarmDemoTitle">WARVEX MEDICAL · ALARME DEMO</h3>
-   <p id="medAlarmDemoStatus" aria-live="polite">Die Demo spielt die Alarmtöne nacheinander ab. Es werden keine echten Messwerte verändert.</p>
+   <p id="medAlarmDemoStatus" aria-live="polite">Alle Alarmtöne laufen fortlaufend als Demo-Schleife, bis du „Demo stoppen“ drückst. Es werden keine echten Messwerte verändert.</p>
    <div class="med-menu-status" id="medAlarmDemoStep">Bereit</div>
    <button type="button" class="med-test-close" id="medStopAlarmDemo">DEMO STOPPEN</button>
   </div>
@@ -1615,7 +1616,7 @@ let medicalAlarmMode=null, medicalVibrationSupported=typeof navigator!=="undefin
 let medicalAlertAcknowledged=false;
 let medicalDemoTimer=null, medicalDemoStep=0, medicalDemoRunning=false;
 let medicalHeartCharacteristic=null, medicalTempCharacteristic=null;
-let medicalVitalsLimits={pulseLow:null,pulseHigh:null,oxygenLow:null},medicalVitalsAlarmAcknowledged=false;
+let medicalVitalsLimits={pulseLow:null,pulseHigh:null,pulseCritical:null,oxygenLow:null},medicalVitalsAlarmAcknowledged=false,medicalCriticalPulseActive=false;
 function setMedicalConnection(message){const el=$("medConnectionStatus");if(el)el.textContent="Status: "+message;}
 function medicalAudioReady(){try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return false;if(!medicalAudioContext||medicalAudioContext.state==="closed")medicalAudioContext=new AC();if(medicalAudioContext.state==="suspended")medicalAudioContext.resume();return true;}catch(error){return false;}}
 function medicalTone(freq,duration,volume){if(!medicalAudioReady())return;const now=medicalAudioContext.currentTime,osc=medicalAudioContext.createOscillator(),gain=medicalAudioContext.createGain();osc.type="sine";osc.frequency.setValueAtTime(freq,now);gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(Math.max(.001,volume),now+.018);gain.gain.setValueAtTime(Math.max(.001,volume),now+duration*.55);gain.gain.exponentialRampToValueAtTime(.0001,now+duration);osc.connect(gain);gain.connect(medicalAudioContext.destination);osc.start(now);osc.stop(now+duration+.02);}
@@ -1632,7 +1633,7 @@ function medicalAlarmPattern(type){
  const start=ctx.currentTime+.01;let cursor=start;
  osc.type="square";gain.gain.setValueAtTime(.0001,start);
  for(const [freq,duration] of notes){
-  if(freq>0){osc.frequency.setValueAtTime(freq,cursor);gain.gain.setValueAtTime(.0001,cursor);gain.gain.linearRampToValueAtTime(type==="critical"?.20:.16,cursor+.012);gain.gain.setValueAtTime(type==="critical"?.20:.16,cursor+duration*.65);gain.gain.linearRampToValueAtTime(.0001,cursor+duration);}
+  if(freq>0){osc.frequency.setValueAtTime(freq,cursor);gain.gain.setValueAtTime(.0001,cursor);gain.gain.linearRampToValueAtTime(type==="critical"?.24:.16,cursor+.012);gain.gain.setValueAtTime(type==="critical"?.24:.16,cursor+duration*.65);gain.gain.linearRampToValueAtTime(.0001,cursor+duration);}
   cursor+=duration;
  }
  osc.connect(gain);gain.connect(ctx.destination);osc.start(start);osc.stop(cursor+.02);
@@ -1642,6 +1643,19 @@ function startMedicalAlert(level,message){if(medicalDemoRunning)stopMedicalAlarm
 function handleMedicalTemperature(celsius){if(!Number.isFinite(celsius)||celsius<25||celsius>45)return;$("medTemperatureValue").textContent=celsius.toFixed(1).replace(".",",")+" °C";if(celsius<38){medicalAlertAcknowledged=false;if(medicalAlarmMode)stopMedicalAlert();return;}if(celsius>=40&&medicalAlarmMode!=="critical"){medicalAlertAcknowledged=false;}if(medicalAlertAcknowledged)return;if(celsius>=40){startMedicalAlert("critical","Gemessene Temperatur: "+celsius.toFixed(1).replace(".",",")+" °C. Das ist ein ernstes Warnsignal. Bitte sofort eine erwachsene Vertrauensperson informieren und dringend medizinische Hilfe holen. Bei Notfall 112.");}else if(medicalAlarmMode!=="critical"){startMedicalAlert("mild","Erhöhte Temperatur gemessen: "+celsius.toFixed(1).replace(".",",")+" °C. Bitte informiere eine erwachsene Vertrauensperson und prüfe den Wert mit einem geeigneten Thermometer.");}}
 function checkMedicalVitals(spo2,bpm){
  const issues=[];
+ const validPulse=Number.isFinite(bpm)&&bpm>=25&&bpm<=250;
+ if(validPulse&&medicalVitalsLimits.pulseCritical!==null&&bpm>=medicalVitalsLimits.pulseCritical){
+  medicalCriticalPulseActive=true;
+  if(!medicalVitalsAlarmAcknowledged){
+   startMedicalAlert("critical","Kritischer Alarm! Puls bei "+bpm+" BPM. Bitte sofort eine erwachsene Vertrauensperson informieren. Bei starken Beschwerden, Brustschmerz, Atemnot oder Ohnmacht 112.");
+  }
+  return;
+ }
+ if(medicalCriticalPulseActive&&validPulse){
+  medicalCriticalPulseActive=false;
+  medicalVitalsAlarmAcknowledged=false;
+  if(medicalAlarmMode==="critical")stopMedicalAlert();
+ }
  // User-requested informational alert: only a valid live pulse reading above 120 BPM.
  if(Number.isFinite(bpm)&&bpm>=25&&bpm<=250&&bpm>120)issues.push("Puls über 120 BPM ("+bpm+" BPM). Bitte kurz ruhig hinsetzen und den Wert erneut prüfen; bei Beschwerden eine erwachsene Vertrauensperson informieren.");
  if(Number.isFinite(bpm)&&bpm>=25&&bpm<=250&&medicalVitalsLimits.pulseLow!==null&&bpm<medicalVitalsLimits.pulseLow)issues.push("Puls unter der festgelegten Untergrenze ("+bpm+" BPM).");
@@ -1660,6 +1674,13 @@ function updateMedicalPulseTrend(bpm){
  const previous=medicalPreviousPulse;
  medicalPreviousPulse=bpm;
  const high=bpm>120||(medicalVitalsLimits.pulseHigh!==null&&bpm>medicalVitalsLimits.pulseHigh);
+ if(medicalAlarmMode==="critical"&&medicalCriticalPulseActive){
+  const title="⚠ KRITISCHER PULSALARM";
+  const message="Kritischer Alarm! Aktueller Puls: "+bpm+" BPM.";
+  $("medAlarmTitle").textContent=title;
+  $("medAlarmText").textContent=message;
+  showMedicalGlobalAlarm(title,message,false);
+ }
  if(medicalAlarmMode==="vitals"&&high){
   const title="⚠ PULS ZU HOCH";
   const message="Aktueller Messwert: "+bpm+" BPM.";
@@ -1680,18 +1701,18 @@ function updateMedicalPulseTrend(bpm){
  catch(error){console.warn("WARVEX Puls-Trend-Sprachausgabe:",error);}
 }
 function saveMedicalVitalsLimits(){
- const lowRaw=$("medPulseLowLimit").value,highRaw=$("medPulseHighLimit").value,oxygenRaw=$("medOxygenLowLimit").value;
- const low=lowRaw===""?null:Number(lowRaw),high=highRaw===""?null:Number(highRaw),oxygen=oxygenRaw===""?null:Number(oxygenRaw);
- if(low===null&&high===null&&oxygen===null){$("medVitalsLimitStatus").textContent="Bitte mindestens einen mit medizinischem Fachpersonal abgestimmten Grenzwert eintragen.";return;}
- if((low!==null&&(!Number.isFinite(low)||low<25||low>249))||(high!==null&&(!Number.isFinite(high)||high<26||high>250))||(oxygen!==null&&(!Number.isFinite(oxygen)||oxygen<70||oxygen>99))||(low!==null&&high!==null&&low>=high)){
+ const lowRaw=$("medPulseLowLimit").value,highRaw=$("medPulseHighLimit").value,criticalRaw=$("medPulseCriticalLimit").value,oxygenRaw=$("medOxygenLowLimit").value;
+ const low=lowRaw===""?null:Number(lowRaw),high=highRaw===""?null:Number(highRaw),critical=criticalRaw===""?null:Number(criticalRaw),oxygen=oxygenRaw===""?null:Number(oxygenRaw);
+ if(low===null&&high===null&&critical===null&&oxygen===null){$("medVitalsLimitStatus").textContent="Bitte mindestens einen mit medizinischem Fachpersonal abgestimmten Grenzwert eintragen.";return;}
+ if((low!==null&&(!Number.isFinite(low)||low<25||low>249))||(high!==null&&(!Number.isFinite(high)||high<26||high>250))||(critical!==null&&(!Number.isFinite(critical)||critical<27||critical>250))||(oxygen!==null&&(!Number.isFinite(oxygen)||oxygen<70||oxygen>99))||(low!==null&&high!==null&&low>=high)||(high!==null&&critical!==null&&critical<=high)||(low!==null&&critical!==null&&critical<=low)){
   $("medVitalsLimitStatus").textContent="Ungültige Eingabe. Prüfe die zulässigen Eingabebereiche und dass die Puls-Untergrenze kleiner als die Obergrenze ist.";return;
  }
- medicalVitalsLimits={pulseLow:low,pulseHigh:high,oxygenLow:oxygen};medicalVitalsAlarmAcknowledged=false;
- $("medVitalsLimitStatus").textContent="Grenzwerte aktiviert. Prüfung erfolgt nur bei neu empfangenen, plausiblen Bluetooth-Messwerten.";
+ medicalVitalsLimits={pulseLow:low,pulseHigh:high,pulseCritical:critical,oxygenLow:oxygen};medicalVitalsAlarmAcknowledged=false;medicalCriticalPulseActive=false;
+ $("medVitalsLimitStatus").textContent="Grenzwerte aktiviert. Die kritische Pulsschwelle ist separat und nur nach medizinischer Rücksprache festzulegen. Prüfung erfolgt nur bei neuen Bluetooth-Messwerten.";
 }
 function disableMedicalVitalsLimits(){
- medicalVitalsLimits={pulseLow:null,pulseHigh:null,oxygenLow:null};medicalVitalsAlarmAcknowledged=false;
- if(medicalAlarmMode==="vitals")stopMedicalAlert();
+ medicalVitalsLimits={pulseLow:null,pulseHigh:null,pulseCritical:null,oxygenLow:null};medicalVitalsAlarmAcknowledged=false;medicalCriticalPulseActive=false;
+ if(medicalAlarmMode==="vitals"||(medicalAlarmMode==="critical"&&medicalCriticalPulseActive))stopMedicalAlert();
  $("medVitalsLimitStatus").textContent="Automatische Grenzwertprüfung ist ausgeschaltet.";
 }
 function parseIEEE11073Float(view,offset){const raw=view.getUint32(offset,true);let mantissa=raw&0x00ffffff;if(mantissa&0x00800000)mantissa-=0x01000000;let exponent=(raw>>>24)&0xff;if(exponent&0x80)exponent-=0x100;return mantissa*Math.pow(10,exponent);}
@@ -1851,11 +1872,14 @@ const medicalDemoSteps=[
  {name:"EKG-Hinweiston",detail:"Demo des EKG-Hinweistons; keine EKG-Messung",sound:"ecg"}
 ];
 function runMedicalAlarmDemoStep(){
- if(!medicalDemoRunning)return;const step=medicalDemoSteps[medicalDemoStep];
- $("medAlarmDemoStep").textContent=(medicalDemoStep+1)+" / "+medicalDemoSteps.length+" · "+step.name;
- $("medAlarmDemoStatus").textContent=step.detail+". Nur Demo – keine Messwerte und keine medizinische Prüfung.";
- $("medMenuStatus").textContent="Demo: "+step.name;medicalAlarmPattern(step.sound);medicalDemoStep++;
- medicalDemoTimer=setTimeout(()=>{if(medicalDemoStep>=medicalDemoSteps.length)stopMedicalAlarmDemo("Alle Demo-Alarme wurden abgespielt.");else runMedicalAlarmDemoStep();},5000);
+ if(!medicalDemoRunning)return;
+ const step=medicalDemoSteps[medicalDemoStep];
+ $("medAlarmDemoStep").textContent=(medicalDemoStep+1)+" / "+medicalDemoSteps.length+" · "+step.name+" · läuft";
+ $("medAlarmDemoStatus").textContent=step.detail+". Nur Demo – keine Messwerte und keine medizinische Prüfung. Die komplette Alarmrunde wiederholt sich, bis du stoppst.";
+ $("medMenuStatus").textContent="Demo läuft dauerhaft: "+step.name;
+ medicalAlarmPattern(step.sound);
+ medicalDemoStep=(medicalDemoStep+1)%medicalDemoSteps.length;
+ medicalDemoTimer=setTimeout(runMedicalAlarmDemoStep,5000);
 }
 function startMedicalAlarmDemo(){
  if(medicalDemoRunning)return;
