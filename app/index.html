@@ -244,6 +244,20 @@ body:not(.user-authenticated) #userSessionBadge,body:not(.user-authenticated) #u
 #ownerUsersList select{max-width:180px;margin:6px 8px 6px 0}
 #ownerUsersList .owner-user-row{padding:9px 0;border-bottom:1px solid #ffffff20;overflow-wrap:anywhere}
 
+#profileNameGate,#ownerReportAlarm{position:fixed;inset:0;z-index:100005;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(3,6,12,.96);backdrop-filter:blur(12px)}
+#profileNameGate[hidden],#ownerReportAlarm[hidden]{display:none!important}
+#profileNameGate .auth-card{width:min(100%,430px);background:#141b27;border:1px solid #39475c;border-radius:18px;padding:22px;box-shadow:0 22px 70px #000b}
+#profileNameGate h2{color:#ff5268;font-size:23px;margin:0 0 7px}
+#ownerReportAlarm{z-index:100010;background:rgba(65,0,12,.96);animation:secFlash .8s steps(2,end) infinite}
+#ownerReportAlarm .report-alarm-card{width:min(100%,620px);max-height:88vh;overflow:auto;background:#35101b;border:3px solid #ff536b;border-radius:18px;padding:20px;box-shadow:0 0 45px #ff304899}
+#ownerReportAlarm h2{color:#ff9eaa;font-size:clamp(22px,5vw,30px);line-height:1.2;margin:8px 0 12px}
+#ownerReportAlarm .report-alarm-kicker{font-size:12px;font-weight:900;letter-spacing:2px;color:#ffd27a}
+#ownerReportAlarm .report-alarm-note{color:#ffe0e5;font-size:13px}
+#ownerReportAlarm .report-row{padding:9px 0;border-bottom:1px solid #ffffff22;overflow-wrap:anywhere;font-size:14px}
+#ownerReportAlarm .report-row b{display:block;color:#ffd27a;font-size:12px;margin-bottom:3px}
+#ownerReportAlarm button{margin-top:10px}
+#ownerSecurityReportsList .owner-report-row{padding:10px 0;border-bottom:1px solid #ffffff22;overflow-wrap:anywhere}
+
 </style>
 </head>
 <body>
@@ -262,6 +276,35 @@ body:not(.user-authenticated) #userSessionBadge,body:not(.user-authenticated) #u
   </div>
   <div id="userAuthMessage" role="status">Bitte melde dich an, um WARVEX zu öffnen.</div>
   <p class="auth-note">Hinweis: Die E-Mail-Adresse wird derzeit noch nicht per Bestätigungslink verifiziert. Sie wird deshalb im Konto als „nicht bestätigt“ markiert. Verwende kein Passwort, das du an anderer Stelle nutzt.</p>
+ </div>
+</div>
+
+<div id="profileNameGate" role="dialog" aria-modal="true" aria-labelledby="profileNameTitle" hidden>
+ <div class="auth-card">
+  <div style="font-size:11px;font-weight:900;letter-spacing:2px;color:#aab5c4;margin-bottom:9px">WARVEX SYSTEMS · PROFIL</div>
+  <h2 id="profileNameTitle">WIE SOLL ICH DICH NENNEN?</h2>
+  <p class="auth-note">Nenne WARVEX deinen gewünschten Anredenamen. Du kannst ihn später jederzeit in den Einstellungen ändern.</p>
+  <label for="profileGateName">Dein Anredename</label>
+  <input id="profileGateName" type="text" maxlength="32" autocomplete="nickname" placeholder="Zum Beispiel Alex">
+  <div class="auth-actions">
+   <button id="profileGateVoiceBtn" type="button">NAMEN SPRECHEN</button>
+   <button id="profileGateSaveBtn" type="button" class="primary">BESTÄTIGEN</button>
+  </div>
+  <div id="profileGateStatus" class="auth-note" role="status">Du kannst den Namen eintippen oder sprechen.</div>
+ </div>
+</div>
+
+<div id="ownerReportAlarm" hidden role="alertdialog" aria-modal="true" aria-labelledby="ownerReportAlarmTitle">
+ <div class="report-alarm-card">
+  <div class="report-alarm-kicker">WARVEX SECURITY · OWNER-ALARM</div>
+  <h2 id="ownerReportAlarmTitle">VERDÄCHTIGER INHALT – ÜBERPRÜFUNG ERFORDERLICH</h2>
+  <p class="report-alarm-note">Ungeprüfte Nutzermeldung. Dies ist kein bestätigter Sachverhalt und keine automatische Schuldzuweisung.</p>
+  <div id="ownerReportAlarmDetails"></div>
+  <div class="actions">
+   <button type="button" id="ownerReportAlarmStop">TON STOPPEN</button>
+   <button type="button" class="primary" id="ownerReportAlarmReview">ALS GEPRÜFT MARKIEREN</button>
+   <button type="button" id="ownerReportAlarmClose">SCHLIESSEN</button>
+  </div>
  </div>
 </div>
 
@@ -349,6 +392,18 @@ body:not(.user-authenticated) #userSessionBadge,body:not(.user-authenticated) #u
 <section id="settings" class="page">
   <div class="card">
     <h2>⚙️ Einstellungen</h2>
+    <div class="settings-option">
+      <h3>Dein WARVEX-Profil</h3>
+      <p class="muted">Dein Anredename wird nur in deinem Konto gespeichert. Deine WARVEX-ID bleibt eindeutig und unverändert.</p>
+      <label for="profileDisplayName">Wie soll WARVEX dich nennen?</label>
+      <input id="profileDisplayName" type="text" maxlength="32" autocomplete="nickname" placeholder="Dein Anredename">
+      <div class="actions">
+        <button type="button" id="profileVoiceBtn">NAMEN SPRECHEN</button>
+        <button type="button" class="primary" id="profileSaveBtn">ANREDENAMEN SPEICHERN</button>
+      </div>
+      <div class="settings-note" id="profileStatus" role="status">Profil wird geladen …</div>
+      <div class="settings-note">Deine WARVEX-ID: <strong id="profileWarvexId">Wird geladen …</strong></div>
+    </div>
     <p class="muted">Die Einstellungen sind über das Drei-Punkte-Menü oben rechts jederzeit erreichbar.</p>
     <div class="settings-option">
       <h3>Kontotyp</h3>
@@ -712,7 +767,24 @@ body:not(.user-authenticated) #userSessionBadge,body:not(.user-authenticated) #u
    <h3>WANN SOLL WARVEX PRÜFEN?</h3>
    <p class="sec-note">Sicherheitsprüfung soll auf konkrete Hinweise auf sexuelle Ausbeutung oder Missbrauch von Minderjährigen, sexuelle Gewalt oder Zwang, konkrete Gewalt-/Straftatplanung und schwere Missbrauchsversuche reagieren. Sachliche Aufklärung, Nachrichten, Präventionsfragen, Hilfeersuchen oder eine Aussage über ein erlittenes Unrecht dürfen nicht automatisch als Täterverhalten eingestuft werden. Ein Treffer wäre nur ein Prüfhinweis, kein Schuldurteil.</p>
   </div>
-  <p class="sec-note" style="margin-top:12px">Datenschutz-Grundsatz: möglichst nur Kategorie, Zeitpunkt und technische Ereignis-ID speichern – keine vollständigen Chattexte oder unnötigen personenbezogenen Daten. Nutzer müssen vor einer solchen Verarbeitung klar informiert werden.</p>
+  <div class="sec-panel" style="margin-top:14px">
+   <h3>SICHERHEITSMELDUNG SENDEN</h3>
+   <p class="sec-note">Wenn du einen konkreten verdächtigen Inhalt oder ein Sicherheitsproblem melden möchtest, kannst du hier freiwillig eine Meldung an das geschützte Owner-Postfach senden. Die Meldung ist zunächst nur ein ungeprüfter Hinweis und kein Schuldurteil.</p>
+   <label for="securityReportCategory">Kategorie</label>
+   <select id="securityReportCategory">
+    <option value="suspicious_content">Verdächtiger Inhalt</option>
+    <option value="possible_threat">Mögliche Bedrohung</option>
+    <option value="security_issue">Sicherheitsproblem</option>
+    <option value="other">Sonstiges</option>
+   </select>
+   <label for="securityReportContent">Was möchtest du melden?</label>
+   <textarea id="securityReportContent" maxlength="3000" rows="4" placeholder="Beschreibe den konkreten Hinweis (8 bis 3000 Zeichen)."></textarea>
+   <label for="securityReportDistrict">Gegend / Stadtteil (freiwillig)</label>
+   <input id="securityReportDistrict" maxlength="80" placeholder="Nur wenn du das selbst angeben möchtest">
+   <div class="actions"><button type="button" class="primary" id="securityReportSubmit">SICHERHEITSMELDUNG SENDEN</button></div>
+   <div class="sec-note" id="securityReportStatus" role="status">Deine E-Mail-Adresse und WARVEX-ID werden dem geschützten Owner-Postfach zugeordnet. Keine automatische Standortermittlung.</div>
+  </div>
+  <p class="sec-note" style="margin-top:12px">Datenschutz: Nur ausdrücklich abgesendete Meldungen werden gespeichert. Es findet hier keine automatische Überwachung oder automatische Einstufung deiner Chatnachrichten statt.</p>
  </div>
 </section>
 
@@ -763,6 +835,8 @@ body:not(.user-authenticated) #userSessionBadge,body:not(.user-authenticated) #u
     <div id="ownerDevicesList" class="sec-note">Noch nicht geladen.</div>
     <h4>SICHERHEITSPROTOKOLL</h4>
     <div id="ownerEventsList" class="sec-note">Noch nicht geladen.</div>
+    <h4>EINGEGANGENE SICHERHEITSMELDUNGEN</h4>
+    <div id="ownerSecurityReportsList" class="sec-note">Noch nicht geladen.</div>
     <div id="ownerTeamManager" hidden>
      <h4>TEAMMITGLIED / OWNER HINZUFÜGEN ODER ROLLE ÄNDERN</h4>
      <p class="sec-note">Gib die E-Mail-Adresse eines bereits bestehenden WARVEX-Kontos ein. Neue Konten müssen sich zuerst selbst registrieren; ein E-Mail-Einladungsversand ist derzeit nicht eingerichtet.</p>
@@ -3033,9 +3107,12 @@ $o("ownerRefreshBtn")?.addEventListener("click",async()=>{
   document.body.classList.add("user-authenticated");
   $("userAuthGate").hidden=true;
   const badge=$("userSessionBadge");
-  if(badge)badge.textContent=user.email+" · "+(user.roleLabel||"Benutzer");
+  if(badge)badge.textContent=(user.displayName||"Profilname fehlt")+" · "+(user.roleLabel||"Benutzer");
+  const idEl=$("profileWarvexId");if(idEl)idEl.textContent=user.warvexId||user.id||"—";
+  const nameEl=$("profileDisplayName");if(nameEl)nameEl.value=user.displayName||"";
   window.dispatchEvent(new Event("warvex-user-authenticated"));
   loadNotifications().catch(()=>{});
+  loadProfile(user).catch(e=>{const st=$("profileStatus");if(st)st.textContent="Profil konnte nicht geladen werden: "+e.message;});
  }
  async function request(path,body,auth){
   const headers={"Content-Type":"application/json"};
@@ -3045,6 +3122,63 @@ $o("ownerRefreshBtn")?.addEventListener("click",async()=>{
   if(!response.ok||data.success===false)throw new Error(data.error||("HTTP "+response.status));
   return data;
  }
+ let activeProfileUser=null;
+ let nameRecognition=null;
+ async function loadProfile(user){
+  const saved=token();if(!saved)return;
+  const data=await request("/api/auth/me",null,saved);
+  activeProfileUser=data.user;
+  const id=data.user.warvexId||data.user.id||"—";
+  const idEl=$("profileWarvexId");if(idEl)idEl.textContent=id;
+  const field=$("profileDisplayName");if(field)field.value=data.user.displayName||"";
+  const badge=$("userSessionBadge");
+  if(badge)badge.textContent=(data.user.displayName||"Profilname fehlt")+" · "+(data.user.roleLabel||"Benutzer");
+  if(!data.user.displayName){
+   $("profileNameGate").hidden=false;
+   const gateStatus=$("profileGateStatus");
+   if(gateStatus)gateStatus.textContent="Wie soll ich dich nennen? Du kannst den Namen eintippen oder sprechen.";
+   speakNamePrompt();
+  }
+ }
+ function speakNamePrompt(){
+  if(!("speechSynthesis" in window))return;
+  try{speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance("Wie soll ich dich nennen?");utterance.lang="de-DE";speechSynthesis.speak(utterance);}catch(e){}
+ }
+ async function saveProfileName(value,gate){
+  const displayName=String(value||"").trim().replace(/\\s+/g," ");
+  const status=$(gate?"profileGateStatus":"profileStatus");
+  if(displayName.length<1||displayName.length>32){if(status)status.textContent="Bitte gib einen Namen mit 1 bis 32 Zeichen ein.";return;}
+  try{
+   const result=await request("/api/auth/profile",{displayName},token());
+   if(activeProfileUser)activeProfileUser.displayName=result.displayName;
+   const field=$("profileDisplayName");if(field)field.value=result.displayName;
+   const idEl=$("profileWarvexId");if(idEl)idEl.textContent=result.warvexId;
+   const badge=$("userSessionBadge");if(badge)badge.textContent=result.displayName+" · "+((activeProfileUser&&activeProfileUser.roleLabel)||"Benutzer");
+   $("profileNameGate").hidden=true;
+   if(status)status.textContent="Alles klar – ich nenne dich ab jetzt "+result.displayName+".";
+   if("speechSynthesis" in window){const u=new SpeechSynthesisUtterance("Alles klar. Ich nenne dich ab jetzt "+result.displayName+".");u.lang="de-DE";speechSynthesis.speak(u);}
+  }catch(e){if(status)status.textContent="Speichern fehlgeschlagen: "+e.message;}
+ }
+ function startNameVoice(gate){
+  const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const input=$(gate?"profileGateName":"profileDisplayName");
+  const status=$(gate?"profileGateStatus":"profileStatus");
+  if(!Speech){if(status)status.textContent="Spracherkennung wird in diesem Browser nicht unterstützt. Bitte tippe den Namen ein.";return;}
+  try{
+   if(nameRecognition)nameRecognition.abort();
+   nameRecognition=new Speech();nameRecognition.lang="de-DE";nameRecognition.interimResults=false;nameRecognition.maxAlternatives=1;
+   nameRecognition.onresult=e=>{const text=e.results?.[0]?.[0]?.transcript||"";if(input)input.value=text.trim();if(status)status.textContent="Erkannt: "+text;};
+   nameRecognition.onerror=()=>{if(status)status.textContent="Spracheingabe nicht verfügbar. Du kannst den Namen eintippen.";};
+   nameRecognition.start();
+   if(status)status.textContent="Ich höre zu – sage deinen Anredenamen.";
+  }catch(e){if(status)status.textContent="Spracheingabe konnte nicht gestartet werden. Bitte tippe den Namen ein.";}
+ }
+ $("profileSaveBtn")?.addEventListener("click",()=>saveProfileName($("profileDisplayName").value,false));
+ $("profileGateSaveBtn")?.addEventListener("click",()=>saveProfileName($("profileGateName").value,true));
+ $("profileVoiceBtn")?.addEventListener("click",()=>startNameVoice(false));
+ $("profileGateVoiceBtn")?.addEventListener("click",()=>startNameVoice(true));
+ $("profileGateName")?.addEventListener("keydown",e=>{if(e.key==="Enter")saveProfileName($("profileGateName").value,true);});
+
  async function loadNotifications(){
   const saved=token();
   const card=$("accountNotificationsCard");
@@ -3107,6 +3241,22 @@ $o("ownerRefreshBtn")?.addEventListener("click",async()=>{
   $("userAuthGate").hidden=false;
   setMode("login");
  }
+ $("securityReportSubmit")?.addEventListener("click",async()=>{
+  const button=$("securityReportSubmit"),status=$("securityReportStatus");
+  const content=$("securityReportContent").value.trim();
+  if(content.length<8){status.textContent="Bitte beschreibe den Hinweis mit mindestens 8 Zeichen.";return;}
+  button.disabled=true;status.textContent="Meldung wird sicher übermittelt …";
+  try{
+   const result=await request("/api/auth/security-report",{
+    category:$("securityReportCategory").value,
+    content,
+    district:$("securityReportDistrict").value.trim()
+   },token());
+   status.textContent=result.message||"Meldung wurde übermittelt.";
+   $("securityReportContent").value="";
+  }catch(e){status.textContent="Meldung fehlgeschlagen: "+e.message;}
+  finally{button.disabled=false;}
+ });
  $("userAuthSubmit")?.addEventListener("click",submit);
  $("userAuthSwitch")?.addEventListener("click",()=>setMode(mode==="login"?"register":"login"));
  $("userAuthPassword")?.addEventListener("keydown",e=>{if(e.key==="Enter")submit();});
