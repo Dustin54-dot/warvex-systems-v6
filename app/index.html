@@ -1314,7 +1314,7 @@ async function askAI(prompt,onChunk){
     response=await fetch(AI_URL,{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({prompt,stream:useStream}),
+      body:JSON.stringify({prompt,stream:useStream,displayName:window.warvexDisplayName||""}),
       cache:"no-store"
     });
   }catch(error){
@@ -3215,6 +3215,7 @@ $o("ownerRefreshBtn")?.addEventListener("click",async()=>{
  function showUser(user){
   document.body.classList.add("user-authenticated");
   $("userAuthGate").hidden=true;
+  window.warvexDisplayName=user.displayName||"";
   const badge=$("userSessionBadge");
   if(badge)badge.textContent=(user.displayName||"Profilname fehlt")+" · "+(user.roleLabel||"Benutzer");
   const idEl=$("profileWarvexId");if(idEl)idEl.textContent=user.warvexId||user.id||"—";
@@ -3237,6 +3238,7 @@ $o("ownerRefreshBtn")?.addEventListener("click",async()=>{
   const saved=token();if(!saved)return;
   const data=await request("/api/auth/me",null,saved);
   activeProfileUser=data.user;
+  window.warvexDisplayName=data.user.displayName||"";
   const id=data.user.warvexId||data.user.id||"—";
   const idEl=$("profileWarvexId");if(idEl)idEl.textContent=id;
   const field=$("profileDisplayName");if(field)field.value=data.user.displayName||"";
@@ -3260,6 +3262,7 @@ $o("ownerRefreshBtn")?.addEventListener("click",async()=>{
   try{
    const result=await request("/api/auth/profile",{displayName},token());
    if(activeProfileUser)activeProfileUser.displayName=result.displayName;
+   window.warvexDisplayName=result.displayName;
    const field=$("profileDisplayName");if(field)field.value=result.displayName;
    const idEl=$("profileWarvexId");if(idEl)idEl.textContent=result.warvexId;
    const badge=$("userSessionBadge");if(badge)badge.textContent=result.displayName+" · "+((activeProfileUser&&activeProfileUser.roleLabel)||"Benutzer");
@@ -3374,6 +3377,7 @@ $o("ownerRefreshBtn")?.addEventListener("click",async()=>{
   const saved=token();
   try{if(saved)await request("/api/auth/logout",{},saved);}catch(e){}
   setToken("");
+  window.warvexDisplayName="";
   window.dispatchEvent(new Event("warvex-user-logged-out"));
   const noticeCard=$("accountNotificationsCard");if(noticeCard)noticeCard.hidden=true;
   document.body.classList.remove("user-authenticated");
