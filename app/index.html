@@ -2655,6 +2655,82 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
  });
  let currentDeviceId=null;
  let pollHandle=null;
+ const seenSecurityReportIds=new Set();
+ let activeSecurityReport=null;
+ let reportBeepTimer=null;
+ let reportAudioContext=null;
+ function stopReportAlarm(){
+  if(reportBeepTimer){clearInterval(reportBeepTimer);reportBeepTimer=null;}
+  if(reportAudioContext){try{reportAudioContext.close();}catch(e){}reportAudioContext=null;}
+  if("speechSynthesis" in window){try{speechSynthesis.cancel();}catch(e){}}
+ }
+ function beepSecurityReport(){
+  try{
+   const Audio=window.AudioContext||window.webkitAudioContext;
+   if(!Audio)return;
+   if(!reportAudioContext)reportAudioContext=new Audio();
+   if(reportAudioContext.state==="suspended")reportAudioContext.resume();
+   const now=reportAudioContext.currentTime;
+   [880,660].forEach((frequency,index)=>{
+    const oscillator=reportAudioContext.createOscillator();
+    const gain=reportAudioContext.createGain();
+    oscillator.type="square";oscillator.frequency.value=frequency;
+    gain.gain.setValueAtTime(0.0001,now+index*.18);
+    gain.gain.exponentialRampToValueAtTime(0.12,now+index*.18+.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001,now+index*.18+.14);
+    oscillator.connect(gain);gain.connect(reportAudioContext.destination);
+    oscillator.start(now+index*.18);oscillator.stop(now+index*.18+.15);
+   });
+  }catch(e){}
+ }
+ function showSecurityReportAlarm(report){
+  activeSecurityReport=report;
+  const overlay=$o("ownerReportAlarm"),details=$o("ownerReportAlarmDetails");
+  if(!overlay||!details)return;
+  details.textContent="";
+  const rows=[
+   ["Status","UNGEPRÜFTE MELDUNG · "+(report.status==="pending"?"OFFEN":"GEPRÜFT")],
+   ["Name",report.display_name||"Kein Anredename angegeben"],
+   ["E-Mail",report.email||"Nicht verfügbar"],
+   ["WARVEX-ID",report.account_id||"Nicht verfügbar"],
+   ["Gegend (freiwillig)",report.district||"Nicht angegeben"],
+   ["Kategorie",({suspicious_content:"Verdächtiger Inhalt",possible_threat:"Mögliche Bedrohung",security_issue:"Sicherheitsproblem",other:"Sonstiges"})[report.category]||"Sonstiges"],
+   ["Meldungstext",report.content||""],
+   ["Eingegangen",new Date(report.created_at).toLocaleString("de-DE")]
+  ];
+  rows.forEach(([label,value])=>{
+   const row=document.createElement("div");row.className="report-row";
+   const heading=document.createElement("b");heading.textContent=label;
+   const body=document.createElement("div");body.textContent=value;
+   row.appendChild(heading);row.appendChild(body);details.appendChild(row);
+  });
+  overlay.hidden=false;
+  beepSecurityReport();
+  if(!reportBeepTimer)reportBeepTimer=setInterval(beepSecurityReport,1600);
+  if("speechSynthesis" in window){
+   try{
+    speechSynthesis.cancel();
+    const spoken="Verdächtiger Inhalt. Überprüfung erforderlich. Neue ungeprüfte Sicherheitsmeldung. Von "+(report.display_name||"einem Benutzer")+". "+(report.content||"");
+    const utterance=new SpeechSynthesisUtterance(spoken);utterance.lang="de-DE";speechSynthesis.speak(utterance);
+   }catch(e){}
+  }
+ }
+ $o("ownerReportAlarmStop")?.addEventListener("click",stopReportAlarm);
+ $o("ownerReportAlarmClose")?.addEventListener("click",()=>{
+  stopReportAlarm();const overlay=$o("ownerReportAlarm");if(overlay)overlay.hidden=true;
+ });
+ $o("ownerReportAlarmReview")?.addEventListener("click",async()=>{
+  if(!activeSecurityReport)return;
+  const button=$o("ownerReportAlarmReview");button.disabled=true;
+  try{
+   const token=await getOwnerToken();
+   await api("/api/owner/security-reports/review",{reportId:activeSecurityReport.id},token);
+   stopReportAlarm();$o("ownerReportAlarm").hidden=true;activeSecurityReport=null;
+   await refreshOwner();setStatus("Meldung wurde als geprüft markiert.",false);
+  }catch(e){setStatus("Meldung konnte nicht markiert werden: "+e.message,true);}
+  finally{button.disabled=false;}
+ });
+
 
  function openDb(){
   return new Promise((resolve,reject)=>{
@@ -2794,6 +2870,39 @@ window.addEventListener("pagehide",()=>{stopBeeps();if(pollTimer)clearInterval(p
    addText(eventBox,date+" · "+item.action);
   });
   if(!(me.events||[]).length)addText(eventBox,"Noch keine Sicherheitsereignisse.");
+
+  const reportsBox=$o("ownerSecurityReportsList");
+  if(reportsBox){
+   reportsBox.textContent="";
+   try{
+    const reportData=await api("/api/owner/security-reports",null,token);
+    const reports=Array.isArray(reportData.reports)?reportData.reports:[];
+    if(!reports.length)addText(reportsBox,"Noch keine freiwillig eingereichten Sicherheitsmeldungen.");
+    reports.forEach(report=>{
+     const line=document.createElement("div");line.className="owner-report-row";
+     const heading=document.createElement("strong");
+     heading.textContent=(report.status==="pending"?"● OFFEN · ":"✓ GEPRÜFT · ")+(report.display_name||"Unbekannter Name")+" · "+report.email;
+     const summary=document.createElement("div");
+     summary.textContent="WARVEX-ID: "+report.account_id+" · "+(report.district||"Gegend nicht angegeben")+" · "+new Date(report.created_at).toLocaleString("de-DE");
+     const body=document.createElement("div");body.textContent=report.content;
+     line.appendChild(heading);line.appendChild(summary);line.appendChild(body);
+     if(report.status==="pending"){
+      const open=actionButton("WARNFENSTER ÖFFNEN",()=>showSecurityReportAlarm(report));
+      line.appendChild(open);
+      if(!seenSecurityReportIds.has(report.id)){
+       seenSecurityReportIds.add(report.id);
+       if(!activeSecurityReport)showSecurityReportAlarm(report);
+      }
+      const review=actionButton("ALS GEPRÜFT MARKIEREN",async()=>{
+       try{await api("/api/owner/security-reports/review",{reportId:report.id},token);await refreshOwner();setStatus("Meldung wurde als geprüft markiert.",false);}
+       catch(e){setStatus(e.message,true);}
+      });
+      line.appendChild(review);
+     }
+     reportsBox.appendChild(line);
+    });
+   }catch(e){addText(reportsBox,"Sicherheitspostfach konnte nicht geladen werden: "+e.message);}
+  }
 
   const userBox=$o("ownerUsersList");
   showBox("ownerTeamManager",me.owner.role==="primary_owner");
